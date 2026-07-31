@@ -23,10 +23,10 @@ export default function AnimeCard({ anime }) {
       <div className="anime-card__body">
         <h3 className="anime-card__title">{title}</h3>
         <p className="anime-card__predicted">
-          Match: {(anime?.predictedScore ?? 0).toFixed(1)}/10
+          Match: {(anime?.predictedScore ?? 0).toFixed(2)}/10
         </p>
         <p className="anime-card__community">
-          Comunidade: {(anime?.communityScore ?? 0).toFixed(1)}/10
+          Comunidade: {(anime?.communityScore ?? 0).toFixed(2)}/10
         </p>
         <div className="anime-card__genres">
           {genres.map((genre) => (

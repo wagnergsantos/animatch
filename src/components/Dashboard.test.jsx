@@ -78,6 +78,10 @@ describe('Dashboard', () => {
 
     expect(screen.getByText('Made in Abyss')).toBeInTheDocument()
     expect(screen.getByText('Steins;Gate')).toBeInTheDocument()
+    expect(screen.getByText('Match: 7.80/10')).toBeInTheDocument()
+    expect(screen.getByText('Comunidade: 8.40/10')).toBeInTheDocument()
+    expect(screen.getByText('Match: 8.50/10')).toBeInTheDocument()
+    expect(screen.getByText('Comunidade: 9.10/10')).toBeInTheDocument()
 
     const link1 = screen.getByRole('link', { name: /Made in Abyss/i })
     expect(link1).toHaveAttribute('href', 'https://anilist.co/anime/1')

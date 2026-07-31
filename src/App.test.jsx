@@ -50,6 +50,8 @@ describe('App', () => {
     })
 
     expect(screen.getByText('Rec1')).toBeInTheDocument()
+    expect(screen.getByText('Match: 6.74/10')).toBeInTheDocument()
+    expect(screen.getByText('Comunidade: 8.50/10')).toBeInTheDocument()
   })
 
   it('shows error on login screen when API fails', async () => {
