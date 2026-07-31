@@ -1,73 +1,65 @@
-# Avaliação da Ferramenta e Propostas de Melhoria
+# Avaliação Geral e Propostas de Melhoria — AniMatch
 
-## Visão Geral
-Este documento apresenta uma análise técnica detalhada dos problemas identificados e uma avaliação das 10 propostas de melhoria sugeridas para a aplicação AniMatch.
-
----
-
-## ⚠️ Avaliação dos Problemas Identificados
-
-### 1. Compatibilidade de Dependências (Crítico)
-* **Diagnóstico:** O erro `webidl.util.markAsUncloneable is not a function` ocorre devido a incompatibilidades entre versões do Node.js (v20.19.5 LTS) e versões recentes do `jsdom`/`undici` que exigem Node.js v22+.
-* **Recomendação:** A opção de **downgrade das dependências de teste** no `package.json` é a mais adequada. Manter a aplicação no Node 20 LTS garante estabilidade e compatibilidade com a maioria dos ambientes de CI/CD e hospedagem sem forçar uma atualização disruptiva de ambiente.
-
-### 2. API - Falta de Cache
-* **Diagnóstico:** Chamadas repetidas à API do AniList sem cache aumentam a latência e o risco de estourar a taxa limite (*rate limit*) da API (90 requisições por minuto).
-* **Recomendação:** Implementação de cache via `localStorage` com TTL (Time To Live) de 5 a 10 minutos para dados da lista do usuário. Para evitar que o limite de 5MB do `localStorage` seja atingido por usuários com listas gigantescas, o cache deve armazenar apenas os atributos estritamente necessários.
-
-### 3. Tratamento de Erros
-* **Diagnóstico:** Mensagens de erro genéricas e falta de mecanismo de retentativa (*retry*) prejudicam a resiliência em caso de falhas temporárias de rede ou indisponibilidade pontual do GraphQL da AniList.
-* **Recomendação:** Implementar um interceptor/wrapper de requisições com *backoff exponencial* (ex: tentar novamente 2 a 3 vezes em intervalos crescentes) e mensagens explicativas em português.
-
-### 4. Performance
-* **Diagnóstico:** Payload excessivo devido a buscas de campos desnecessários no GraphQL (ex: `externalLinks` completo) e ausência de paginação/virtualização para listas longas.
-* **Recomendação:** Refatorar a query GraphQL para enxugar os campos solicitados e aplicar renderização otimizada/virtualização para listas grandes.
-
-### 5. Segurança
-* **Diagnóstico:** Sanitização e validação de URLs externas e HTML em descrições de mídia.
-* **Recomendação:** Garantir validação e sanitização rígidas de URLs de streaming externos e manter `asHtml: false` ou utilizar biblioteca de sanitização (ex: `DOMPurify`) se HTML for renderizado.
+> **Projeto:** AniMatch ([wagnergsantos/animatch](https://github.com/wagnergsantos/animatch/))  
+> **Data de Consolidação:** 31/07/2026  
+> **Status:** Fases 1 a 3 concluídas | Fase 4 em planejamento (Bugs, Otimizações & Qualidade)
 
 ---
 
-## 🚀 Análise Técnica das 10 Propostas de Melhoria
+## 🎯 Visão Geral do Projeto
 
-| # | Proposta | Impacto | Complexidade | Avaliação & Recomendações |
+O **AniMatch** é uma aplicação web React que recomenda animes aos usuários com base em seus perfis do AniList utilizando **Média Bayesiana** para calcular pontuações previstas.
+
+* **Arquitetura & Design:** Separação limpa (`api/`, `logic/`, `components/`), CSS puro utilizando variáveis nativas e **OKLCH**, animações e loaders fluidos (Skeleton Loading).
+* **Testes & Cobertura:** Suíte unitária com Vitest + Testing Library e mocks da API AniList.
+
+---
+
+## 🛑 1. Bugs Identificados no Estado Atual
+
+| # | Bug | Impacto | Local | Solução Recomendada |
 |---|---|---|---|---|
-| **1** | **Corrigir Tests (Downgrade JSDOM/Vitest)** | Alto | Baixa | **Essencial & Imediato.** Ajusta as dependências para rodar os testes na versão atual do Node 20 LTS. |
-| **2** | **Cache de Dados (`localStorage`)** | Alto | Baixa | **Excelente.** Reduz latência de carregamento para 0ms em acessos subsequentes no intervalo de TTL. Recomenda-se adicionar botão de "Forçar Atualização". |
-| **3** | **Otimizar Query GraphQL** | Alto | Baixa | **Cirúrgico.** Diminui payload consumido da rede, acelera o parse JSON no navegador e economiza memória RAM. |
-| **4** | **Skeleton Loading nos Cards** | Médio | Baixa | **Padrão de UX moderna.** Evita o efeito *CLS (Cumulative Layout Shift)* e dá feedback visual imediato ao usuário. |
-| **5** | **Filtros Avançados (Ano, Formato, Busca, Ordenação)** | Alto | Média | **Fundamental para utilidade.** Permite ao usuário refinar e encontrar animes específicos rapidamente na lista recomendada. |
-| **6** | **Export/Import de Dados (CSV/JSON)** | Médio | Baixa | **User-Centric.** Concede autonomia ao usuário sobre seus dados sem necessidade de processamento no servidor. |
-| **7** | **PWA (Progressive Web App)** | Médio | Média | **Visão de futuro.** Permite instalação no celular/desktop e melhora experiência de uso como aplicativo nativo. |
-| **8** | **Dark/Light Theme Toggle** | Médio | Baixa | **Moderno.** A abordagem sugerida usando variáveis CSS e `oklch` é nativa, super leve e altamente acessível. |
-| **9** | **Compartilhar Recomendações** | Médio | Média | **Growth Loop.** Permite gerar URLs com parâmetros de estado (`?user=username`) facilitando o compartilhamento de perfis e listas. |
-| **10**| **Histórico de Sessões** | Baixo | Média | **Interessante.** Permite acompanhar a evolução do perfil de recomendações ao longo do tempo. |
+| **B1** | **Hook Condicional** | Alto (Crash / Estado inconsistente) | `RecommendationGrid.jsx` | Mover `useMemo` para antes dos retornos condicionais (`if (loading)`, `if (empty)`). |
+| **B2** | **Nota 0 Invisível nos Cards** | Médio (UX / Exibição incorreta) | `AnimeCard.jsx` | Trocar checagem de truthiness (`&&`) por checagem estrita (`!= null`). |
+| **B3** | **Parâmetro `forceRefresh` Órfão** | Médio (Funcionalidade inacessível) | `anilist.js` / UI | Conectar um botão "Atualizar Lista" no Dashboard que passe `{ forceRefresh: true }`. |
 
 ---
 
-## 📋 Roteiro de Implementação Sugerido
+## 💡 2. Oportunidades de Melhoria & Funcionalidades (Fase 4)
 
-### Fase 1: Estabilidade e Performance (Prioridade Alta)
-1. Ajuste das dependências no `package.json` e execução da suíte de testes.
-2. Otimização da query GraphQL no client AniList.
-3. Implementação da camada de cache com `localStorage` e TTL.
-4. Melhorar mensagens de erro e adicionar retry (3 tentativas)
+### A. Experiência do Usuário (UX) e Filtros
+1. **Botão "Atualizar Lista":** Permitir re-sincronizar os dados com o AniList furando o cache de 5min sem precisar limpar o `localStorage`.
+2. **Gêneros Dinâmicos no `FilterBar`:** Derivar gêneros disponíveis diretamente do `tasteProfile` ou da lista retornada, em vez de depender da lista fixa de 8 gêneros.
+3. **Filtro & Ordenação por Ano:** Permitir filtrar e ordenar por ano de lançamento (`seasonYear`), que já é retornado pela API.
+4. **Busca Ampliada:** Expandir a busca de texto para considerar sinopse/descrição e gêneros, além dos títulos.
 
-### Fase 2: Experiência do Usuário & UX (Prioridade Média)
-1. Adição dos Skeleton Loaders durante o carregamento de recomendações.
-2. Implementação do seletor de temas Dark/Light (`oklch` + CSS Variables).
-3. Adição dos Filtros Avançados (ano, formato, ordenação e busca por nome).
+### B. Consistência Algorítmica & Cache
+5. **Integração do Slider de Confiança Bayesian C:** Conectar a constante $C$ alterada na tela de estatísticas diretamente ao motor de recomendação (`recommender.js`).
+6. **Cache Local para Dublagem (`fetchDubInfo`):** Salvar as informações de dublagem no `localStorage` com TTL longo para evitar chamadas de rede redundantes.
 
-### Fase 3: Recursos Adicionais e Expansão (Prioridade Secundária)
-1. Exportação de recomendações em CSV.
-2. Suporte a PWA (`manifest.json` e Service Worker).
-3. URLs de compartilhamento dinâmico e histórico de consultas.
+### C. Qualidade de Código, Performance & Acessibilidade (a11y)
+7. **Desduplicação da Agregação de Gêneros:** Criar `genreStats.js` compartilhado entre `recommender.js` e `analytics.js`.
+8. **Resiliência de Rede & Cancelamento:** Adicionar `AbortController` nos `useEffect` e timeout na camada de fetch.
+9. **Acessibilidade do Modal:** Implementar *focus trap* e `aria-modal="true"` no `GenreRecommendationModal.jsx`.
+10. **Adoção Gradual de TypeScript:** Tipar primeiramente as camadas de dados puras (`logic/` e `api/`).
+11. **CI via GitHub Actions:** Workflow automático rodando `lint`, `test` e `build` nos PRs.
 
-### Backlog (Futuro)
+---
 
-1. Sistema de notificações para novos episódios
-2. Integração com MyAnimeList também
-3. Modo comparativo (comparar gosto com amigos)
-4. Gráficos mais elaborados (D3.js ou Chart.js)
-5. Backend próprio para caching e analytics
+## 📋 Roteiro de Execução Recomendado (Fase 4)
+
+1. **Sprint 1 — Correção de Bugs & Botão Refresh (Prioridade Máxima)**
+   * Corrigir Hook condicional em `RecommendationGrid.jsx` (B1).
+   * Corrigir nota 0 em `AnimeCard.jsx` (B2).
+   * Adicionar botão "Atualizar Lista" no Dashboard e integrar `forceRefresh` (B3).
+2. **Sprint 2 — Filtros Otimizados & Cache Complementar**
+   * Implementar gêneros dinâmicos no `FilterBar`.
+   * Adicionar filtro por ano (`seasonYear`) e busca ampliada.
+   * Adicionar cache com TTL para o `fetchDubInfo`.
+3. **Sprint 3 — Consistência Algorítmica & Qualidade / a11y**
+   * Conectar slider Bayesian C ao recomendador.
+   * Extrair agregador comum de gêneros (`genreStats.js`).
+   * Adicionar `AbortController` e foco acessível no modal.
+   * Configurar CI no GitHub Actions.
+
+---
