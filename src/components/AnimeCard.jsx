@@ -19,10 +19,20 @@ export default function AnimeCard({ anime, hasDub }) {
     window.open(siteUrl, '_blank', 'noopener,noreferrer')
   }
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      handleCardClick()
+    }
+  }
+
   return (
     <article
       className="anime-card"
       onClick={handleCardClick}
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
+      role="link"
       style={{ cursor: 'pointer' }}
       title={title}
     >
@@ -36,12 +46,12 @@ export default function AnimeCard({ anime, hasDub }) {
       </div>
       <div className="anime-card__body">
         <h3 className="anime-card__title">{title}</h3>
-        {anime?.predictedScore != null && (
+        {typeof anime?.predictedScore === 'number' && !isNaN(anime.predictedScore) && (
           <p className="anime-card__predicted">
             Match: {(anime.predictedScore).toFixed(2)}/10
           </p>
         )}
-        {anime?.communityScore != null && (
+        {typeof anime?.communityScore === 'number' && !isNaN(anime.communityScore) && (
           <p className="anime-card__community">
             Comunidade: {(anime.communityScore).toFixed(2)}/10
           </p>

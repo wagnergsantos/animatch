@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi } from 'vitest'
+import { render, screen, fireEvent } from '@testing-library/react'
 import AnimeCard from './AnimeCard.jsx'
 
 describe('AnimeCard', () => {
@@ -37,6 +37,17 @@ describe('AnimeCard', () => {
     expect(screen.queryByText(/Comunidade:/)).not.toBeInTheDocument()
   })
 
+  it('does not render score paragraphs when scores are NaN or invalid types', () => {
+    const anime = {
+      title: 'Invalid Score Anime',
+      predictedScore: NaN,
+      communityScore: '7.5',
+    }
+    render(<AnimeCard anime={anime} />)
+    expect(screen.queryByText(/Match:/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Comunidade:/)).not.toBeInTheDocument()
+  })
+
   it('uses title attribute with only title instead of long description', () => {
     const anime = {
       title: 'Short Title',
@@ -45,5 +56,24 @@ describe('AnimeCard', () => {
     const { container } = render(<AnimeCard anime={anime} />)
     const article = container.querySelector('article')
     expect(article).toHaveAttribute('title', 'Short Title')
+  })
+
+  it('has keyboard accessibility attributes and triggers link on keyboard activation (Enter key)', () => {
+    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => {})
+    const anime = {
+      id: 123,
+      title: 'Keyboard Test Anime',
+    }
+    render(<AnimeCard anime={anime} />)
+    const card = screen.getByRole('link', { name: /Keyboard Test Anime/i })
+    expect(card).toHaveAttribute('tabindex', '0')
+
+    fireEvent.keyDown(card, { key: 'Enter' })
+    expect(openSpy).toHaveBeenLastCalledWith('https://anilist.co/anime/123', '_blank', 'noopener,noreferrer')
+
+    fireEvent.keyDown(card, { key: ' ' })
+    expect(openSpy).toHaveBeenLastCalledWith('https://anilist.co/anime/123', '_blank', 'noopener,noreferrer')
+
+    openSpy.mockRestore()
   })
 })
