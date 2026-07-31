@@ -1,9 +1,10 @@
 import './AnimeCard.css'
 
-export default function AnimeCard({ anime, onGenreClick }) {
+export default function AnimeCard({ anime, onGenreClick, hasDub }) {
   const genres = anime?.genres ?? []
   const title = anime?.title || 'Untitled'
   const siteUrl = anime?.siteUrl || (anime?.id ? `https://anilist.co/anime/${anime.id}` : '#')
+  const streamingLinks = anime?.streamingLinks ?? []
 
   return (
     <a
@@ -28,6 +29,32 @@ export default function AnimeCard({ anime, onGenreClick }) {
         <p className="anime-card__community">
           Comunidade: {(anime?.communityScore ?? 0).toFixed(2)}/10
         </p>
+
+        {hasDub && (
+          <div className="anime-card__dub-badge">
+            🎙️ Dublado PT-BR
+          </div>
+        )}
+
+        {streamingLinks.length > 0 && (
+          <div className="anime-card__streaming">
+            <span className="anime-card__streaming-label">Onde assistir:</span>
+            <div className="anime-card__streaming-links">
+              {streamingLinks.map(link => (
+                <a
+                  key={link.site}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="anime-card__streaming-link"
+                  onClick={e => e.stopPropagation()}
+                >
+                  {link.site}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="anime-card__genres">
           {genres.map((genre) => (
             <span

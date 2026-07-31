@@ -1,4 +1,6 @@
+import { useState, useEffect } from 'react'
 import AnimeCard from './AnimeCard.jsx'
+import { fetchDubInfo } from '../api/anilist.js'
 import './RecommendationGrid.css'
 
 function SkeletonCard() {
@@ -15,6 +17,21 @@ function SkeletonCard() {
 }
 
 export default function RecommendationGrid({ recommendations = [], isLoading, onGenreClick }) {
+  const [dubMap, setDubMap] = useState(new Map())
+
+  useEffect(() => {
+    if (recommendations.length === 0) return
+
+    const fetchDubs = async () => {
+      // Just fetch for the top 20 recommendations to keep it fast
+      const ids = recommendations.slice(0, 20).map(r => r.id)
+      const map = await fetchDubInfo(ids)
+      setDubMap(map)
+    }
+
+    fetchDubs()
+  }, [recommendations])
+
   return (
     <section className="recommendation-grid">
       <h2 className="recommendation-grid__title">
@@ -24,7 +41,12 @@ export default function RecommendationGrid({ recommendations = [], isLoading, on
         {isLoading
           ? Array.from({ length: 8 }, (_, i) => <SkeletonCard key={i} />)
           : recommendations.map((anime) => (
-              <AnimeCard key={anime.id} anime={anime} onGenreClick={onGenreClick} />
+              <AnimeCard
+                key={anime.id}
+                anime={anime}
+                onGenreClick={onGenreClick}
+                hasDub={dubMap.get(anime.id)}
+              />
             ))}
       </div>
     </section>

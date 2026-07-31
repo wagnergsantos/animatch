@@ -79,6 +79,11 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
 
     const communityScore = Math.round((media.averageScore / 10) * 100) / 100
 
+    const externalLinks = media.externalLinks ?? []
+    const streamingLinks = externalLinks
+      .filter(link => link.type === 'STREAMING')
+      .map(link => ({ site: link.site, url: link.url }))
+
     return {
       id: media.id,
       title: media.title?.english || media.title?.romaji || 'Untitled',
@@ -88,6 +93,7 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
       predictedScore,
       communityScore,
       siteUrl: media.siteUrl || (media.id ? `https://anilist.co/anime/${media.id}` : '#'),
+      streamingLinks,
     }
   })
 

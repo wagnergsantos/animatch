@@ -1,6 +1,10 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import Dashboard from './Dashboard.jsx'
+
+vi.mock('../api/anilist.js', () => ({
+  fetchDubInfo: vi.fn().mockResolvedValue(new Map()),
+}))
 
 const mockEntries = [
   { status: 'COMPLETED', score: 9, media: { id: 1, title: { romaji: 'A', english: 'A' }, genres: ['Adventure', 'Fantasy'] } },

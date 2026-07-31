@@ -57,6 +57,11 @@ query ($userName: String) {
           averageScore
           popularity
           siteUrl
+          externalLinks {
+            site
+            url
+            type
+          }
         }
       }
     }
@@ -132,5 +137,45 @@ export async function fetchPlanningList(userName) {
 export async function fetchAllLists(userName) {
   const data = await queryAniList(ALL_LISTS_QUERY, { userName })
   return flattenEntries(data)
+}
+
+const DUB_QUERY = `
+query ($idIn: [Int]) {
+  Page(page: 1, perPage: 50) {
+    media(id_in: $idIn) {
+      id
+      characters(sort: ROLE, perPage: 15) {
+        edges {
+          voiceActors(language: PORTUGUESE) {
+            id
+          }
+        }
+      }
+    }
+  }
+}
+`
+
+export async function fetchDubInfo(mediaIds) {
+  if (!mediaIds || mediaIds.length === 0) return new Map()
+  
+  // To avoid hitting limits, we just take the first 50
+  const chunk = mediaIds.slice(0, 50)
+  
+  try {
+    const data = await queryAniList(DUB_QUERY, { idIn: chunk })
+    const mediaList = data?.Page?.media ?? []
+    
+    const dubMap = new Map()
+    for (const media of mediaList) {
+      const chars = media?.characters?.edges ?? []
+      const hasPtBr = chars.some(char => char?.voiceActors && char.voiceActors.length > 0)
+      dubMap.set(media.id, hasPtBr)
+    }
+    return dubMap
+  } catch (err) {
+    console.error("Failed to fetch dub info", err)
+    return new Map()
+  }
 }
 

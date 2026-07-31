@@ -5,6 +5,7 @@ import App from './App.jsx'
 // Mock the API module
 vi.mock('./api/anilist.js', () => ({
   fetchAllLists: vi.fn(),
+  fetchDubInfo: vi.fn().mockResolvedValue(new Map()),
 }))
 
 import { fetchAllLists } from './api/anilist.js'
