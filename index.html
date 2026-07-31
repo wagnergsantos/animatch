@@ -4,12 +4,23 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Recomendações personalizadas de anime baseadas no seu gosto real, não no que é popular." />
+    <meta name="theme-color" content="#0e1117" />
+    <link rel="manifest" href="/animatch/manifest.json" />
     <title>AniMatch — Descubra o que assistir agora</title>
     <link rel="icon" type="image/svg+xml" href="/animatch/favicon.svg" />
-    <script type="module" crossorigin src="/animatch/assets/index-CrQfRgvU.js"></script>
-    <link rel="stylesheet" crossorigin href="/animatch/assets/index-DbBb1b3v.css">
+    <script type="module" crossorigin src="/animatch/assets/index-RHH-81Xl.js"></script>
+    <link rel="stylesheet" crossorigin href="/animatch/assets/index-D_aenEF4.css">
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/animatch/sw.js').catch((err) => {
+            console.log('SW registration failed:', err)
+          })
+        })
+      }
+    </script>
   </body>
 </html>
