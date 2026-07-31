@@ -62,7 +62,7 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
     let predictedScore
     if (matchingGenres.length > 0) {
       const sum = matchingGenres.reduce(
-        (acc, g) => acc + tasteProfile.get(g).average,
+        (acc, g) => acc + (tasteProfile.get(g).adjustedAverage ?? tasteProfile.get(g).average),
         0
       )
       predictedScore = Math.round((sum / matchingGenres.length) * 10) / 10

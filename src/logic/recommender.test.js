@@ -84,9 +84,9 @@ describe('buildTasteProfile', () => {
 
 describe('scoreRecommendations', () => {
   const tasteProfile = new Map([
-    ['Action', { average: 5, count: 15, scoredCount: 10 }],
-    ['Adventure', { average: 9, count: 5, scoredCount: 4 }],
-    ['Drama', { average: 7, count: 8, scoredCount: 6 }],
+    ['Action', { average: 5, adjustedAverage: 5, count: 15, scoredCount: 10 }],
+    ['Adventure', { average: 9, adjustedAverage: 9, count: 5, scoredCount: 4 }],
+    ['Drama', { average: 7, adjustedAverage: 7, count: 8, scoredCount: 6 }],
   ])
 
   it('uses default parameters when arguments are not provided', () => {
@@ -262,6 +262,41 @@ describe('scoreRecommendations', () => {
     const result = scoreRecommendations(planning, tasteProfile)
 
     expect(result[0].title).toBe('Romaji Name')
+  })
+
+  it('uses adjustedAverage over average when available', () => {
+    const customProfile = new Map([
+      ['Action', { average: 9.0, adjustedAverage: 7.5, count: 10, scoredCount: 5 }],
+      ['Adventure', { average: 8.0, adjustedAverage: 8.5, count: 5, scoredCount: 5 }],
+    ])
+    const planning = [
+      {
+        media: {
+          id: 1,
+          genres: ['Action', 'Adventure'],
+        },
+      },
+    ]
+
+    const result = scoreRecommendations(planning, customProfile)
+    expect(result[0].predictedScore).toBe(8) // (7.5 + 8.5) / 2 = 8.0
+  })
+
+  it('falls back to average when adjustedAverage is undefined', () => {
+    const customProfile = new Map([
+      ['Action', { average: 6.0, count: 10, scoredCount: 5 }],
+    ])
+    const planning = [
+      {
+        media: {
+          id: 1,
+          genres: ['Action'],
+        },
+      },
+    ]
+
+    const result = scoreRecommendations(planning, customProfile)
+    expect(result[0].predictedScore).toBe(6)
   })
 })
 
