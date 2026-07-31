@@ -2,7 +2,7 @@ import { useState } from 'react'
 import ThemeToggle from './ThemeToggle.jsx'
 import './LoginScreen.css'
 
-export default function LoginScreen({ onSubmit, isLoading, error }) {
+export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = [] }) {
   const [username, setUsername] = useState('')
 
   function handleSubmit(e) {
@@ -59,6 +59,35 @@ export default function LoginScreen({ onSubmit, isLoading, error }) {
             )}
           </button>
         </form>
+
+        {recentUsers.length > 0 && (
+          <div className="recent-users" style={{ marginTop: 'var(--space-6)', textAlign: 'center' }}>
+            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-2)', marginBottom: 'var(--space-2)' }}>
+              Consultas recentes:
+            </p>
+            <div style={{ display: 'flex', gap: 'var(--space-2)', justifyContent: 'center', flexWrap: 'wrap' }}>
+              {recentUsers.map((user) => (
+                <button
+                  key={user}
+                  type="button"
+                  onClick={() => onSubmit(user)}
+                  disabled={isLoading}
+                  style={{
+                    background: 'var(--surface-2)',
+                    border: '1px solid var(--color-border)',
+                    color: 'var(--color-primary)',
+                    padding: 'var(--space-1) var(--space-3)',
+                    borderRadius: 'var(--radius-full)',
+                    fontSize: 'var(--text-sm)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  @{user}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

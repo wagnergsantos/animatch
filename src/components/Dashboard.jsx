@@ -39,6 +39,7 @@ export default function Dashboard({ allEntries = [], username, onLogout }) {
   const [selectedFormat, setSelectedFormat] = useState('ALL')
   const [sortBy, setSortBy] = useState('predicted')
   const [modalGenre, setModalGenre] = useState(null)
+  const [copied, setCopied] = useState(false)
 
   const tasteProfile = useMemo(() => {
     const completed = allEntries.filter((e) => e.status === 'COMPLETED')
@@ -66,6 +67,17 @@ export default function Dashboard({ allEntries = [], username, onLogout }) {
     return recs
   }, [planningEntries, tasteProfile, selectedFilterGenre, searchQuery, selectedFormat])
 
+  const handleShare = () => {
+    if (typeof window !== 'undefined' && navigator.clipboard) {
+      const url = new URL(window.location.href)
+      url.searchParams.set('user', username)
+      navigator.clipboard.writeText(url.toString()).then(() => {
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      }).catch(() => {})
+    }
+  }
+
   return (
     <div className="dashboard">
       <header className="dashboard__header">
@@ -87,6 +99,22 @@ export default function Dashboard({ allEntries = [], username, onLogout }) {
           </nav>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+          <button
+            type="button"
+            onClick={handleShare}
+            style={{
+              background: 'var(--surface-2)',
+              border: '1px solid var(--color-border)',
+              color: 'var(--text-1)',
+              padding: 'var(--space-2) var(--space-3)',
+              borderRadius: 'var(--radius-md)',
+              fontSize: 'var(--text-sm)',
+              cursor: 'pointer',
+            }}
+            title="Copiar link das suas recomendações"
+          >
+            {copied ? '✅ Link copiado!' : '🔗 Compartilhar'}
+          </button>
           <ThemeToggle />
           <button className="dashboard__logout" onClick={onLogout}>
             Trocar conta

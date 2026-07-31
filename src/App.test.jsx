@@ -21,6 +21,10 @@ const allData = [
 
 beforeEach(() => {
   fetchAllLists.mockReset()
+  window.localStorage.clear()
+  if (typeof window !== 'undefined' && window.history) {
+    window.history.replaceState({}, '', '/')
+  }
 })
 
 describe('App', () => {

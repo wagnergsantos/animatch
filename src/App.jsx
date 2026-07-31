@@ -9,13 +9,43 @@ export default function App() {
   const [error, setError] = useState(null)
   const [username, setUsername] = useState('')
   const [allEntries, setAllEntries] = useState([])
+  const [recentUsers, setRecentUsers] = useState(() => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        const saved = localStorage.getItem('animatch_recent_users')
+        return saved ? JSON.parse(saved) : []
+      } catch (e) {
+        return []
+      }
+    }
+    return []
+  })
 
   useEffect(() => {
-    const savedUsername = localStorage.getItem('animatch_username')
+    // Check URL parameters for ?user=username
+    const params = new URLSearchParams(window.location.search)
+    const urlUser = params.get('user')
+    const savedUsername = urlUser || (typeof window !== 'undefined' && window.localStorage ? localStorage.getItem('animatch_username') : null)
+
     if (savedUsername) {
       handleLogin(savedUsername)
     }
   }, [])
+
+  function addRecentUser(user) {
+    setRecentUsers((prev) => {
+      const filtered = prev.filter((u) => u.toLowerCase() !== user.toLowerCase())
+      const updated = [user, ...filtered].slice(0, 5)
+      if (typeof window !== 'undefined' && window.localStorage) {
+        try {
+          localStorage.setItem('animatch_recent_users', JSON.stringify(updated))
+        } catch (e) {
+          // Ignore storage errors
+        }
+      }
+      return updated
+    })
+  }
 
   async function handleLogin(inputUsername) {
     setIsLoading(true)
@@ -24,7 +54,7 @@ export default function App() {
     try {
       const entries = await fetchAllLists(inputUsername)
 
-      const planning = entries.filter(e => e.status === 'PLANNING')
+      const planning = entries.filter((e) => e.status === 'PLANNING')
       if (planning.length === 0) {
         setError("Adicione animes à sua lista 'Planning' no AniList.")
         setIsLoading(false)
@@ -34,10 +64,23 @@ export default function App() {
       setUsername(inputUsername)
       setAllEntries(entries)
       setScreen('dashboard')
-      localStorage.setItem('animatch_username', inputUsername)
+      addRecentUser(inputUsername)
+
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem('animatch_username', inputUsername)
+      }
+
+      // Update URL with ?user=username
+      if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
+        const url = new URL(window.location.href)
+        url.searchParams.set('user', inputUsername)
+        window.history.replaceState({}, '', url.toString())
+      }
     } catch (err) {
       setError(err.message)
-      localStorage.removeItem('animatch_username')
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.removeItem('animatch_username')
+      }
     } finally {
       setIsLoading(false)
     }
@@ -48,7 +91,16 @@ export default function App() {
     setUsername('')
     setAllEntries([])
     setError(null)
-    localStorage.removeItem('animatch_username')
+
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.removeItem('animatch_username')
+    }
+
+    if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
+      const url = new URL(window.location.href)
+      url.searchParams.delete('user')
+      window.history.replaceState({}, '', url.toString())
+    }
   }
 
   if (screen === 'login') {
@@ -57,6 +109,7 @@ export default function App() {
         onSubmit={handleLogin}
         isLoading={isLoading}
         error={error}
+        recentUsers={recentUsers}
       />
     )
   }
