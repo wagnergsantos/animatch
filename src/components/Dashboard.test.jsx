@@ -3,12 +3,12 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import Dashboard from './Dashboard.jsx'
 
 const mockProfile = new Map([
-  ['Adventure', { average: 9.0, count: 5, scoredCount: 5 }],
-  ['Drama', { average: 8.5, count: 8, scoredCount: 8 }],
-  ['Action', { average: 7.0, count: 15, scoredCount: 10 }],
-  ['Fantasy', { average: 6.5, count: 3, scoredCount: 3 }],
-  ['Comedy', { average: 6.0, count: 4, scoredCount: 4 }],
-  ['Slice of Life', { average: 5.0, count: 2, scoredCount: 2 }],
+  ['Adventure', { average: 9.0, adjustedAverage: 9.0, count: 5, scoredCount: 5 }],
+  ['Drama', { average: 8.5, adjustedAverage: 8.5, count: 8, scoredCount: 8 }],
+  ['Action', { average: 7.0, adjustedAverage: 7.0, count: 15, scoredCount: 10 }],
+  ['Fantasy', { average: 6.5, adjustedAverage: 6.5, count: 3, scoredCount: 3 }],
+  ['Comedy', { average: 6.0, adjustedAverage: 6.0, count: 4, scoredCount: 4 }],
+  ['Slice of Life', { average: 5.0, adjustedAverage: 5.0, count: 2, scoredCount: 2 }],
 ])
 
 const mockRecommendations = [

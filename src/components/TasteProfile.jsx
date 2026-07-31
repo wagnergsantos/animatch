@@ -2,7 +2,7 @@ import './TasteProfile.css'
 
 export default function TasteProfile({ profile = new Map() }) {
   const sorted = [...profile.entries()]
-    .sort((a, b) => b[1].average - a[1].average)
+    .sort((a, b) => (b[1].adjustedAverage ?? b[1].average) - (a[1].adjustedAverage ?? a[1].average))
     .slice(0, 5)
 
   return (
@@ -14,10 +14,11 @@ export default function TasteProfile({ profile = new Map() }) {
             key={genre}
             className={`taste-badge ${index < 3 ? 'taste-badge--filled' : 'taste-badge--outline'}`}
           >
-            {genre} ★ {stats.average.toFixed(1)}
+            {genre} ★ {stats.average.toFixed(1)} ({stats.count})
           </span>
         ))}
       </div>
     </section>
   )
 }
+
