@@ -21,7 +21,7 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
   const [ignoreDub, setIgnoreDub] = useState(false)
 
   useEffect(() => {
-    if (recommendations.length === 0) return
+    if (!recommendations || recommendations.length === 0) return
 
     const fetchDubs = async () => {
       // Fetch up to 100 recommendations
@@ -42,29 +42,9 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
     fetchDubs()
   }, [recommendations])
 
-  if (isLoading) {
-    return (
-      <section className="recommendation-grid">
-        <h2 className="recommendation-grid__title">Calculando suas Recomendações...</h2>
-        <div className="recommendation-grid__grid">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-            <SkeletonCard key={i} />
-          ))}
-        </div>
-      </section>
-    )
-  }
-
-  if (recommendations.length === 0) {
-    return (
-      <section className="recommendation-grid">
-        <h2 className="recommendation-grid__title">Sem recomendações no momento</h2>
-        <p>Adicione mais animes na sua lista "Plan to Watch" no AniList!</p>
-      </section>
-    )
-  }
-
   const displayRecommendations = useMemo(() => {
+    if (!recommendations || recommendations.length === 0) return []
+
     const list = [...recommendations].map((rec) => {
       const hasDub = dubMap.get(rec.id) ?? false
       const adjustedScore = hasDub && !ignoreDub ? Math.min(10, rec.predictedScore + 0.1) : rec.predictedScore
@@ -91,6 +71,28 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
       return (b.communityScore || 0) - (a.communityScore || 0)
     })
   }, [recommendations, dubMap, ignoreDub, sortBy])
+
+  if (isLoading) {
+    return (
+      <section className="recommendation-grid">
+        <h2 className="recommendation-grid__title">Calculando suas Recomendações...</h2>
+        <div className="recommendation-grid__grid">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  if (!recommendations || recommendations.length === 0) {
+    return (
+      <section className="recommendation-grid">
+        <h2 className="recommendation-grid__title">Sem recomendações no momento</h2>
+        <p>Adicione mais animes na sua lista "Plan to Watch" no AniList!</p>
+      </section>
+    )
+  }
 
   return (
     <section className="recommendation-grid">
