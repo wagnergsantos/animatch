@@ -53,6 +53,7 @@ query ($userName: String) {
           seasonYear
           startDate { year month day }
           genres
+          description(asHtml: false)
           coverImage { large }
           averageScore
           popularity

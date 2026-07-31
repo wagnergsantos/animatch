@@ -24,6 +24,7 @@ export default function AnimeCard({ anime, hasDub }) {
       className="anime-card"
       onClick={handleCardClick}
       style={{ cursor: 'pointer' }}
+      title={anime?.description || title}
     >
       <div className="anime-card__image-wrapper">
         <img

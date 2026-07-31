@@ -87,6 +87,7 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
     return {
       id: media.id,
       title: media.title?.english || media.title?.romaji || 'Untitled',
+      description: media.description,
       coverImage: media.coverImage?.large ?? '',
       genres,
       format: media.format || 'OTHER',
