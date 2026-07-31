@@ -59,4 +59,9 @@ describe('TasteProfile Component', () => {
     render(<TasteProfile />)
     expect(screen.getByText('Seu Perfil de Gosto')).toBeInTheDocument()
   })
+
+  it('renders gracefully when profile is null', () => {
+    render(<TasteProfile profile={null} />)
+    expect(screen.getByText('Seu Perfil de Gosto')).toBeInTheDocument()
+  })
 })
