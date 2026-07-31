@@ -8,8 +8,9 @@
   padding: 0;
 }
 
-:root {
-  /* Color — OKLCH from DESIGN.md */
+:root,
+html[data-theme="dark"] {
+  /* Color — OKLCH Dark Mode */
   --color-bg: oklch(0.08 0.000 0);
   --color-surface: oklch(0.14 0.005 240);
   --color-primary: oklch(0.72 0.14 195);
@@ -27,12 +28,14 @@
   --color-primary-glow: oklch(0.72 0.14 195 / 0.15);
   --color-primary-badge-bg: oklch(0.72 0.14 195 / 0.15);
 
-  /* Aliases for new components */
+  /* Aliases for components */
   --surface-1: var(--color-bg);
   --surface-2: var(--color-surface);
   --surface-3: var(--color-border);
   --text-1: var(--color-ink);
   --text-2: var(--color-muted);
+  --text-primary: var(--color-ink);
+  --text-secondary: var(--color-muted);
   --accent: var(--color-accent);
 
   /* Typography */
@@ -75,6 +78,34 @@
   --z-toast: 500;
 }
 
+html[data-theme="light"] {
+  /* Color — OKLCH Light Mode */
+  --color-bg: oklch(0.96 0.005 240);
+  --color-surface: oklch(1.00 0.000 0);
+  --color-primary: oklch(0.55 0.16 195);
+  --color-accent: oklch(0.55 0.16 75);
+  --color-ink: oklch(0.15 0.010 240);
+  --color-muted: oklch(0.42 0.010 240);
+  --color-error: oklch(0.55 0.22 25);
+  --color-success: oklch(0.55 0.18 155);
+  --color-warning: oklch(0.65 0.16 85);
+
+  --color-border: oklch(0.88 0.005 240);
+  --color-primary-hover: oklch(0.50 0.16 195);
+  --color-primary-active: oklch(0.45 0.16 195);
+  --color-primary-glow: oklch(0.55 0.16 195 / 0.15);
+  --color-primary-badge-bg: oklch(0.55 0.16 195 / 0.12);
+
+  --surface-1: var(--color-bg);
+  --surface-2: var(--color-surface);
+  --surface-3: var(--color-border);
+  --text-1: var(--color-ink);
+  --text-2: var(--color-muted);
+  --text-primary: var(--color-ink);
+  --text-secondary: var(--color-muted);
+  --accent: var(--color-accent);
+}
+
 @media (prefers-reduced-motion: reduce) {
   :root {
     --transition-default: 0ms;
@@ -94,6 +125,7 @@ body {
   color: var(--color-ink);
   background-color: var(--color-bg);
   min-height: 100vh;
+  transition: background-color var(--transition-default), color var(--transition-default);
 }
 
 h1, h2, h3 {
