@@ -40,6 +40,28 @@ describe('buildTasteProfile', () => {
 
     expect(profile.size).toBe(0)
   })
+
+  it('uses default parameter when completedEntries is not provided', () => {
+    const profile = buildTasteProfile()
+
+    expect(profile).toBeInstanceOf(Map)
+    expect(profile.size).toBe(0)
+  })
+
+  it('safely handles missing or null media and genres', () => {
+    const entries = [
+      null,
+      {},
+      { media: null },
+      { score: 8, media: { genres: null } },
+      { score: 8, media: { genres: ['Action'] } },
+      { score: 9, media: { genres: ['Action'] } },
+    ]
+
+    const profile = buildTasteProfile(entries)
+
+    expect(profile.get('Action')).toEqual({ average: 8.5, count: 2, scoredCount: 2 })
+  })
 })
 
 describe('scoreRecommendations', () => {
@@ -48,6 +70,72 @@ describe('scoreRecommendations', () => {
     ['Adventure', { average: 9, count: 5, scoredCount: 4 }],
     ['Drama', { average: 7, count: 8, scoredCount: 6 }],
   ])
+
+  it('uses default parameters when arguments are not provided', () => {
+    const result = scoreRecommendations()
+
+    expect(result).toEqual([])
+  })
+
+  it('safely handles missing or null media, genres, title, and coverImage', () => {
+    const planning = [
+      {
+        media: null,
+      },
+      {
+        media: {
+          id: 10,
+          title: null,
+          coverImage: null,
+          genres: null,
+          averageScore: 70,
+        },
+      },
+      {
+        media: {
+          id: 11,
+          title: { english: null, romaji: null },
+          coverImage: {},
+          genres: undefined,
+          averageScore: 80,
+        },
+      },
+    ]
+
+    const result = scoreRecommendations(planning, tasteProfile)
+
+    expect(result).toHaveLength(3)
+
+    const nullMediaResult = result.find((r) => r.id === undefined)
+    expect(nullMediaResult).toEqual({
+      id: undefined,
+      title: 'Untitled',
+      coverImage: '',
+      genres: [],
+      predictedScore: 0,
+      communityScore: 0,
+    })
+
+    const entry10Result = result.find((r) => r.id === 10)
+    expect(entry10Result).toEqual({
+      id: 10,
+      title: 'Untitled',
+      coverImage: '',
+      genres: [],
+      predictedScore: 7,
+      communityScore: 7,
+    })
+
+    const entry11Result = result.find((r) => r.id === 11)
+    expect(entry11Result).toEqual({
+      id: 11,
+      title: 'Untitled',
+      coverImage: '',
+      genres: [],
+      predictedScore: 8,
+      communityScore: 8,
+    })
+  })
 
   it('calculates predicted score from matching genre averages', () => {
     const planning = [
@@ -158,3 +246,4 @@ describe('scoreRecommendations', () => {
     expect(result[0].title).toBe('Romaji Name')
   })
 })
+

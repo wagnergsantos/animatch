@@ -1,10 +1,12 @@
 const MIN_GENRE_COUNT = 2
 
-export function buildTasteProfile(completedEntries) {
+export function buildTasteProfile(completedEntries = []) {
   const genreStats = new Map()
 
   for (const entry of completedEntries) {
-    for (const genre of entry.media.genres) {
+    if (!entry?.media) continue
+    const genres = entry.media?.genres ?? []
+    for (const genre of genres) {
       if (!genreStats.has(genre)) {
         genreStats.set(genre, { total: 0, count: 0, scoredCount: 0 })
       }
@@ -33,10 +35,11 @@ export function buildTasteProfile(completedEntries) {
   return profile
 }
 
-export function scoreRecommendations(planningEntries, tasteProfile) {
+export function scoreRecommendations(planningEntries = [], tasteProfile = new Map()) {
   const scored = planningEntries.map((entry) => {
-    const { media } = entry
-    const matchingGenres = media.genres.filter((g) => tasteProfile.has(g))
+    const media = entry?.media ?? {}
+    const genres = media?.genres ?? []
+    const matchingGenres = genres.filter((g) => tasteProfile.has(g))
 
     let predictedScore
     if (matchingGenres.length > 0) {
@@ -57,9 +60,9 @@ export function scoreRecommendations(planningEntries, tasteProfile) {
 
     return {
       id: media.id,
-      title: media.title.english || media.title.romaji,
-      coverImage: media.coverImage.large,
-      genres: media.genres,
+      title: media.title?.english || media.title?.romaji || 'Untitled',
+      coverImage: media.coverImage?.large ?? '',
+      genres,
       predictedScore,
       communityScore,
     }
@@ -74,3 +77,4 @@ export function scoreRecommendations(planningEntries, tasteProfile) {
 
   return scored
 }
+
