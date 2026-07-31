@@ -147,6 +147,7 @@ query ($idIn: [Int]) {
       id
       characters(sort: ROLE, perPage: 15) {
         edges {
+          node { id }
           voiceActors {
             languageV2
           }
