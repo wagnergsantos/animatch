@@ -1,0 +1,29 @@
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.filter-bar__btn {
+  background: var(--surface-2);
+  border: 1px solid var(--surface-3);
+  color: var(--text-2);
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-bar__btn:hover {
+  background: var(--surface-3);
+  color: var(--text-1);
+}
+
+.filter-bar__btn--active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 500;
+}

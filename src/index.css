@@ -27,6 +27,14 @@
   --color-primary-glow: oklch(0.72 0.14 195 / 0.15);
   --color-primary-badge-bg: oklch(0.72 0.14 195 / 0.15);
 
+  /* Aliases for new components */
+  --surface-1: var(--color-bg);
+  --surface-2: var(--color-surface);
+  --surface-3: var(--color-border);
+  --text-1: var(--color-ink);
+  --text-2: var(--color-muted);
+  --accent: var(--color-accent);
+
   /* Typography */
   --font-family: 'Inter', system-ui, -apple-system, sans-serif;
   --text-xs: 0.694rem;

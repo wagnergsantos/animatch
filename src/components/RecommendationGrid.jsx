@@ -14,7 +14,7 @@ function SkeletonCard() {
   )
 }
 
-export default function RecommendationGrid({ recommendations = [], isLoading }) {
+export default function RecommendationGrid({ recommendations = [], isLoading, onGenreClick }) {
   return (
     <section className="recommendation-grid">
       <h2 className="recommendation-grid__title">
@@ -24,7 +24,7 @@ export default function RecommendationGrid({ recommendations = [], isLoading }) 
         {isLoading
           ? Array.from({ length: 8 }, (_, i) => <SkeletonCard key={i} />)
           : recommendations.map((anime) => (
-              <AnimeCard key={anime.id} anime={anime} />
+              <AnimeCard key={anime.id} anime={anime} onGenreClick={onGenreClick} />
             ))}
       </div>
     </section>

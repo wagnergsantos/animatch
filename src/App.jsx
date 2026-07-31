@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { fetchCompletedList, fetchPlanningList } from './api/anilist.js'
-import { buildTasteProfile, scoreRecommendations } from './logic/recommender.js'
+import { fetchAllLists } from './api/anilist.js'
 import LoginScreen from './components/LoginScreen.jsx'
 import Dashboard from './components/Dashboard.jsx'
 
@@ -9,38 +8,24 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
   const [username, setUsername] = useState('')
-  const [tasteProfile, setTasteProfile] = useState(new Map())
-  const [recommendations, setRecommendations] = useState([])
+  const [allEntries, setAllEntries] = useState([])
 
   async function handleLogin(inputUsername) {
     setIsLoading(true)
     setError(null)
 
     try {
-      const [completed, planning] = await Promise.all([
-        fetchCompletedList(inputUsername),
-        fetchPlanningList(inputUsername),
-      ])
+      const entries = await fetchAllLists(inputUsername)
 
-      const profile = buildTasteProfile(completed)
-
-      if (profile.size === 0) {
-        setError('Avalie mais animes no AniList para gerar seu perfil de gosto.')
-        setIsLoading(false)
-        return
-      }
-
+      const planning = entries.filter(e => e.status === 'PLANNING')
       if (planning.length === 0) {
         setError("Adicione animes à sua lista 'Planning' no AniList.")
         setIsLoading(false)
         return
       }
 
-      const scored = scoreRecommendations(planning, profile)
-
       setUsername(inputUsername)
-      setTasteProfile(profile)
-      setRecommendations(scored)
+      setAllEntries(entries)
       setScreen('dashboard')
     } catch (err) {
       setError(err.message)
@@ -52,8 +37,7 @@ export default function App() {
   function handleLogout() {
     setScreen('login')
     setUsername('')
-    setTasteProfile(new Map())
-    setRecommendations([])
+    setAllEntries([])
     setError(null)
   }
 
@@ -69,12 +53,9 @@ export default function App() {
 
   return (
     <Dashboard
-      tasteProfile={tasteProfile}
-      recommendations={recommendations}
+      allEntries={allEntries}
       username={username}
       onLogout={handleLogout}
-      isLoading={isLoading}
     />
   )
 }
-
