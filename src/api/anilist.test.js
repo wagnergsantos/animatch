@@ -272,6 +272,35 @@ describe('fetchAllLists', () => {
 
     await expect(fetchAllLists('nonexistent')).rejects.toThrow('Usuário não encontrado no AniList.')
   })
+
+  it('throws an error when the list is private (HTTP 403)', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 403,
+      json: () => Promise.resolve({
+        errors: [{ message: 'Private', status: 403 }],
+      }),
+    })
+
+    await expect(fetchAllLists('privateuser')).rejects.toThrow('A lista deste usuário é privada.')
+  })
+
+  it('returns empty array when user has no lists', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve({
+        data: {
+          MediaListCollection: {
+            lists: [],
+          },
+        },
+      }),
+    })
+
+    const result = await fetchAllLists('testuser')
+    expect(result).toEqual([])
+  })
 })
 
 
@@ -282,5 +311,29 @@ describe('flattenEntries', () => {
 
   it('returns empty array when MediaListCollection is null', () => {
     expect(flattenEntries({ MediaListCollection: null })).toEqual([])
+  })
+
+  it('deduplicates entries by media.id', () => {
+    const data = {
+      MediaListCollection: {
+        lists: [
+          {
+            entries: [
+              { media: { id: 1, title: { romaji: 'Anime 1' } } },
+              { media: { id: 2, title: { romaji: 'Anime 2' } } },
+            ]
+          },
+          {
+            entries: [
+              { media: { id: 2, title: { romaji: 'Anime 2' } } }, // Duplicate
+              { media: { id: 3, title: { romaji: 'Anime 3' } } },
+            ]
+          }
+        ]
+      }
+    }
+    const result = flattenEntries(data)
+    expect(result).toHaveLength(3)
+    expect(result.map(e => e.media.id)).toEqual([1, 2, 3])
   })
 })

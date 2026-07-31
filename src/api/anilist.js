@@ -42,8 +42,6 @@ const ALL_LISTS_QUERY = `
 query ($userName: String) {
   MediaListCollection(userName: $userName, type: ANIME) {
     lists {
-      name
-      status
       entries {
         status
         score(format: POINT_10_DECIMAL)
@@ -111,7 +109,14 @@ async function queryAniList(query, variables) {
 
 export function flattenEntries(data) {
   const lists = data?.MediaListCollection?.lists ?? []
-  return lists.flatMap((list) => list?.entries ?? [])
+  const entries = lists.flatMap((list) => list?.entries ?? [])
+  const seen = new Set()
+  return entries.filter((entry) => {
+    const id = entry?.media?.id
+    if (!id || seen.has(id)) return false
+    seen.add(id)
+    return true
+  })
 }
 
 export async function fetchCompletedList(userName) {
