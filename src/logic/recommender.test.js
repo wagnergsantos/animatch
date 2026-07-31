@@ -336,16 +336,16 @@ describe('scoreRecommendations', () => {
     expect(result[0].siteUrl).toBe('https://anilist.co/anime/1')
   })
 
-  it('filters recommendations by media format if format filter is specified', () => {
+  it('filters recommendations by genre if selectedGenre is specified', () => {
     const planning = [
-      { media: { id: 1, title: { romaji: 'TV Anime' }, genres: ['Action'], format: 'TV', averageScore: 80 } },
-      { media: { id: 2, title: { romaji: 'Movie Anime' }, genres: ['Action'], format: 'MOVIE', averageScore: 85 } },
+      { media: { id: 1, title: { romaji: 'Anime 1' }, genres: ['Action', 'Fantasy'], averageScore: 80 } },
+      { media: { id: 2, title: { romaji: 'Anime 2' }, genres: ['Drama', 'Romance'], averageScore: 85 } },
     ]
     const profile = new Map([['Action', { average: 8.5, adjustedAverage: 8.2 }]])
 
-    const tvOnly = scoreRecommendations(planning, profile, 'TV')
-    expect(tvOnly).toHaveLength(1)
-    expect(tvOnly[0].id).toBe(1)
+    const actionOnly = scoreRecommendations(planning, profile, 'Action')
+    expect(actionOnly).toHaveLength(1)
+    expect(actionOnly[0].id).toBe(1)
   })
 })
 

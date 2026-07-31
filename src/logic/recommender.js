@@ -53,12 +53,12 @@ export function buildTasteProfile(completedEntries = []) {
   return profile
 }
 
-export function scoreRecommendations(planningEntries = [], tasteProfile = new Map(), selectedFormat = 'ALL') {
+export function scoreRecommendations(planningEntries = [], tasteProfile = new Map(), selectedGenre = 'ALL') {
   const filtered = planningEntries.filter((entry) => {
     const score = entry?.media?.averageScore
-    const format = entry?.media?.format
-    const matchesFormat = selectedFormat === 'ALL' || format === selectedFormat
-    return score != null && score > 0 && matchesFormat
+    const genres = entry?.media?.genres ?? []
+    const matchesGenre = selectedGenre === 'ALL' || genres.includes(selectedGenre)
+    return score != null && score > 0 && matchesGenre
   })
 
   const scored = filtered.map((entry) => {

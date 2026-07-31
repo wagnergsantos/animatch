@@ -1,24 +1,27 @@
 import './FilterBar.css'
 
-const FORMATS = [
-  { id: 'ALL', label: 'Todos os Estilos' },
-  { id: 'TV', label: 'Séries (TV)' },
-  { id: 'MOVIE', label: 'Filmes' },
-  { id: 'OVA', label: 'OVAs' },
-  { id: 'ONA', label: 'ONAs' },
-  { id: 'SPECIAL', label: 'Especiais' },
+const MAIN_GENRES = [
+  { id: 'ALL', label: 'Todos os Gêneros' },
+  { id: 'Action', label: 'Ação' },
+  { id: 'Adventure', label: 'Aventura' },
+  { id: 'Comedy', label: 'Comédia' },
+  { id: 'Drama', label: 'Drama' },
+  { id: 'Fantasy', label: 'Fantasia' },
+  { id: 'Romance', label: 'Romance' },
+  { id: 'Sci-Fi', label: 'Ficção' },
+  { id: 'Slice of Life', label: 'Slice of Life' },
 ]
 
-export default function FilterBar({ selectedFormat, onSelectFormat }) {
+export default function FilterBar({ selectedGenre, onSelectGenre }) {
   return (
     <div className="filter-bar">
-      {FORMATS.map((fmt) => (
+      {MAIN_GENRES.map((genre) => (
         <button
-          key={fmt.id}
-          className={`filter-bar__btn ${selectedFormat === fmt.id ? 'filter-bar__btn--active' : ''}`}
-          onClick={() => onSelectFormat(fmt.id)}
+          key={genre.id}
+          className={`filter-bar__btn ${selectedGenre === genre.id ? 'filter-bar__btn--active' : ''}`}
+          onClick={() => onSelectGenre(genre.id)}
         >
-          {fmt.label}
+          {genre.label}
         </button>
       ))}
     </div>

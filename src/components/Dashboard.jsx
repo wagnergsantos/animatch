@@ -9,7 +9,7 @@ import './Dashboard.css'
 
 export default function Dashboard({ allEntries = [], username, onLogout }) {
   const [activeTab, setActiveTab] = useState('recommendations')
-  const [selectedFormat, setSelectedFormat] = useState('ALL')
+  const [selectedFilterGenre, setSelectedFilterGenre] = useState('ALL')
   const [modalGenre, setModalGenre] = useState(null)
 
   const tasteProfile = useMemo(() => {
@@ -22,8 +22,8 @@ export default function Dashboard({ allEntries = [], username, onLogout }) {
   }, [allEntries])
 
   const recommendations = useMemo(() => {
-    return scoreRecommendations(planningEntries, tasteProfile, selectedFormat)
-  }, [planningEntries, tasteProfile, selectedFormat])
+    return scoreRecommendations(planningEntries, tasteProfile, selectedFilterGenre)
+  }, [planningEntries, tasteProfile, selectedFilterGenre])
 
   return (
     <div className="dashboard">
@@ -55,8 +55,8 @@ export default function Dashboard({ allEntries = [], username, onLogout }) {
           <>
             {tasteProfile.size > 0 && <TasteProfile profile={tasteProfile} />}
             <FilterBar
-              selectedFormat={selectedFormat}
-              onSelectFormat={setSelectedFormat}
+              selectedGenre={selectedFilterGenre}
+              onSelectGenre={setSelectedFilterGenre}
             />
             <RecommendationGrid
               recommendations={recommendations}
