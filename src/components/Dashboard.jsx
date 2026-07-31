@@ -5,11 +5,39 @@ import RecommendationGrid from './RecommendationGrid.jsx'
 import FilterBar from './FilterBar.jsx'
 import StatisticsView from './StatisticsView.jsx'
 import GenreRecommendationModal from './GenreRecommendationModal.jsx'
+import ThemeToggle from './ThemeToggle.jsx'
 import './Dashboard.css'
+
+function exportRecommendationsToCSV(recommendations) {
+  if (!recommendations || recommendations.length === 0) return
+
+  const headers = ['Título', 'Nota Prevista', 'Nota Comunitária', 'Formato', 'Ano', 'Gêneros']
+  const rows = recommendations.map((r) => [
+    `"${(r.title || '').replace(/"/g, '""')}"`,
+    r.predictedScore ? r.predictedScore.toFixed(1) : 'N/A',
+    r.communityScore || 'N/A',
+    r.format || 'N/A',
+    r.year || 'N/A',
+    `"${(r.genres || []).join(' | ')}"`,
+  ])
+
+  const csvContent = '\uFEFF' + [headers.join(','), ...rows.map((row) => row.join(','))].join('\n')
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.setAttribute('href', url)
+  link.setAttribute('download', `animatch-recomendacoes-${Date.now()}.csv`)
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
 
 export default function Dashboard({ allEntries = [], username, onLogout }) {
   const [activeTab, setActiveTab] = useState('recommendations')
   const [selectedFilterGenre, setSelectedFilterGenre] = useState('ALL')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedFormat, setSelectedFormat] = useState('ALL')
+  const [sortBy, setSortBy] = useState('predicted')
   const [modalGenre, setModalGenre] = useState(null)
 
   const tasteProfile = useMemo(() => {
@@ -22,8 +50,33 @@ export default function Dashboard({ allEntries = [], username, onLogout }) {
   }, [allEntries])
 
   const recommendations = useMemo(() => {
-    return scoreRecommendations(planningEntries, tasteProfile, selectedFilterGenre)
-  }, [planningEntries, tasteProfile, selectedFilterGenre])
+    let recs = scoreRecommendations(planningEntries, tasteProfile, selectedFilterGenre)
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim()
+      recs = recs.filter((r) => r.title && r.title.toLowerCase().includes(q))
+    }
+
+    // Filter by format
+    if (selectedFormat !== 'ALL') {
+      recs = recs.filter((r) => r.format === selectedFormat)
+    }
+
+    // Sort
+    recs = [...recs].sort((a, b) => {
+      if (sortBy === 'community') {
+        return (b.communityScore || 0) - (a.communityScore || 0)
+      }
+      if (sortBy === 'title') {
+        return (a.title || '').localeCompare(b.title || '')
+      }
+      // default: predicted score
+      return (b.predictedScore || 0) - (a.predictedScore || 0)
+    })
+
+    return recs
+  }, [planningEntries, tasteProfile, selectedFilterGenre, searchQuery, selectedFormat, sortBy])
 
   return (
     <div className="dashboard">
@@ -45,9 +98,12 @@ export default function Dashboard({ allEntries = [], username, onLogout }) {
             </button>
           </nav>
         </div>
-        <button className="dashboard__logout" onClick={onLogout}>
-          Trocar conta
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+          <ThemeToggle />
+          <button className="dashboard__logout" onClick={onLogout}>
+            Trocar conta
+          </button>
+        </div>
       </header>
 
       <main className="dashboard__main">
@@ -62,6 +118,13 @@ export default function Dashboard({ allEntries = [], username, onLogout }) {
             <FilterBar
               selectedGenre={selectedFilterGenre}
               onSelectGenre={setSelectedFilterGenre}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              selectedFormat={selectedFormat}
+              onSelectFormat={setSelectedFormat}
+              sortBy={sortBy}
+              onSortChange={setSortBy}
+              onExportCSV={() => exportRecommendationsToCSV(recommendations)}
             />
             <RecommendationGrid
               recommendations={recommendations}

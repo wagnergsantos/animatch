@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import ThemeToggle from './ThemeToggle.jsx'
 import './LoginScreen.css'
 
 export default function LoginScreen({ onSubmit, isLoading, error }) {
@@ -14,8 +15,11 @@ export default function LoginScreen({ onSubmit, isLoading, error }) {
 
   return (
     <div className="login-screen">
+      <div style={{ position: 'absolute', top: 'var(--space-4)', right: 'var(--space-4)' }}>
+        <ThemeToggle />
+      </div>
       <div className="login-container">
-        <h1 className="login-title">Anime Recommender</h1>
+        <h1 className="login-title">AniMatch</h1>
         <p className="login-subtitle">
           Descubra o que assistir baseado no seu gosto real.
         </p>

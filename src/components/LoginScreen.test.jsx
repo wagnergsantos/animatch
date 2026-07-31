@@ -46,7 +46,7 @@ describe('LoginScreen', () => {
   it('disables the button and input when loading', () => {
     render(<LoginScreen onSubmit={() => {}} isLoading={true} error={null} />)
 
-    const button = screen.getByRole('button')
+    const button = screen.getByRole('button', { name: /carregando/i })
     const input = screen.getByLabelText('Username do AniList')
     expect(button).toBeDisabled()
     expect(input).toBeDisabled()

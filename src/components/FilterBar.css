@@ -1,29 +1,107 @@
+.filter-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.filter-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.filter-controls__group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.filter-search {
+  background: var(--surface-2);
+  border: 1px solid var(--color-border);
+  color: var(--text-1);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  min-width: 220px;
+  flex: 1;
+  max-width: 340px;
+  outline: none;
+  transition: border-color var(--transition-default);
+}
+
+.filter-search:focus {
+  border-color: var(--color-primary);
+}
+
+.filter-select {
+  background: var(--surface-2);
+  border: 1px solid var(--color-border);
+  color: var(--text-1);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  outline: none;
+}
+
+.filter-select:focus {
+  border-color: var(--color-primary);
+}
+
+.export-csv-btn {
+  background: var(--surface-2);
+  border: 1px solid var(--color-border);
+  color: var(--text-1);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  transition: all var(--transition-default);
+  white-space: nowrap;
+}
+
+.export-csv-btn:hover {
+  background: var(--color-border);
+  color: var(--color-primary);
+}
+
 .filter-bar {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
+  gap: var(--space-2);
+  overflow-x: auto;
+  padding-bottom: var(--space-2);
+  scrollbar-width: thin;
 }
 
 .filter-bar__btn {
   background: var(--surface-2);
-  border: 1px solid var(--surface-3);
+  border: 1px solid var(--color-border);
   color: var(--text-2);
-  padding: 0.5rem 1rem;
-  border-radius: 999px;
-  font-size: 0.875rem;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  white-space: nowrap;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-default);
 }
 
 .filter-bar__btn:hover {
-  background: var(--surface-3);
+  background: var(--color-border);
   color: var(--text-1);
 }
 
 .filter-bar__btn--active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
+  background: var(--color-primary-badge-bg);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
   font-weight: 500;
 }
