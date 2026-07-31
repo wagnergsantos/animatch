@@ -1,6 +1,6 @@
 import './TasteProfile.css'
 
-export default function TasteProfile({ profile }) {
+export default function TasteProfile({ profile = new Map() }) {
   const sorted = [...profile.entries()]
     .sort((a, b) => b[1].average - a[1].average)
     .slice(0, 5)
