@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import AnimeCard from './AnimeCard.jsx'
 import { fetchDubInfo } from '../api/anilist.js'
 import './RecommendationGrid.css'
@@ -18,6 +18,7 @@ function SkeletonCard() {
 
 export default function RecommendationGrid({ recommendations = [], isLoading = false }) {
   const [dubMap, setDubMap] = useState(new Map())
+  const [ignoreDub, setIgnoreDub] = useState(false)
 
   useEffect(() => {
     if (recommendations.length === 0) return
@@ -63,11 +64,37 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
     )
   }
 
+  const displayRecommendations = useMemo(() => {
+    return [...recommendations].map(rec => {
+      const hasDub = dubMap.get(rec.id) ?? false
+      const adjustedScore = (hasDub && !ignoreDub) ? Math.min(10, rec.predictedScore + 0.1) : rec.predictedScore
+      return {
+        ...rec,
+        predictedScore: adjustedScore
+      }
+    }).sort((a, b) => {
+      if (b.predictedScore !== a.predictedScore) {
+        return b.predictedScore - a.predictedScore
+      }
+      return b.communityScore - a.communityScore
+    })
+  }, [recommendations, dubMap, ignoreDub])
+
   return (
     <section className="recommendation-grid">
-      <h2 className="recommendation-grid__title">Recomendações — O Que Assistir Agora</h2>
+      <div className="recommendation-grid__header">
+        <h2 className="recommendation-grid__title" style={{ marginBottom: 0 }}>Recomendações — O Que Assistir Agora</h2>
+        <label className="dub-toggle">
+          <input 
+            type="checkbox" 
+            checked={ignoreDub} 
+            onChange={(e) => setIgnoreDub(e.target.checked)} 
+          />
+          Ignorar bônus de dublagem
+        </label>
+      </div>
       <div className="recommendation-grid__grid">
-        {recommendations.map((rec) => (
+        {displayRecommendations.map((rec) => (
           <AnimeCard 
             key={rec.id} 
             anime={rec} 

@@ -301,6 +301,47 @@ describe('fetchAllLists', () => {
     const result = await fetchAllLists('testuser')
     expect(result).toEqual([])
   })
+
+  it('uses localStorage cache on consecutive calls within TTL', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({
+        data: {
+          MediaListCollection: {
+            lists: [{ entries: [{ status: 'COMPLETED', media: { id: 100, title: { english: 'Cached Anime' } } }] }],
+          },
+        },
+      }),
+    })
+
+    const firstCall = await fetchAllLists('cacheduser')
+    expect(firstCall).toHaveLength(1)
+    expect(mockFetch).toHaveBeenCalledTimes(1)
+
+    // Second call should return cached data without calling fetch again
+    const secondCall = await fetchAllLists('cacheduser')
+    expect(secondCall).toEqual(firstCall)
+    expect(mockFetch).toHaveBeenCalledTimes(1)
+  })
+
+  it('bypasses cache when forceRefresh option is true', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({
+        data: {
+          MediaListCollection: {
+            lists: [{ entries: [{ status: 'COMPLETED', media: { id: 100, title: { english: 'Anime' } } }] }],
+          },
+        },
+      }),
+    })
+
+    await fetchAllLists('refresheduser')
+    expect(mockFetch).toHaveBeenCalledTimes(1)
+
+    await fetchAllLists('refresheduser', { forceRefresh: true })
+    expect(mockFetch).toHaveBeenCalledTimes(2)
+  })
 })
 
 

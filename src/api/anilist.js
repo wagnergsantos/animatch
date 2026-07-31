@@ -1,4 +1,6 @@
 const ANILIST_API = 'https://graphql.anilist.co'
+const CACHE_KEY_PREFIX = 'animatch_cache_'
+const CACHE_TTL = 5 * 60 * 1000 // 5 minutos em ms
 
 const COMPLETED_QUERY = `
 query ($userName: String) {
@@ -70,47 +72,80 @@ query ($userName: String) {
 }
 `
 
-async function queryAniList(query, variables) {
-  const response = await fetch(ANILIST_API, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query, variables }),
-  })
+async function queryAniList(query, variables, retries = 2, delayMs = 100) {
+  let lastError
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const response = await fetch(ANILIST_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, variables }),
+      })
 
-  if (response.status === 429) {
-    throw new Error('O AniList está temporariamente indisponível.')
-  }
-  if (response.status === 404) {
-    throw new Error('Usuário não encontrado no AniList.')
-  }
-  if (response.status === 403) {
-    throw new Error('A lista deste usuário é privada.')
-  }
+      if (!response) {
+        throw new Error('Erro ao conectar com o AniList.')
+      }
 
-  let json = null
-  try {
-    json = await response.json()
-  } catch {
-    // Body is not JSON
-  }
+      if (response.status === 429) {
+        throw new Error('O AniList está temporariamente indisponível.')
+      }
+      if (response.status === 404) {
+        throw new Error('Usuário não encontrado no AniList.')
+      }
+      if (response.status === 403) {
+        throw new Error('A lista deste usuário é privada.')
+      }
 
-  if (json?.errors?.length) {
-    const error = json.errors[0]
-    const msg = error.message ? error.message.toLowerCase() : ''
-    if (error.status === 404 || msg.includes('not found')) {
-      throw new Error('Usuário não encontrado no AniList.')
+      let json = null
+      try {
+        json = await response.json()
+      } catch {
+        // Body is not JSON
+      }
+
+      if (json?.errors?.length) {
+        const error = json.errors[0]
+        const msg = error.message ? error.message.toLowerCase() : ''
+        if (error.status === 404 || msg.includes('not found')) {
+          throw new Error('Usuário não encontrado no AniList.')
+        }
+        if (error.status === 403 || msg.includes('private')) {
+          throw new Error('A lista deste usuário é privada.')
+        }
+        throw new Error(error.message || 'Erro desconhecido da API.')
+      }
+
+      if (!response.ok) {
+        if (response.status >= 500 && attempt < retries) {
+          await new Promise((resolve) => setTimeout(resolve, delayMs * Math.pow(2, attempt)))
+          continue
+        }
+        throw new Error('Erro ao conectar com o AniList.')
+      }
+
+      return json?.data
+    } catch (err) {
+      lastError = err
+
+      // Non-retryable user/validation/API business errors
+      const isNonRetryable =
+        err.message === 'Usuário não encontrado no AniList.' ||
+        err.message === 'A lista deste usuário é privada.' ||
+        err.message === 'O AniList está temporariamente indisponível.' ||
+        err.message === 'Erro ao conectar com o AniList.' ||
+        (err.message && err.message !== 'Failed to fetch' && !err.message.includes('fetch'))
+
+      if (isNonRetryable) {
+        throw err
+      }
+
+      if (attempt < retries) {
+        await new Promise((resolve) => setTimeout(resolve, delayMs * Math.pow(2, attempt)))
+      }
     }
-    if (error.status === 403 || msg.includes('private')) {
-      throw new Error('A lista deste usuário é privada.')
-    }
-    throw new Error(error.message || 'Erro desconhecido da API.')
   }
 
-  if (!response.ok) {
-    throw new Error('Erro ao conectar com o AniList.')
-  }
-
-  return json?.data
+  throw lastError || new Error('Erro ao conectar com o AniList.')
 }
 
 export function flattenEntries(data) {
@@ -135,9 +170,52 @@ export async function fetchPlanningList(userName) {
   return flattenEntries(data)
 }
 
-export async function fetchAllLists(userName) {
+export async function fetchAllLists(userName, options = {}) {
+  const { forceRefresh = false } = options
+  const cacheKey = `${CACHE_KEY_PREFIX}${userName.toLowerCase()}`
+
+  if (!forceRefresh && typeof window !== 'undefined' && window.localStorage) {
+    try {
+      const cached = window.localStorage.getItem(cacheKey)
+      if (cached) {
+        const { timestamp, entries } = JSON.parse(cached)
+        if (Date.now() - timestamp < CACHE_TTL && Array.isArray(entries)) {
+          return entries
+        }
+      }
+    } catch (e) {
+      // Ignore cache read error
+    }
+  }
+
   const data = await queryAniList(ALL_LISTS_QUERY, { userName })
-  return flattenEntries(data)
+  const entries = flattenEntries(data)
+
+  if (typeof window !== 'undefined' && window.localStorage && entries.length > 0) {
+    try {
+      window.localStorage.setItem(
+        cacheKey,
+        JSON.stringify({
+          timestamp: Date.now(),
+          entries,
+        })
+      )
+    } catch (e) {
+      // Ignore cache write error (e.g. quota exceeded)
+    }
+  }
+
+  return entries
+}
+
+export function clearUserCache(userName) {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      window.localStorage.removeItem(`${CACHE_KEY_PREFIX}${userName.toLowerCase()}`)
+    } catch (e) {
+      // Ignore
+    }
+  }
 }
 
 const DUB_QUERY = `
@@ -180,4 +258,5 @@ export async function fetchDubInfo(mediaIds) {
     return new Map()
   }
 }
+
 
