@@ -44,27 +44,40 @@ async function queryAniList(query, variables) {
     body: JSON.stringify({ query, variables }),
   })
 
-  if (!response.ok) {
-    if (response.status === 429) {
-      throw new Error('O AniList está temporariamente indisponível.')
-    }
-    throw new Error('Erro ao conectar com o AniList.')
+  if (response.status === 429) {
+    throw new Error('O AniList está temporariamente indisponível.')
+  }
+  if (response.status === 404) {
+    throw new Error('Usuário não encontrado no AniList.')
+  }
+  if (response.status === 403) {
+    throw new Error('A lista deste usuário é privada.')
   }
 
-  const json = await response.json()
+  let json = null
+  try {
+    json = await response.json()
+  } catch {
+    // Body is not JSON
+  }
 
-  if (json.errors) {
+  if (json?.errors?.length) {
     const error = json.errors[0]
-    if (error.status === 404) {
+    const msg = error.message ? error.message.toLowerCase() : ''
+    if (error.status === 404 || msg.includes('not found')) {
       throw new Error('Usuário não encontrado no AniList.')
     }
-    if (error.status === 403) {
+    if (error.status === 403 || msg.includes('private')) {
       throw new Error('A lista deste usuário é privada.')
     }
     throw new Error(error.message || 'Erro desconhecido da API.')
   }
 
-  return json.data
+  if (!response.ok) {
+    throw new Error('Erro ao conectar com o AniList.')
+  }
+
+  return json?.data
 }
 
 function flattenEntries(data) {

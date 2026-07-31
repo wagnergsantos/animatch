@@ -54,7 +54,8 @@ describe('fetchCompletedList', () => {
 
   it('throws an error when user is not found', async () => {
     mockFetch.mockResolvedValueOnce({
-      ok: true,
+      ok: false,
+      status: 404,
       json: () => Promise.resolve({
         errors: [{ message: 'User not found', status: 404 }],
       }),
@@ -65,13 +66,48 @@ describe('fetchCompletedList', () => {
 
   it('throws an error when the list is private', async () => {
     mockFetch.mockResolvedValueOnce({
-      ok: true,
+      ok: false,
+      status: 403,
       json: () => Promise.resolve({
         errors: [{ message: 'Private', status: 403 }],
       }),
     })
 
     await expect(fetchCompletedList('privateuser')).rejects.toThrow('A lista deste usuário é privada.')
+  })
+
+  it('throws appropriate Portuguese error when GraphQL error status is 404', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve({
+        errors: [{ message: 'Not Found', status: 404 }],
+      }),
+    })
+
+    await expect(fetchCompletedList('nonexistent')).rejects.toThrow('Usuário não encontrado no AniList.')
+  })
+
+  it('throws generic error message for other GraphQL errors', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve({
+        errors: [{ message: 'Internal GraphQL Error' }],
+      }),
+    })
+
+    await expect(fetchCompletedList('testuser')).rejects.toThrow('Internal GraphQL Error')
+  })
+
+  it('throws generic connection error on non-429/404/403 HTTP error', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      json: () => Promise.reject(new Error('Invalid JSON')),
+    })
+
+    await expect(fetchCompletedList('testuser')).rejects.toThrow('Erro ao conectar com o AniList.')
   })
 
   it('throws on rate limit (HTTP 429)', async () => {
