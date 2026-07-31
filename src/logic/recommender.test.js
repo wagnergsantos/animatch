@@ -142,6 +142,7 @@ describe('scoreRecommendations', () => {
       title: 'Untitled',
       coverImage: '',
       genres: [],
+      format: 'OTHER',
       predictedScore: 7,
       communityScore: 7,
       siteUrl: 'https://anilist.co/anime/10',
@@ -153,6 +154,7 @@ describe('scoreRecommendations', () => {
       title: 'Untitled',
       coverImage: '',
       genres: [],
+      format: 'OTHER',
       predictedScore: 8,
       communityScore: 8,
       siteUrl: 'https://anilist.co/anime/11',
@@ -332,6 +334,18 @@ describe('scoreRecommendations', () => {
     expect(result).toHaveLength(1)
     expect(result[0].id).toBe(1)
     expect(result[0].siteUrl).toBe('https://anilist.co/anime/1')
+  })
+
+  it('filters recommendations by media format if format filter is specified', () => {
+    const planning = [
+      { media: { id: 1, title: { romaji: 'TV Anime' }, genres: ['Action'], format: 'TV', averageScore: 80 } },
+      { media: { id: 2, title: { romaji: 'Movie Anime' }, genres: ['Action'], format: 'MOVIE', averageScore: 85 } },
+    ]
+    const profile = new Map([['Action', { average: 8.5, adjustedAverage: 8.2 }]])
+
+    const tvOnly = scoreRecommendations(planning, profile, 'TV')
+    expect(tvOnly).toHaveLength(1)
+    expect(tvOnly[0].id).toBe(1)
   })
 })
 
