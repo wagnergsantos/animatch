@@ -41,27 +41,20 @@ describe('Dashboard', () => {
     expect(screen.getAllByText(/Action/)[0]).toBeInTheDocument()
   })
 
-  it('renders recommendation cards as links opening in a new tab', () => {
-    render(
-      <Dashboard
-        allEntries={mockEntries}
-        username="testuser"
-        onLogout={() => {}}
-      />
-    )
-
-    expect(screen.getByText('Made in Abyss')).toBeInTheDocument()
-    expect(screen.getByText('Steins;Gate')).toBeInTheDocument()
+  it('renders recommendation cards and opens window on click', async () => {
+    window.open = vi.fn()
+    render(<Dashboard allEntries={mockEntries} username="testuser" onLogout={vi.fn()} />)
     
-    const link1 = screen.getByRole('link', { name: /Made in Abyss/i })
-    expect(link1).toHaveAttribute('href', 'https://anilist.co/anime/10')
-    expect(link1).toHaveAttribute('target', '_blank')
-    expect(link1).toHaveAttribute('rel', 'noopener noreferrer')
+    // Wait for the skeleton to disappear
+    await waitFor(() => {
+      expect(screen.queryByTestId('skeleton')).not.toBeInTheDocument()
+    })
 
-    const link2 = screen.getByRole('link', { name: /Steins;Gate/i })
-    expect(link2).toHaveAttribute('href', 'https://anilist.co/anime/11')
-    expect(link2).toHaveAttribute('target', '_blank')
-    expect(link2).toHaveAttribute('rel', 'noopener noreferrer')
+    expect(screen.getByText('Steins;Gate')).toBeInTheDocument()
+
+    const article = screen.getByText('Made in Abyss').closest('article')
+    fireEvent.click(article)
+    expect(window.open).toHaveBeenCalledWith('https://anilist.co/anime/10', '_blank', 'noopener,noreferrer')
   })
 
   it('calls onLogout when the logout button is clicked', () => {

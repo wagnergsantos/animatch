@@ -23,10 +23,19 @@ export default function RecommendationGrid({ recommendations = [], isLoading, on
     if (recommendations.length === 0) return
 
     const fetchDubs = async () => {
-      // Just fetch for the top 20 recommendations to keep it fast
-      const ids = recommendations.slice(0, 20).map(r => r.id)
-      const map = await fetchDubInfo(ids)
-      setDubMap(map)
+      // Fetch up to 100 recommendations
+      const ids = recommendations.slice(0, 100).map(r => r.id)
+      
+      const newMap = new Map()
+      // Fetch in chunks of 50
+      for (let i = 0; i < ids.length; i += 50) {
+        const chunk = ids.slice(i, i + 50)
+        const chunkMap = await fetchDubInfo(chunk)
+        for (const [key, val] of chunkMap.entries()) {
+          newMap.set(key, val)
+        }
+      }
+      setDubMap(newMap)
     }
 
     fetchDubs()

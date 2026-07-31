@@ -146,8 +146,8 @@ query ($idIn: [Int]) {
       id
       characters(sort: ROLE, perPage: 15) {
         edges {
-          voiceActors(language: PORTUGUESE) {
-            id
+          voiceActors {
+            languageV2
           }
         }
       }
@@ -159,17 +159,17 @@ query ($idIn: [Int]) {
 export async function fetchDubInfo(mediaIds) {
   if (!mediaIds || mediaIds.length === 0) return new Map()
   
-  // To avoid hitting limits, we just take the first 50
-  const chunk = mediaIds.slice(0, 50)
-  
   try {
-    const data = await queryAniList(DUB_QUERY, { idIn: chunk })
+    const data = await queryAniList(DUB_QUERY, { idIn: mediaIds })
     const mediaList = data?.Page?.media ?? []
     
     const dubMap = new Map()
     for (const media of mediaList) {
       const chars = media?.characters?.edges ?? []
-      const hasPtBr = chars.some(char => char?.voiceActors && char.voiceActors.length > 0)
+      const hasPtBr = chars.some(char => 
+        char?.voiceActors && 
+        char.voiceActors.some(va => va?.languageV2 === 'Portuguese')
+      )
       dubMap.set(media.id, hasPtBr)
     }
     return dubMap

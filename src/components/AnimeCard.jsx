@@ -4,14 +4,26 @@ export default function AnimeCard({ anime, onGenreClick, hasDub }) {
   const genres = anime?.genres ?? []
   const title = anime?.title || 'Untitled'
   const siteUrl = anime?.siteUrl || (anime?.id ? `https://anilist.co/anime/${anime.id}` : '#')
-  const streamingLinks = anime?.streamingLinks ?? []
+  
+  // Deduplicate streaming links by site
+  const streamingLinks = []
+  const seenSites = new Set()
+  for (const link of (anime?.streamingLinks ?? [])) {
+    if (!seenSites.has(link.site)) {
+      seenSites.add(link.site)
+      streamingLinks.push(link)
+    }
+  }
+
+  const handleCardClick = () => {
+    window.open(siteUrl, '_blank', 'noopener,noreferrer')
+  }
 
   return (
-    <a
-      href={siteUrl}
-      target="_blank"
-      rel="noopener noreferrer"
+    <article
       className="anime-card"
+      onClick={handleCardClick}
+      style={{ cursor: 'pointer' }}
     >
       <div className="anime-card__image-wrapper">
         <img
@@ -73,6 +85,6 @@ export default function AnimeCard({ anime, onGenreClick, hasDub }) {
           ))}
         </div>
       </div>
-    </a>
+    </article>
   )
 }
