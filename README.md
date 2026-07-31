@@ -1,4 +1,4 @@
-# Nome do Projeto (a definir)
+# AniMatch
 
 Uma aplicação web inteligente que analisa a sua lista do AniList para gerar recomendações personalizadas de animes usando um algoritmo baseado em gostos, popularidade e avaliação da comunidade.
 
