@@ -2,18 +2,26 @@ import './AnimeCard.css'
 
 export default function AnimeCard({ anime }) {
   const genres = anime?.genres ?? []
+  const title = anime?.title || 'Untitled'
+  const siteUrl = anime?.siteUrl || (anime?.id ? `https://anilist.co/anime/${anime.id}` : '#')
+
   return (
-    <article className="anime-card">
+    <a
+      href={siteUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="anime-card"
+    >
       <div className="anime-card__image-wrapper">
         <img
           className="anime-card__image"
-          src={anime.coverImage}
-          alt={`Capa de ${anime.title}`}
+          src={anime?.coverImage}
+          alt={`Capa de ${title}`}
           loading="lazy"
         />
       </div>
       <div className="anime-card__body">
-        <h3 className="anime-card__title">{anime.title}</h3>
+        <h3 className="anime-card__title">{title}</h3>
         <p className="anime-card__predicted">
           Match: {(anime?.predictedScore ?? 0).toFixed(1)}/10
         </p>
@@ -28,6 +36,6 @@ export default function AnimeCard({ anime }) {
           ))}
         </div>
       </div>
-    </article>
+    </a>
   )
 }

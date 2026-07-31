@@ -19,6 +19,7 @@ const mockRecommendations = [
     genres: ['Adventure', 'Fantasy'],
     predictedScore: 7.8,
     communityScore: 8.4,
+    siteUrl: 'https://anilist.co/anime/1',
   },
   {
     id: 2,
@@ -27,6 +28,7 @@ const mockRecommendations = [
     genres: ['Drama', 'Sci-Fi'],
     predictedScore: 8.5,
     communityScore: 9.1,
+    siteUrl: 'https://anilist.co/anime/2',
   },
 ]
 
@@ -63,7 +65,7 @@ describe('Dashboard', () => {
     expect(screen.queryByText(/Slice of Life/)).not.toBeInTheDocument()
   })
 
-  it('renders recommendation cards', () => {
+  it('renders recommendation cards as links opening in a new tab', () => {
     render(
       <Dashboard
         tasteProfile={mockProfile}
@@ -76,6 +78,16 @@ describe('Dashboard', () => {
 
     expect(screen.getByText('Made in Abyss')).toBeInTheDocument()
     expect(screen.getByText('Steins;Gate')).toBeInTheDocument()
+
+    const link1 = screen.getByRole('link', { name: /Made in Abyss/i })
+    expect(link1).toHaveAttribute('href', 'https://anilist.co/anime/1')
+    expect(link1).toHaveAttribute('target', '_blank')
+    expect(link1).toHaveAttribute('rel', 'noopener noreferrer')
+
+    const link2 = screen.getByRole('link', { name: /Steins;Gate/i })
+    expect(link2).toHaveAttribute('href', 'https://anilist.co/anime/2')
+    expect(link2).toHaveAttribute('target', '_blank')
+    expect(link2).toHaveAttribute('rel', 'noopener noreferrer')
   })
 
   it('calls onLogout when the logout button is clicked', () => {
