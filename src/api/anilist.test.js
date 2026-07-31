@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { fetchCompletedList, fetchPlanningList } from './anilist.js'
+import { fetchCompletedList, fetchPlanningList, flattenEntries } from './anilist.js'
 
 const mockFetch = vi.fn()
 global.fetch = mockFetch
@@ -88,6 +88,18 @@ describe('fetchCompletedList', () => {
     await expect(fetchCompletedList('nonexistent')).rejects.toThrow('Usuário não encontrado no AniList.')
   })
 
+  it('throws appropriate Portuguese error when GraphQL error status is 403', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve({
+        errors: [{ message: 'Private', status: 403 }],
+      }),
+    })
+
+    await expect(fetchCompletedList('privateuser')).rejects.toThrow('A lista deste usuário é privada.')
+  })
+
   it('throws generic error message for other GraphQL errors', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -157,6 +169,7 @@ describe('fetchPlanningList', () => {
   it('returns empty array when user has no planning list', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
+      status: 200,
       json: () => Promise.resolve({
         data: {
           MediaListCollection: {
@@ -169,5 +182,15 @@ describe('fetchPlanningList', () => {
     const result = await fetchPlanningList('testuser')
 
     expect(result).toEqual([])
+  })
+})
+
+describe('flattenEntries', () => {
+  it('returns empty array when receiving null', () => {
+    expect(flattenEntries(null)).toEqual([])
+  })
+
+  it('returns empty array when MediaListCollection is null', () => {
+    expect(flattenEntries({ MediaListCollection: null })).toEqual([])
   })
 })

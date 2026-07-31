@@ -80,9 +80,9 @@ async function queryAniList(query, variables) {
   return json?.data
 }
 
-function flattenEntries(data) {
-  const lists = data.MediaListCollection?.lists ?? []
-  return lists.flatMap((list) => list.entries)
+export function flattenEntries(data) {
+  const lists = data?.MediaListCollection?.lists ?? []
+  return lists.flatMap((list) => list?.entries ?? [])
 }
 
 export async function fetchCompletedList(userName) {
