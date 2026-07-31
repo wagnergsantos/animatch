@@ -24,7 +24,7 @@ export default function AnimeCard({ anime, hasDub }) {
       className="anime-card"
       onClick={handleCardClick}
       style={{ cursor: 'pointer' }}
-      title={anime?.description || title}
+      title={title}
     >
       <div className="anime-card__image-wrapper">
         <img
@@ -36,12 +36,12 @@ export default function AnimeCard({ anime, hasDub }) {
       </div>
       <div className="anime-card__body">
         <h3 className="anime-card__title">{title}</h3>
-        {anime?.predictedScore && (
+        {anime?.predictedScore != null && (
           <p className="anime-card__predicted">
             Match: {(anime.predictedScore).toFixed(2)}/10
           </p>
         )}
-        {anime?.communityScore && (
+        {anime?.communityScore != null && (
           <p className="anime-card__community">
             Comunidade: {(anime.communityScore).toFixed(2)}/10
           </p>
