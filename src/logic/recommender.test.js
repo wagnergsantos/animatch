@@ -122,17 +122,7 @@ describe('scoreRecommendations', () => {
 
     const result = scoreRecommendations(planning, tasteProfile)
 
-    expect(result).toHaveLength(3)
-
-    const nullMediaResult = result.find((r) => r.id === undefined)
-    expect(nullMediaResult).toEqual({
-      id: undefined,
-      title: 'Untitled',
-      coverImage: '',
-      genres: [],
-      predictedScore: 0,
-      communityScore: 0,
-    })
+    expect(result).toHaveLength(2)
 
     const entry10Result = result.find((r) => r.id === 10)
     expect(entry10Result).toEqual({
@@ -142,6 +132,7 @@ describe('scoreRecommendations', () => {
       genres: [],
       predictedScore: 7,
       communityScore: 7,
+      siteUrl: 'https://anilist.co/anime/10',
     })
 
     const entry11Result = result.find((r) => r.id === 11)
@@ -152,6 +143,7 @@ describe('scoreRecommendations', () => {
       genres: [],
       predictedScore: 8,
       communityScore: 8,
+      siteUrl: 'https://anilist.co/anime/11',
     })
   })
 
@@ -274,6 +266,7 @@ describe('scoreRecommendations', () => {
         media: {
           id: 1,
           genres: ['Action', 'Adventure'],
+          averageScore: 70,
         },
       },
     ]
@@ -291,12 +284,42 @@ describe('scoreRecommendations', () => {
         media: {
           id: 1,
           genres: ['Action'],
+          averageScore: 70,
         },
       },
     ]
 
     const result = scoreRecommendations(planning, customProfile)
     expect(result[0].predictedScore).toBe(6)
+  })
+
+  it('filters out unreleased anime where averageScore is null or 0', () => {
+    const planning = [
+      {
+        media: {
+          id: 1, title: { romaji: 'Released', english: 'Released' },
+          genres: ['Action'], coverImage: { large: '' }, averageScore: 70, siteUrl: 'https://anilist.co/anime/1',
+        },
+      },
+      {
+        media: {
+          id: 2, title: { romaji: 'Unreleased Null', english: 'Unreleased Null' },
+          genres: ['Action'], coverImage: { large: '' }, averageScore: null, siteUrl: 'https://anilist.co/anime/2',
+        },
+      },
+      {
+        media: {
+          id: 3, title: { romaji: 'Unreleased Zero', english: 'Unreleased Zero' },
+          genres: ['Action'], coverImage: { large: '' }, averageScore: 0, siteUrl: 'https://anilist.co/anime/3',
+        },
+      },
+    ]
+
+    const result = scoreRecommendations(planning, tasteProfile)
+
+    expect(result).toHaveLength(1)
+    expect(result[0].id).toBe(1)
+    expect(result[0].siteUrl).toBe('https://anilist.co/anime/1')
   })
 })
 

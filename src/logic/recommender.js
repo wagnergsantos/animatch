@@ -54,7 +54,12 @@ export function buildTasteProfile(completedEntries = []) {
 }
 
 export function scoreRecommendations(planningEntries = [], tasteProfile = new Map()) {
-  const scored = planningEntries.map((entry) => {
+  const validPlanning = planningEntries.filter((entry) => {
+    const score = entry?.media?.averageScore
+    return score != null && score > 0
+  })
+
+  const scored = validPlanning.map((entry) => {
     const media = entry?.media ?? {}
     const genres = media?.genres ?? []
     const matchingGenres = genres.filter((g) => tasteProfile.has(g))
@@ -67,14 +72,10 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
       )
       predictedScore = Math.round((sum / matchingGenres.length) * 10) / 10
     } else {
-      predictedScore = media.averageScore != null
-        ? Math.round((media.averageScore / 10) * 10) / 10
-        : 0
+      predictedScore = Math.round((media.averageScore / 10) * 10) / 10
     }
 
-    const communityScore = media.averageScore != null
-      ? Math.round((media.averageScore / 10) * 10) / 10
-      : 0
+    const communityScore = Math.round((media.averageScore / 10) * 10) / 10
 
     return {
       id: media.id,
@@ -83,6 +84,7 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
       genres,
       predictedScore,
       communityScore,
+      siteUrl: media.siteUrl || `https://anilist.co/anime/${media.id}`,
     }
   })
 
