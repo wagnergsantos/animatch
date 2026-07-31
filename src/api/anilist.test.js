@@ -150,6 +150,7 @@ describe('fetchPlanningList', () => {
                       coverImage: { large: 'https://img.example.com/mia.jpg' },
                       averageScore: 84,
                       popularity: 120000,
+                      siteUrl: 'https://anilist.co/anime/10',
                     },
                   },
                 ],
@@ -164,6 +165,7 @@ describe('fetchPlanningList', () => {
 
     expect(result).toHaveLength(1)
     expect(result[0].media.averageScore).toBe(84)
+    expect(result[0].media.siteUrl).toBe('https://anilist.co/anime/10')
   })
 
   it('returns empty array when user has no planning list', async () => {

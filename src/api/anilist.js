@@ -30,6 +30,7 @@ query ($userName: String) {
           coverImage { large }
           averageScore
           popularity
+          siteUrl
         }
       }
     }
