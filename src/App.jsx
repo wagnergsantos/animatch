@@ -47,12 +47,12 @@ export default function App() {
     })
   }
 
-  async function handleLogin(inputUsername) {
+  async function handleLogin(inputUsername, options = {}) {
     setIsLoading(true)
     setError(null)
 
     try {
-      const entries = await fetchAllLists(inputUsername)
+      const entries = await fetchAllLists(inputUsername, options)
 
       const planning = entries.filter((e) => e.status === 'PLANNING')
       if (planning.length === 0) {
@@ -84,6 +84,10 @@ export default function App() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  function handleRefresh() {
+    handleLogin(username, { forceRefresh: true })
   }
 
   function handleLogout() {
@@ -119,6 +123,8 @@ export default function App() {
       allEntries={allEntries}
       username={username}
       onLogout={handleLogout}
+      onRefresh={handleRefresh}
+      isLoading={isLoading}
     />
   )
 }

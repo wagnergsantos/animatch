@@ -71,4 +71,40 @@ describe('Dashboard', () => {
 
     expect(onLogout).toHaveBeenCalled()
   })
+
+  it('renders force refresh button and calls onRefresh when clicked', () => {
+    const onRefresh = vi.fn()
+    render(
+      <Dashboard
+        allEntries={mockEntries}
+        username="testuser"
+        onLogout={vi.fn()}
+        onRefresh={onRefresh}
+        isLoading={false}
+      />
+    )
+
+    const refreshButton = screen.getByRole('button', { name: /atualizar lista/i })
+    expect(refreshButton).toBeInTheDocument()
+    expect(refreshButton).not.toBeDisabled()
+
+    fireEvent.click(refreshButton)
+    expect(onRefresh).toHaveBeenCalledTimes(1)
+  })
+
+  it('disables force refresh button and shows updating state when isLoading is true', () => {
+    render(
+      <Dashboard
+        allEntries={mockEntries}
+        username="testuser"
+        onLogout={vi.fn()}
+        onRefresh={vi.fn()}
+        isLoading={true}
+      />
+    )
+
+    const refreshButton = screen.getByRole('button', { name: /atualizando/i })
+    expect(refreshButton).toBeInTheDocument()
+    expect(refreshButton).toBeDisabled()
+  })
 })

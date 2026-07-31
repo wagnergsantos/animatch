@@ -101,4 +101,26 @@ describe('App', () => {
       expect(screen.getByRole('alert')).toHaveTextContent("Adicione animes à sua lista 'Planning'")
     })
   })
+  it('calls fetchAllLists with forceRefresh: true when handleRefresh is triggered', async () => {
+    fetchAllLists.mockResolvedValue(allData)
+
+    render(<App />)
+
+    fireEvent.change(screen.getByLabelText('Username do AniList'), {
+      target: { value: 'testuser' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /gerar recomendações/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText('testuser')).toBeInTheDocument()
+    })
+
+    expect(fetchAllLists).toHaveBeenCalledWith('testuser', {})
+
+    fireEvent.click(screen.getByRole('button', { name: /atualizar lista/i }))
+
+    await waitFor(() => {
+      expect(fetchAllLists).toHaveBeenCalledWith('testuser', { forceRefresh: true })
+    })
+  })
 })

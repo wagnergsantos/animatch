@@ -32,7 +32,7 @@ function exportRecommendationsToCSV(recommendations) {
   document.body.removeChild(link)
 }
 
-export default function Dashboard({ allEntries = [], username, onLogout }) {
+export default function Dashboard({ allEntries = [], username, onLogout, onRefresh, isLoading }) {
   const [activeTab, setActiveTab] = useState('recommendations')
   const [selectedFilterGenre, setSelectedFilterGenre] = useState('ALL')
   const [searchQuery, setSearchQuery] = useState('')
@@ -114,6 +114,24 @@ export default function Dashboard({ allEntries = [], username, onLogout }) {
             title="Copiar link das suas recomendações"
           >
             {copied ? '✅ Link copiado!' : '🔗 Compartilhar'}
+          </button>
+          <button
+            type="button"
+            onClick={onRefresh}
+            disabled={isLoading}
+            style={{
+              background: 'var(--surface-2)',
+              border: '1px solid var(--color-border)',
+              color: 'var(--text-1)',
+              padding: 'var(--space-2) var(--space-3)',
+              borderRadius: 'var(--radius-md)',
+              fontSize: 'var(--text-sm)',
+              cursor: isLoading ? 'not-allowed' : 'pointer',
+              opacity: isLoading ? 0.7 : 1,
+            }}
+            title="Forçar atualização da lista com o AniList"
+          >
+            {isLoading ? '⏳ Atualizando...' : '🔄 Atualizar Lista'}
           </button>
           <ThemeToggle />
           <button className="dashboard__logout" onClick={onLogout}>
