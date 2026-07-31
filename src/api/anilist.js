@@ -38,6 +38,34 @@ query ($userName: String) {
 }
 `
 
+const ALL_LISTS_QUERY = `
+query ($userName: String) {
+  MediaListCollection(userName: $userName, type: ANIME) {
+    lists {
+      name
+      status
+      entries {
+        status
+        score(format: POINT_10_DECIMAL)
+        media {
+          id
+          title { romaji english }
+          format
+          episodes
+          seasonYear
+          startDate { year month day }
+          genres
+          coverImage { large }
+          averageScore
+          popularity
+          siteUrl
+        }
+      }
+    }
+  }
+}
+`
+
 async function queryAniList(query, variables) {
   const response = await fetch(ANILIST_API, {
     method: 'POST',
@@ -95,3 +123,9 @@ export async function fetchPlanningList(userName) {
   const data = await queryAniList(PLANNING_QUERY, { userName })
   return flattenEntries(data)
 }
+
+export async function fetchAllLists(userName) {
+  const data = await queryAniList(ALL_LISTS_QUERY, { userName })
+  return flattenEntries(data)
+}
+
