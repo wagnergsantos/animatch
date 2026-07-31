@@ -1,17 +1,24 @@
 export function computeOverviewStats(entries = []) {
-  let totalAnimes = entries.length
+  let totalAnimes = 0
   let totalEpisodes = 0
   let scoreSum = 0
   let scoredCount = 0
 
   for (const entry of entries) {
+    if (entry?.status === 'PLANNING') continue
+
+    totalAnimes += 1
+    
     if (entry?.media?.episodes) {
       totalEpisodes += entry.media.episodes
     }
-    const score = entry?.score ?? 0
-    if (score > 0) {
-      scoreSum += score
-      scoredCount += 1
+
+    if (entry?.status !== 'DROPPED') {
+      const score = entry?.score ?? 0
+      if (score > 0) {
+        scoreSum += score
+        scoredCount += 1
+      }
     }
   }
 

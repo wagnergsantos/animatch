@@ -19,16 +19,24 @@ describe('analytics logic', () => {
       media: { episodes: 24, startDate: { year: 2020 }, genres: ['Action'] }
     },
     {
+      status: 'DROPPED',
+      score: 2,
+      media: { episodes: 12, seasonYear: 2020, genres: ['Action'] }
+    },
+    {
       status: 'PLANNING',
       score: 0,
       media: { episodes: 12, seasonYear: 2021, genres: ['Sci-Fi'] }
     }
   ]
 
-  it('computes overview stats correctly', () => {
+  it('computes overview stats correctly, ignoring PLANNING for totals and DROPPED for average', () => {
     const stats = computeOverviewStats(sampleEntries)
+    // 3 animes (COMPLETED, COMPLETED, DROPPED) - ignores PLANNING
     expect(stats.totalAnimes).toBe(3)
+    // 12 + 24 + 12 = 48 episodes
     expect(stats.totalEpisodes).toBe(48)
+    // score sum: 8 + 10 = 18. Count: 2 (DROPPED is ignored) -> average: 9.0
     expect(stats.userAverageScore).toBe(9.0)
   })
 
@@ -37,14 +45,14 @@ describe('analytics logic', () => {
     expect(dist.COMPLETED).toBe(2)
     expect(dist.PLANNING).toBe(1)
     expect(dist.CURRENT).toBe(0)
-    expect(dist.DROPPED).toBe(0)
+    expect(dist.DROPPED).toBe(1)
     expect(dist.PAUSED).toBe(0)
   })
 
   it('computes year distribution', () => {
     const years = computeYearDistribution(sampleEntries)
     expect(years).toEqual([
-      { year: 2020, count: 2 },
+      { year: 2020, count: 3 },
       { year: 2021, count: 1 }
     ])
   })
