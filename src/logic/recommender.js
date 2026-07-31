@@ -1,5 +1,5 @@
 const MIN_GENRE_COUNT = 2
-const CONFIDENCE_CONSTANT = 5
+const CONFIDENCE_CONSTANT = 15
 
 export function buildTasteProfile(completedEntries = []) {
   const genreStats = new Map()
@@ -42,8 +42,8 @@ export function buildTasteProfile(completedEntries = []) {
         (CONFIDENCE_CONSTANT + stats.scoredCount)
 
       profile.set(genre, {
-        average: Math.round(realAverage * 10) / 10,
-        adjustedAverage: Math.round(adjustedAverage * 10) / 10,
+        average: Math.round(realAverage * 100) / 100,
+        adjustedAverage: Math.round(adjustedAverage * 100) / 100,
         count: stats.count,
         scoredCount: stats.scoredCount,
       })
@@ -70,12 +70,12 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
         (acc, g) => acc + (tasteProfile.get(g).adjustedAverage ?? tasteProfile.get(g).average),
         0
       )
-      predictedScore = Math.round((sum / matchingGenres.length) * 10) / 10
+      predictedScore = Math.round((sum / matchingGenres.length) * 100) / 100
     } else {
-      predictedScore = Math.round((media.averageScore / 10) * 10) / 10
+      predictedScore = Math.round((media.averageScore / 10) * 100) / 100
     }
 
-    const communityScore = Math.round((media.averageScore / 10) * 10) / 10
+    const communityScore = Math.round((media.averageScore / 10) * 100) / 100
 
     return {
       id: media.id,
@@ -84,7 +84,7 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
       genres,
       predictedScore,
       communityScore,
-      siteUrl: media.siteUrl || `https://anilist.co/anime/${media.id}`,
+      siteUrl: media.siteUrl || (media.id ? `https://anilist.co/anime/${media.id}` : '#'),
     }
   })
 
@@ -97,4 +97,3 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
 
   return scored
 }
-

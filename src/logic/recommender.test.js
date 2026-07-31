@@ -12,8 +12,8 @@ describe('buildTasteProfile', () => {
 
     const profile = buildTasteProfile(entries)
 
-    expect(profile.get('Action')).toEqual({ average: 7, adjustedAverage: 7.5, count: 3, scoredCount: 2 })
-    expect(profile.get('Adventure')).toEqual({ average: 8.5, adjustedAverage: 7.9, count: 2, scoredCount: 2 })
+    expect(profile.get('Action')).toEqual({ average: 7, adjustedAverage: 7.59, count: 3, scoredCount: 2 })
+    expect(profile.get('Adventure')).toEqual({ average: 8.5, adjustedAverage: 7.76, count: 2, scoredCount: 2 })
   })
 
   it('excludes genres with fewer than 2 scored anime', () => {
@@ -60,10 +60,10 @@ describe('buildTasteProfile', () => {
 
     const profile = buildTasteProfile(entries)
 
-    expect(profile.get('Action')).toEqual({ average: 8.5, adjustedAverage: 8.4, count: 2, scoredCount: 2 })
+    expect(profile.get('Action')).toEqual({ average: 8.5, adjustedAverage: 8.35, count: 2, scoredCount: 2 })
   })
 
-  it('calculates Bayesian adjustedAverage using user global average and C=5', () => {
+  it('calculates Bayesian adjustedAverage using user global average and C=15', () => {
     // Genre Action: 15 entries, sum = 124.95 -> real average = 8.33
     // Genre Fantasy: 114 entries, sum = 931.38 -> real average = 8.17
     // Genre Drama: 129 entries, sum = 752.07 -> overall user global average = 7.0
@@ -75,10 +75,22 @@ describe('buildTasteProfile', () => {
 
     const profile = buildTasteProfile(entries)
 
-    expect(profile.get('Action').adjustedAverage).toBe(8.0)
-    expect(profile.get('Fantasy').adjustedAverage).toBe(8.1)
+    expect(profile.get('Action').adjustedAverage).toBe(7.67)
+    expect(profile.get('Fantasy').adjustedAverage).toBe(8.04)
     // Fantasy has higher adjustedAverage than Action because of volume!
     expect(profile.get('Fantasy').adjustedAverage).toBeGreaterThan(profile.get('Action').adjustedAverage)
+  })
+
+  it('calculates Bayesian adjustedAverage using C=15 and 2 decimal precision', () => {
+    const entries = [
+      ...Array.from({ length: 15 }, () => ({ score: 8.33, media: { genres: ['Action'] } })),
+      ...Array.from({ length: 114 }, () => ({ score: 8.17, media: { genres: ['Fantasy'] } })),
+    ]
+
+    const profile = buildTasteProfile(entries)
+
+    expect(profile.get('Action').adjustedAverage).toBe(8.26)
+    expect(profile.get('Fantasy').adjustedAverage).toBe(8.17)
   })
 })
 
