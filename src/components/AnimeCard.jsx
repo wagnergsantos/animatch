@@ -28,7 +28,7 @@ export default function AnimeCard({ anime, hasDub }) {
       <div className="anime-card__image-wrapper">
         <img
           className="anime-card__image"
-          src={anime?.coverImage?.large || ''}
+          src={anime?.coverImage || undefined}
           alt={`Capa de ${title}`}
           loading="lazy"
         />
@@ -40,9 +40,9 @@ export default function AnimeCard({ anime, hasDub }) {
             Match: {(anime.predictedScore).toFixed(2)}/10
           </p>
         )}
-        {anime?.averageScore && (
+        {anime?.communityScore && (
           <p className="anime-card__community">
-            Comunidade: {(anime.averageScore / 10).toFixed(2)}/10
+            Comunidade: {(anime.communityScore).toFixed(2)}/10
           </p>
         )}
 
