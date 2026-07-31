@@ -1,16 +1,64 @@
-# React + Vite
+# Nome do Projeto (a definir)
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Uma aplicação web inteligente que analisa a sua lista do AniList para gerar recomendações personalizadas de animes usando um algoritmo baseado em gostos, popularidade e avaliação da comunidade.
 
-Currently, two official plugins are available:
+## Funcionalidades Principais
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Integração com AniList**: Basta inserir seu nome de usuário do AniList, sem necessidade de senhas ou autenticação complexa.
+- **Perfil de Gosto (Taste Profile)**: O sistema analisa suas notas dadas aos animes concluídos e calcula o quão bem você avalia cada gênero.
+- **Média Bayesiana**: Utiliza um cálculo Bayesiano para nivelar gêneros que você assistiu pouco em relação aos que você assiste muito.
+- **Recomendações Inteligentes**: Compara a sua lista de "Plan to Watch" (Planejando Assistir) com o seu Perfil de Gosto para prever a nota que você daria a cada obra.
+- **Onde Assistir & Dublagem**: Mostra diretamente nos cards em quais plataformas de streaming (Crunchyroll, Netflix, etc.) o anime está disponível e verifica se ele possui dubladores brasileiros listados no AniList (Dublagem PT-BR).
+- **Dashboard Estatístico**: Acompanhe o total de animes assistidos, dias de sua vida gastos vendo anime, distribuição de notas, formatos e status da sua coleção.
 
-## React Compiler
+## Como o Algoritmo Funciona
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. **Coleta de Dados**: O app busca todos os seus animes concluídos e pontuados.
+2. **Cálculo por Gênero**: Para cada gênero, ele calcula sua nota média.
+3. **Cálculo Bayesiano**: Se você viu apenas 1 anime de "Mecha" e deu 10, a nota sofre um reajuste (peso) em direção à sua média geral para evitar distorções (C = 15).
+4. **Predição**: Nos animes da sua lista de planejamento, o sistema cruza os gêneros do anime com suas médias Bayesianas. A nota prevista é a média simples do seu gosto pelos gêneros daquela obra.
 
-## Expanding the Oxlint configuration
+## Como Executar Localmente
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+### Pré-requisitos
+- Node.js (v16 ou superior)
+- npm ou yarn
+
+### Instalação
+
+1. Clone o repositório:
+```bash
+git clone https://github.com/seu-usuario/nome-do-projeto.git
+```
+
+2. Acesse a pasta do projeto:
+```bash
+cd nome-do-projeto
+```
+
+3. Instale as dependências:
+```bash
+npm install
+```
+
+4. Inicie o servidor de desenvolvimento:
+```bash
+npm run dev
+```
+
+5. Abra o navegador na porta indicada (normalmente `http://localhost:5173`).
+
+## Scripts Disponíveis
+
+- `npm run dev`: Inicia o servidor Vite para desenvolvimento com hot-reload.
+- `npm run build`: Cria a versão otimizada de produção na pasta `dist`.
+- `npm run preview`: Inicia um servidor local para visualizar a versão de produção.
+- `npm run test`: Roda os testes unitários da aplicação utilizando o Vitest.
+- `npm run lint`: Analisa o código com o ESLint para garantir a qualidade.
+
+## Tecnologias Utilizadas
+- **React (com Hooks)**
+- **Vite**
+- **AniList GraphQL API**
+- **Vitest & React Testing Library** (Testes)
+- **CSS Vanilla** (CSS Variables, Flexbox, Grid)
