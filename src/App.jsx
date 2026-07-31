@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { fetchAllLists } from './api/anilist.js'
 import LoginScreen from './components/LoginScreen.jsx'
 import Dashboard from './components/Dashboard.jsx'
@@ -9,6 +9,13 @@ export default function App() {
   const [error, setError] = useState(null)
   const [username, setUsername] = useState('')
   const [allEntries, setAllEntries] = useState([])
+
+  useEffect(() => {
+    const savedUsername = localStorage.getItem('animatch_username')
+    if (savedUsername) {
+      handleLogin(savedUsername)
+    }
+  }, [])
 
   async function handleLogin(inputUsername) {
     setIsLoading(true)
@@ -27,8 +34,10 @@ export default function App() {
       setUsername(inputUsername)
       setAllEntries(entries)
       setScreen('dashboard')
+      localStorage.setItem('animatch_username', inputUsername)
     } catch (err) {
       setError(err.message)
+      localStorage.removeItem('animatch_username')
     } finally {
       setIsLoading(false)
     }
@@ -39,6 +48,7 @@ export default function App() {
     setUsername('')
     setAllEntries([])
     setError(null)
+    localStorage.removeItem('animatch_username')
   }
 
   if (screen === 'login') {
