@@ -73,12 +73,10 @@ export default function AnimeCard({ anime, onGenreClick, hasDub }) {
               key={genre}
               className="anime-card__genre-pill"
               onClick={(e) => {
-                if (onGenreClick) {
-                  e.preventDefault()
-                  onGenreClick(genre)
-                }
+                e.stopPropagation()
+                onGenreClick?.(genre)
               }}
-              style={{ cursor: onGenreClick ? 'pointer' : 'default' }}
+              title="Filtrar por este gênero"
             >
               {genre}
             </span>

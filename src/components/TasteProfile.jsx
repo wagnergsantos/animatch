@@ -1,6 +1,6 @@
 import './TasteProfile.css'
 
-export default function TasteProfile({ profile = new Map() }) {
+export default function TasteProfile({ profile = new Map(), onGenreClick }) {
   const entries = profile?.entries ? [...profile.entries()] : []
   const sorted = entries.sort((a, b) => {
     const scoreA = a[1]?.adjustedAverage ?? a[1]?.average ?? 0
@@ -27,6 +27,8 @@ export default function TasteProfile({ profile = new Map() }) {
             <span
               key={genre}
               className={`taste-badge ${isFilled ? 'taste-badge--filled' : 'taste-badge--outline'}`}
+              onClick={() => onGenreClick?.(genre)}
+              style={{ cursor: onGenreClick ? 'pointer' : 'default' }}
             >
               {genre} ★ {realAvg.toFixed(2)} ({count})
             </span>

@@ -53,7 +53,12 @@ export default function Dashboard({ allEntries = [], username, onLogout }) {
       <main className="dashboard__main">
         {activeTab === 'recommendations' ? (
           <>
-            {tasteProfile.size > 0 && <TasteProfile profile={tasteProfile} />}
+            {tasteProfile.size > 0 && (
+              <TasteProfile 
+                profile={tasteProfile} 
+                onGenreClick={setModalGenre} 
+              />
+            )}
             <FilterBar
               selectedGenre={selectedFilterGenre}
               onSelectGenre={setSelectedFilterGenre}
@@ -61,7 +66,7 @@ export default function Dashboard({ allEntries = [], username, onLogout }) {
             <RecommendationGrid
               recommendations={recommendations}
               isLoading={false}
-              onGenreClick={setModalGenre}
+              onGenreClick={setSelectedFilterGenre}
             />
           </>
         ) : (
