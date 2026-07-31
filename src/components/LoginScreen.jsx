@@ -32,9 +32,11 @@ export default function LoginScreen({ onSubmit, isLoading, error }) {
             placeholder="seu username"
             autoComplete="off"
             disabled={isLoading}
+            aria-invalid={Boolean(error)}
+            aria-describedby={error ? 'username-error' : undefined}
           />
           {error && (
-            <p className="login-error" role="alert">
+            <p id="username-error" className="login-error" role="alert">
               {error}
             </p>
           )}
