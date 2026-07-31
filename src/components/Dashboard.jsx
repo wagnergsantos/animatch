@@ -63,20 +63,8 @@ export default function Dashboard({ allEntries = [], username, onLogout }) {
       recs = recs.filter((r) => r.format === selectedFormat)
     }
 
-    // Sort
-    recs = [...recs].sort((a, b) => {
-      if (sortBy === 'community') {
-        return (b.communityScore || 0) - (a.communityScore || 0)
-      }
-      if (sortBy === 'title') {
-        return (a.title || '').localeCompare(b.title || '')
-      }
-      // default: predicted score
-      return (b.predictedScore || 0) - (a.predictedScore || 0)
-    })
-
     return recs
-  }, [planningEntries, tasteProfile, selectedFilterGenre, searchQuery, selectedFormat, sortBy])
+  }, [planningEntries, tasteProfile, selectedFilterGenre, searchQuery, selectedFormat])
 
   return (
     <div className="dashboard">
@@ -129,6 +117,7 @@ export default function Dashboard({ allEntries = [], username, onLogout }) {
             <RecommendationGrid
               recommendations={recommendations}
               isLoading={false}
+              sortBy={sortBy}
             />
           </>
         ) : (

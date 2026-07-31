@@ -16,7 +16,7 @@ function SkeletonCard() {
   )
 }
 
-export default function RecommendationGrid({ recommendations = [], isLoading = false }) {
+export default function RecommendationGrid({ recommendations = [], isLoading = false, sortBy = 'predicted' }) {
   const [dubMap, setDubMap] = useState(new Map())
   const [ignoreDub, setIgnoreDub] = useState(false)
 
@@ -25,8 +25,8 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
 
     const fetchDubs = async () => {
       // Fetch up to 100 recommendations
-      const ids = recommendations.slice(0, 100).map(r => r.id)
-      
+      const ids = recommendations.slice(0, 100).map((r) => r.id)
+
       const newMap = new Map()
       // Fetch in chunks of 50
       for (let i = 0; i < ids.length; i += 50) {
@@ -65,39 +65,53 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
   }
 
   const displayRecommendations = useMemo(() => {
-    return [...recommendations].map(rec => {
+    const list = [...recommendations].map((rec) => {
       const hasDub = dubMap.get(rec.id) ?? false
-      const adjustedScore = (hasDub && !ignoreDub) ? Math.min(10, rec.predictedScore + 0.1) : rec.predictedScore
+      const adjustedScore = hasDub && !ignoreDub ? Math.min(10, rec.predictedScore + 0.1) : rec.predictedScore
       return {
         ...rec,
-        predictedScore: adjustedScore
+        predictedScore: adjustedScore,
       }
-    }).sort((a, b) => {
-      if (b.predictedScore !== a.predictedScore) {
-        return b.predictedScore - a.predictedScore
-      }
-      return b.communityScore - a.communityScore
     })
-  }, [recommendations, dubMap, ignoreDub])
+
+    return list.sort((a, b) => {
+      if (sortBy === 'community') {
+        if (b.communityScore !== a.communityScore) {
+          return (b.communityScore || 0) - (a.communityScore || 0)
+        }
+        return (b.predictedScore || 0) - (a.predictedScore || 0)
+      }
+      if (sortBy === 'title') {
+        return (a.title || '').localeCompare(b.title || '')
+      }
+      // default: predicted score
+      if (b.predictedScore !== a.predictedScore) {
+        return (b.predictedScore || 0) - (a.predictedScore || 0)
+      }
+      return (b.communityScore || 0) - (a.communityScore || 0)
+    })
+  }, [recommendations, dubMap, ignoreDub, sortBy])
 
   return (
     <section className="recommendation-grid">
       <div className="recommendation-grid__header">
-        <h2 className="recommendation-grid__title" style={{ marginBottom: 0 }}>Recomendações — O Que Assistir Agora</h2>
+        <h2 className="recommendation-grid__title" style={{ marginBottom: 0 }}>
+          Recomendações — O Que Assistir Agora ({displayRecommendations.length})
+        </h2>
         <label className="dub-toggle">
-          <input 
-            type="checkbox" 
-            checked={ignoreDub} 
-            onChange={(e) => setIgnoreDub(e.target.checked)} 
+          <input
+            type="checkbox"
+            checked={ignoreDub}
+            onChange={(e) => setIgnoreDub(e.target.checked)}
           />
           Ignorar bônus de dublagem
         </label>
       </div>
       <div className="recommendation-grid__grid">
         {displayRecommendations.map((rec) => (
-          <AnimeCard 
-            key={rec.id} 
-            anime={rec} 
+          <AnimeCard
+            key={rec.id}
+            anime={rec}
             hasDub={dubMap.get(rec.id) ?? false}
           />
         ))}
