@@ -5,7 +5,7 @@ import './RecommendationGrid.css'
 
 function SkeletonCard() {
   return (
-    <div className="anime-card anime-card--skeleton">
+    <div className="anime-card anime-card--skeleton" data-testid="skeleton">
       <div className="anime-card__image-wrapper skeleton" />
       <div className="anime-card__body">
         <div className="skeleton" style={{ height: '1.2rem', width: '80%', marginBottom: 'var(--space-2)' }} />
@@ -16,7 +16,7 @@ function SkeletonCard() {
   )
 }
 
-export default function RecommendationGrid({ recommendations = [], isLoading, onGenreClick }) {
+export default function RecommendationGrid({ recommendations = [], isLoading = false }) {
   const [dubMap, setDubMap] = useState(new Map())
 
   useEffect(() => {
@@ -41,22 +41,39 @@ export default function RecommendationGrid({ recommendations = [], isLoading, on
     fetchDubs()
   }, [recommendations])
 
+  if (isLoading) {
+    return (
+      <section className="recommendation-grid">
+        <h2 className="recommendation-grid__title">Calculando suas Recomendações...</h2>
+        <div className="recommendation-grid__grid">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  if (recommendations.length === 0) {
+    return (
+      <section className="recommendation-grid">
+        <h2 className="recommendation-grid__title">Sem recomendações no momento</h2>
+        <p>Adicione mais animes na sua lista "Plan to Watch" no AniList!</p>
+      </section>
+    )
+  }
+
   return (
     <section className="recommendation-grid">
-      <h2 className="recommendation-grid__title">
-        Recomendações — O Que Assistir Agora
-      </h2>
+      <h2 className="recommendation-grid__title">Recomendações — O Que Assistir Agora</h2>
       <div className="recommendation-grid__grid">
-        {isLoading
-          ? Array.from({ length: 8 }, (_, i) => <SkeletonCard key={i} />)
-          : recommendations.map((anime) => (
-              <AnimeCard
-                key={anime.id}
-                anime={anime}
-                onGenreClick={onGenreClick}
-                hasDub={dubMap.get(anime.id)}
-              />
-            ))}
+        {recommendations.map((rec) => (
+          <AnimeCard 
+            key={rec.id} 
+            anime={rec} 
+            hasDub={dubMap.get(rec.id) ?? false}
+          />
+        ))}
       </div>
     </section>
   )

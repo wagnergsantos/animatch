@@ -66,7 +66,6 @@ export default function Dashboard({ allEntries = [], username, onLogout }) {
             <RecommendationGrid
               recommendations={recommendations}
               isLoading={false}
-              onGenreClick={setSelectedFilterGenre}
             />
           </>
         ) : (
