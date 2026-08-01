@@ -15,3 +15,9 @@
 | C15 Task 1: CONFIDENCE_CONSTANT=15 | Complete | `1befbf9` | C=15 and 2 decimal precision in recommender.js, 52 tests passing |
 | C15 Task 2: Dynamic TasteProfile Badges | Complete | `d77a335` | Dynamic badges >= 8.00 (min 5) with 2 decimal precision, 52 tests passing |
 | C15 Task 3: AnimeCard 2 Decimal Format | Complete | `d92dd4e` | Format scores with toFixed(2) across cards & tests, 53 tests passing |
+Task 1: complete (commits d6939d6..8f9c654, review clean)
+Task 2: complete (commits 8f9c654..5ae970f, review clean)
+Task 3: complete (commits 5ae970f..51124a7, review clean)
+Task 1 (Fase 4.2): complete (commits 409da6c..948dd85, review clean)
+Task 2 (Fase 4.2): complete (commits 948dd85..3c43a31, review clean)
+Task 3 (Fase 4.2): complete (commits d124edd..HEAD, standardized resolveYear utility shared across Dashboard/RecommendationGrid, 105 tests passing)

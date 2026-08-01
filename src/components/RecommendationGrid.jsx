@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import AnimeCard from './AnimeCard.jsx'
 import { fetchDubInfo } from '../api/anilist.js'
+import { resolveYear } from '../logic/recommender.js'
 import './RecommendationGrid.css'
 
 function SkeletonCard() {
@@ -56,8 +57,8 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
 
     return list.sort((a, b) => {
       if (sortBy === 'year_desc') {
-        const yA = a.year ?? a.seasonYear ?? a.startDate?.year
-        const yB = b.year ?? b.seasonYear ?? b.startDate?.year
+        const yA = resolveYear(a)
+        const yB = resolveYear(b)
         if (yA != null && yB != null) {
           if (yA !== yB) return yB - yA
           return (b.predictedScore || 0) - (a.predictedScore || 0)
@@ -67,8 +68,8 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
         return (b.predictedScore || 0) - (a.predictedScore || 0)
       }
       if (sortBy === 'year_asc') {
-        const yA = a.year ?? a.seasonYear ?? a.startDate?.year
-        const yB = b.year ?? b.seasonYear ?? b.startDate?.year
+        const yA = resolveYear(a)
+        const yB = resolveYear(b)
         if (yA != null && yB != null) {
           if (yA !== yB) return yA - yB
           return (b.predictedScore || 0) - (a.predictedScore || 0)

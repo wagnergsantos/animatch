@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { buildTasteProfile, scoreRecommendations } from '../logic/recommender.js'
+import { buildTasteProfile, scoreRecommendations, resolveYear } from '../logic/recommender.js'
 import TasteProfile from './TasteProfile.jsx'
 import RecommendationGrid from './RecommendationGrid.jsx'
 import FilterBar from './FilterBar.jsx'
@@ -61,19 +61,6 @@ export default function Dashboard({ allEntries = [], username, onLogout, onRefre
     }
     return Array.from(set).sort((a, b) => a.localeCompare(b))
   }, [planningEntries])
-
-function resolveYear(entry) {
-  if (!entry) return null
-  return (
-    entry.year ||
-    entry.seasonYear ||
-    entry.startDate?.year ||
-    entry.media?.year ||
-    entry.media?.seasonYear ||
-    entry.media?.startDate?.year ||
-    null
-  )
-}
 
   const availableYears = useMemo(() => {
     const set = new Set()

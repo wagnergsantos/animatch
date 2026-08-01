@@ -1,5 +1,49 @@
 import { describe, it, expect } from 'vitest'
-import { buildTasteProfile, scoreRecommendations } from './recommender.js'
+import { buildTasteProfile, scoreRecommendations, resolveYear } from './recommender.js'
+
+describe('resolveYear', () => {
+  it('returns null for null/undefined input', () => {
+    expect(resolveYear(null)).toBeNull()
+    expect(resolveYear(undefined)).toBeNull()
+  })
+
+  it('resolves from item.year', () => {
+    expect(resolveYear({ year: 2020 })).toBe(2020)
+  })
+
+  it('resolves from item.seasonYear when year is missing', () => {
+    expect(resolveYear({ seasonYear: 2019 })).toBe(2019)
+  })
+
+  it('resolves from item.startDate.year when year and seasonYear are missing', () => {
+    expect(resolveYear({ startDate: { year: 2018 } })).toBe(2018)
+  })
+
+  it('resolves from item.media.year when top-level fields are missing', () => {
+    expect(resolveYear({ media: { year: 2017 } })).toBe(2017)
+  })
+
+  it('resolves from item.media.seasonYear when higher-priority fields are missing', () => {
+    expect(resolveYear({ media: { seasonYear: 2016 } })).toBe(2016)
+  })
+
+  it('resolves from item.media.startDate.year as the last fallback', () => {
+    expect(resolveYear({ media: { startDate: { year: 2015 } } })).toBe(2015)
+  })
+
+  it('returns null when no year source is present', () => {
+    expect(resolveYear({ title: 'No Year Anime' })).toBeNull()
+  })
+
+  it('prioritizes top-level year over media year when both are present', () => {
+    expect(resolveYear({ year: 2021, media: { year: 2010 } })).toBe(2021)
+  })
+
+  it('treats year 0 as a valid falsy-but-present value via nullish coalescing', () => {
+    // 0 ?? seasonYear should short-circuit to 0, not fall through
+    expect(resolveYear({ year: 0, seasonYear: 1999 })).toBe(0)
+  })
+})
 
 describe('buildTasteProfile', () => {
   it('calculates average score and tracks total vs scored count per genre', () => {

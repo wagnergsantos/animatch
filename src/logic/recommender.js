@@ -1,6 +1,19 @@
 const MIN_GENRE_COUNT = 2
 const CONFIDENCE_CONSTANT = 15
 
+export function resolveYear(item) {
+  if (!item) return null
+  return (
+    item?.year ??
+    item?.seasonYear ??
+    item?.startDate?.year ??
+    item?.media?.year ??
+    item?.media?.seasonYear ??
+    item?.media?.startDate?.year ??
+    null
+  )
+}
+
 export function buildTasteProfile(completedEntries = []) {
   const genreStats = new Map()
   let globalTotal = 0
