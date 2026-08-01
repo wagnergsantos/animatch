@@ -41,6 +41,24 @@ describe('Dashboard', () => {
     expect(screen.getAllByText(/Action/)[0]).toBeInTheDocument()
   })
 
+  it('clicking a taste profile badge filters the grid by that genre instead of opening a modal', async () => {
+    render(<Dashboard allEntries={mockEntries} username="testuser" onLogout={() => {}} />)
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('skeleton')).not.toBeInTheDocument()
+    })
+
+    const adventureBadge = screen.getAllByText(/Adventure/)[0]
+    fireEvent.click(adventureBadge)
+
+    // The FilterBar's "Adventure" pill button should become active as a result.
+    const adventureFilterButtons = screen.getAllByRole('button', { name: 'Adventure' })
+    expect(adventureFilterButtons.some((btn) => btn.className.includes('filter-bar__btn--active'))).toBe(true)
+
+    // No modal/dialog should be rendered.
+    expect(screen.queryByLabelText('Fechar modal')).not.toBeInTheDocument()
+  })
+
   it('renders recommendation cards and opens window on click', async () => {
     window.open = vi.fn()
     render(<Dashboard allEntries={mockEntries} username="testuser" onLogout={vi.fn()} />)

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { buildTasteProfile, scoreRecommendations, resolveYear } from '../logic/recommender.js'
 import TasteProfile from './TasteProfile.jsx'
 import RecommendationGrid from './RecommendationGrid.jsx'
@@ -41,6 +41,7 @@ export default function Dashboard({ allEntries = [], username, onLogout, onRefre
   const [sortBy, setSortBy] = useState('predicted')
   const [modalGenre, setModalGenre] = useState(null)
   const [copied, setCopied] = useState(false)
+  const gridRef = useRef(null)
 
   const tasteProfile = useMemo(() => {
     const completed = allEntries.filter((e) => e.status === 'COMPLETED')
@@ -112,6 +113,11 @@ export default function Dashboard({ allEntries = [], username, onLogout, onRefre
 
     return recs
   }, [planningEntries, tasteProfile, selectedFilterGenre, searchQuery, selectedFormat, selectedYear])
+
+  const handleTasteProfileGenreClick = (genre) => {
+    setSelectedFilterGenre(genre)
+    gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 
   const handleShare = () => {
     if (typeof window !== 'undefined' && navigator.clipboard) {
@@ -192,7 +198,7 @@ export default function Dashboard({ allEntries = [], username, onLogout, onRefre
             {tasteProfile.size > 0 && (
               <TasteProfile 
                 profile={tasteProfile} 
-                onGenreClick={setModalGenre} 
+                onGenreClick={handleTasteProfileGenreClick} 
               />
             )}
             <FilterBar
@@ -210,11 +216,13 @@ export default function Dashboard({ allEntries = [], username, onLogout, onRefre
               onSortChange={setSortBy}
               onExportCSV={() => exportRecommendationsToCSV(recommendations)}
             />
-            <RecommendationGrid
-              recommendations={recommendations}
-              isLoading={false}
-              sortBy={sortBy}
-            />
+            <div ref={gridRef}>
+              <RecommendationGrid
+                recommendations={recommendations}
+                isLoading={false}
+                sortBy={sortBy}
+              />
+            </div>
           </>
         ) : (
           <StatisticsView

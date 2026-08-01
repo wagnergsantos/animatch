@@ -45,6 +45,12 @@ Object.defineProperty(window, 'matchMedia', {
   }),
 })
 
+// jsdom does not implement scrollIntoView; polyfill as a no-op so components
+// that scroll to elements (e.g. Dashboard's taste-profile -> grid sync) don't throw.
+if (typeof Element !== 'undefined' && !Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = () => {}
+}
+
 beforeEach(() => {
   window.localStorage.clear()
 })
