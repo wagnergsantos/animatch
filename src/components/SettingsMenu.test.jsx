@@ -29,10 +29,12 @@ describe('SettingsMenu', () => {
     expect(onChange).toHaveBeenCalledWith('en')
   })
 
-  it('closes the panel when the close button is clicked', () => {
-    render(<SettingsMenu favoriteDub="nenhuma" onChangeFavoriteDub={() => {}} />)
+  it('closes the panel automatically after an option is selected', () => {
+    const onChange = vi.fn()
+    render(<SettingsMenu favoriteDub="nenhuma" onChangeFavoriteDub={onChange} />)
     fireEvent.click(screen.getByRole('button', { name: /configurações/i }))
-    fireEvent.click(screen.getByRole('button', { name: /fechar/i }))
+    fireEvent.change(screen.getByLabelText(/dublagem favorita/i), { target: { value: 'en' } })
+    expect(onChange).toHaveBeenCalledWith('en')
     expect(screen.queryByLabelText(/dublagem favorita/i)).not.toBeInTheDocument()
   })
 

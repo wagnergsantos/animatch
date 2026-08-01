@@ -53,17 +53,3 @@
   padding: var(--space-2);
   font-size: var(--text-sm);
 }
-
-.settings-menu__close {
-  align-self: flex-end;
-  background: none;
-  border: none;
-  color: var(--text-2);
-  font-size: var(--text-sm);
-  cursor: pointer;
-  padding: var(--space-1) var(--space-2);
-}
-
-.settings-menu__close:hover {
-  color: var(--text-1);
-}

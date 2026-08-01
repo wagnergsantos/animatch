@@ -51,7 +51,10 @@ export default function SettingsMenu({ favoriteDub, onChangeFavoriteDub }) {
             id="favorite-dub-select"
             className="settings-menu__select"
             value={favoriteDub}
-            onChange={(e) => onChangeFavoriteDub(e.target.value)}
+            onChange={(e) => {
+              onChangeFavoriteDub(e.target.value)
+              setIsOpen(false)
+            }}
           >
             {DUB_LANGUAGE_OPTIONS.map((opt) => (
               <option key={opt.id} value={opt.id}>
@@ -59,13 +62,6 @@ export default function SettingsMenu({ favoriteDub, onChangeFavoriteDub }) {
               </option>
             ))}
           </select>
-          <button
-            type="button"
-            className="settings-menu__close"
-            onClick={() => setIsOpen(false)}
-          >
-            Fechar
-          </button>
         </div>
       )}
     </div>
