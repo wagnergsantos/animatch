@@ -45,6 +45,16 @@ export default function SettingsMenu({
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
   }
 
+  const wasLoadingRef = useRef(isLoading)
+
+  useEffect(() => {
+    // Se estava carregando e finalizou, fecha o menu de configurações
+    if (wasLoadingRef.current && !isLoading) {
+      setIsOpen(false)
+    }
+    wasLoadingRef.current = isLoading
+  }, [isLoading])
+
   useEffect(() => {
     if (!isOpen) return
 

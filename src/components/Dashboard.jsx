@@ -146,11 +146,6 @@ export default function Dashboard({ allEntries = [], username, onLogout, onRefre
 
   return (
     <div className="dashboard">
-      {isLoading && (
-        <div className="dashboard__sync-banner">
-          ⏳ Sincronizando e atualizando dados com o AniList... Por favor, aguarde.
-        </div>
-      )}
       <header className="dashboard__header">
         <div className="dashboard__header-left">
           <span className="dashboard__username">{username}</span>
