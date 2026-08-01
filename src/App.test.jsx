@@ -82,7 +82,8 @@ describe('App', () => {
       expect(screen.getByText('testuser')).toBeInTheDocument()
     })
 
-    fireEvent.click(screen.getByRole('button', { name: /trocar conta/i }))
+    fireEvent.click(screen.getByRole('button', { name: /configurações/i }))
+    fireEvent.click(screen.getByRole('button', { name: /trocar de conta/i }))
 
     expect(screen.getByLabelText('Username do AniList')).toBeInTheDocument()
   })
@@ -117,7 +118,8 @@ describe('App', () => {
 
     expect(fetchAllLists).toHaveBeenCalledWith('testuser', {})
 
-    fireEvent.click(screen.getByRole('button', { name: /atualizar lista/i }))
+    fireEvent.click(screen.getByRole('button', { name: /configurações/i }))
+    fireEvent.click(screen.getByRole('button', { name: /sincronizar anilist/i }))
 
     await waitFor(() => {
       expect(fetchAllLists).toHaveBeenCalledWith('testuser', { forceRefresh: true })

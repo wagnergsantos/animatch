@@ -181,29 +181,13 @@ export default function Dashboard({ allEntries = [], username, onLogout, onRefre
           >
             {copied ? '✅ Link copiado!' : '🔗 Compartilhar'}
           </button>
-          <button
-            type="button"
-            onClick={onRefresh}
-            disabled={isLoading}
-            style={{
-              background: 'var(--surface-2)',
-              border: '1px solid var(--color-border)',
-              color: 'var(--text-1)',
-              padding: 'var(--space-2) var(--space-3)',
-              borderRadius: 'var(--radius-md)',
-              fontSize: 'var(--text-sm)',
-              cursor: isLoading ? 'not-allowed' : 'pointer',
-              opacity: isLoading ? 0.7 : 1,
-            }}
-            title="Forçar atualização da lista com o AniList"
-          >
-            {isLoading ? '⏳ Atualizando...' : '🔄 Atualizar Lista'}
-          </button>
-          <ThemeToggle />
-          <SettingsMenu favoriteDub={favoriteDub} onChangeFavoriteDub={setFavoriteDub} />
-          <button className="dashboard__logout" onClick={onLogout}>
-            Trocar conta
-          </button>
+          <SettingsMenu
+            favoriteDub={favoriteDub}
+            onChangeFavoriteDub={setFavoriteDub}
+            onRefresh={onRefresh}
+            isLoading={isLoading}
+            onLogout={onLogout}
+          />
         </div>
       </header>
 

@@ -37,19 +37,68 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+.settings-menu__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
 }
 
-.settings-menu__label {
-  font-size: var(--text-sm);
-  color: var(--text-2);
-  font-weight: 600;
+.settings-menu__divider {
+  height: 1px;
+  background: var(--color-border);
+  margin: var(--space-1) 0;
 }
 
-.settings-menu__select {
+.settings-menu__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.settings-menu__theme-btn {
+  background: var(--surface-2);
+  color: var(--text-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-xs);
+  cursor: pointer;
+  transition: background var(--transition-default);
+}
+
+.settings-menu__theme-btn:hover {
+  background: var(--color-border);
+}
+
+.settings-menu__btn {
   background: var(--surface-2);
   color: var(--text-1);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   padding: var(--space-2);
   font-size: var(--text-sm);
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  transition: background var(--transition-default);
+}
+
+.settings-menu__btn:hover:not(:disabled) {
+  background: var(--color-border);
+}
+
+.settings-menu__btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.settings-menu__btn--danger {
+  color: var(--color-danger, #ff4d4f);
+}
+
+.settings-menu__btn--danger:hover {
+  background: rgba(255, 77, 79, 0.1);
 }

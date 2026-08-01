@@ -75,7 +75,7 @@ describe('Dashboard', () => {
     expect(window.open).toHaveBeenCalledWith('https://anilist.co/anime/10', '_blank', 'noopener,noreferrer')
   })
 
-  it('calls onLogout when the logout button is clicked', () => {
+  it('calls onLogout when the logout button is clicked in the settings menu', () => {
     const onLogout = vi.fn()
     render(
       <Dashboard
@@ -85,12 +85,13 @@ describe('Dashboard', () => {
       />
     )
 
-    fireEvent.click(screen.getByRole('button', { name: /trocar conta/i }))
+    fireEvent.click(screen.getByRole('button', { name: /configurações/i }))
+    fireEvent.click(screen.getByRole('button', { name: /trocar de conta/i }))
 
     expect(onLogout).toHaveBeenCalled()
   })
 
-  it('renders force refresh button and calls onRefresh when clicked', () => {
+  it('renders force refresh button in settings menu and calls onRefresh when clicked', () => {
     const onRefresh = vi.fn()
     render(
       <Dashboard
@@ -102,7 +103,8 @@ describe('Dashboard', () => {
       />
     )
 
-    const refreshButton = screen.getByRole('button', { name: /atualizar lista/i })
+    fireEvent.click(screen.getByRole('button', { name: /configurações/i }))
+    const refreshButton = screen.getByRole('button', { name: /sincronizar anilist/i })
     expect(refreshButton).toBeInTheDocument()
     expect(refreshButton).not.toBeDisabled()
 
@@ -121,6 +123,7 @@ describe('Dashboard', () => {
       />
     )
 
+    fireEvent.click(screen.getByRole('button', { name: /configurações/i }))
     const refreshButton = screen.getByRole('button', { name: /atualizando/i })
     expect(refreshButton).toBeInTheDocument()
     expect(refreshButton).toBeDisabled()
