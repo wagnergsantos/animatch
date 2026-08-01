@@ -126,6 +126,31 @@ describe('Dashboard', () => {
     expect(refreshButton).toBeDisabled()
   })
 
+  it('renders the settings gear button in the header', () => {
+    render(<Dashboard allEntries={mockEntries} username="testuser" onLogout={() => {}} />)
+    expect(screen.getByRole('button', { name: /configurações/i })).toBeInTheDocument()
+  })
+
+  it('defaults favoriteDub to "nenhuma" when nothing is stored in localStorage', () => {
+    render(<Dashboard allEntries={mockEntries} username="testuser" onLogout={() => {}} />)
+    fireEvent.click(screen.getByRole('button', { name: /configurações/i }))
+    expect(screen.getByLabelText(/dublagem favorita/i).value).toBe('nenhuma')
+  })
+
+  it('reads favoriteDub from localStorage on mount', () => {
+    window.localStorage.setItem('animatch_favorite_dub', 'ja')
+    render(<Dashboard allEntries={mockEntries} username="testuser" onLogout={() => {}} />)
+    fireEvent.click(screen.getByRole('button', { name: /configurações/i }))
+    expect(screen.getByLabelText(/dublagem favorita/i).value).toBe('ja')
+  })
+
+  it('persists favoriteDub to localStorage when changed via the settings menu', () => {
+    render(<Dashboard allEntries={mockEntries} username="testuser" onLogout={() => {}} />)
+    fireEvent.click(screen.getByRole('button', { name: /configurações/i }))
+    fireEvent.change(screen.getByLabelText(/dublagem favorita/i), { target: { value: 'en' } })
+    expect(window.localStorage.getItem('animatch_favorite_dub')).toBe('en')
+  })
+
   it('extracts dynamic genres from planning entries and renders them in filter bar', () => {
     const customEntries = [
       { status: 'COMPLETED', score: 9, media: { id: 1, title: { romaji: 'A' }, genres: ['Action'] } },

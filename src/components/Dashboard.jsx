@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { buildTasteProfile, scoreRecommendations, resolveYear } from '../logic/recommender.js'
 import TasteProfile from './TasteProfile.jsx'
 import RecommendationGrid from './RecommendationGrid.jsx'
@@ -6,6 +6,7 @@ import FilterBar from './FilterBar.jsx'
 import StatisticsView from './StatisticsView.jsx'
 import GenreRecommendationModal from './GenreRecommendationModal.jsx'
 import ThemeToggle from './ThemeToggle.jsx'
+import SettingsMenu from './SettingsMenu.jsx'
 import './Dashboard.css'
 
 function exportRecommendationsToCSV(recommendations) {
@@ -42,6 +43,19 @@ export default function Dashboard({ allEntries = [], username, onLogout, onRefre
   const [modalGenre, setModalGenre] = useState(null)
   const [copied, setCopied] = useState(false)
   const gridRef = useRef(null)
+
+  const [favoriteDub, setFavoriteDub] = useState(() => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      return localStorage.getItem('animatch_favorite_dub') || 'nenhuma'
+    }
+    return 'nenhuma'
+  })
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem('animatch_favorite_dub', favoriteDub)
+    }
+  }, [favoriteDub])
 
   const tasteProfile = useMemo(() => {
     const completed = allEntries.filter((e) => e.status === 'COMPLETED')
@@ -186,6 +200,7 @@ export default function Dashboard({ allEntries = [], username, onLogout, onRefre
             {isLoading ? '⏳ Atualizando...' : '🔄 Atualizar Lista'}
           </button>
           <ThemeToggle />
+          <SettingsMenu favoriteDub={favoriteDub} onChangeFavoriteDub={setFavoriteDub} />
           <button className="dashboard__logout" onClick={onLogout}>
             Trocar conta
           </button>
@@ -221,6 +236,7 @@ export default function Dashboard({ allEntries = [], username, onLogout, onRefre
                 recommendations={recommendations}
                 isLoading={false}
                 sortBy={sortBy}
+                favoriteDub={favoriteDub}
               />
             </div>
           </>
