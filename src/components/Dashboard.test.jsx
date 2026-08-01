@@ -134,20 +134,20 @@ describe('Dashboard', () => {
   it('defaults favoriteDub to "nenhuma" when nothing is stored in localStorage', () => {
     render(<Dashboard allEntries={mockEntries} username="testuser" onLogout={() => {}} />)
     fireEvent.click(screen.getByRole('button', { name: /configurações/i }))
-    expect(screen.getByLabelText(/dublagem favorita/i).value).toBe('nenhuma')
+    expect(screen.getByRole('combobox', { name: /dublagem favorita/i }).value).toBe('nenhuma')
   })
 
   it('reads favoriteDub from localStorage on mount', () => {
     window.localStorage.setItem('animatch_favorite_dub', 'ja')
     render(<Dashboard allEntries={mockEntries} username="testuser" onLogout={() => {}} />)
     fireEvent.click(screen.getByRole('button', { name: /configurações/i }))
-    expect(screen.getByLabelText(/dublagem favorita/i).value).toBe('ja')
+    expect(screen.getByRole('combobox', { name: /dublagem favorita/i }).value).toBe('ja')
   })
 
   it('persists favoriteDub to localStorage when changed via the settings menu', () => {
     render(<Dashboard allEntries={mockEntries} username="testuser" onLogout={() => {}} />)
     fireEvent.click(screen.getByRole('button', { name: /configurações/i }))
-    fireEvent.change(screen.getByLabelText(/dublagem favorita/i), { target: { value: 'en' } })
+    fireEvent.change(screen.getByRole('combobox', { name: /dublagem favorita/i }), { target: { value: 'en' } })
     expect(window.localStorage.getItem('animatch_favorite_dub')).toBe('en')
   })
 

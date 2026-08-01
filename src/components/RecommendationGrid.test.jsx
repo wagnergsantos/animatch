@@ -1,6 +1,7 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import RecommendationGrid from './RecommendationGrid.jsx'
+import { fetchDubInfo } from '../api/anilist.js'
 
 vi.mock('../api/anilist.js', () => ({
   fetchDubInfo: vi.fn().mockResolvedValue(new Map()),
@@ -83,6 +84,68 @@ describe('RecommendationGrid', () => {
       render(<RecommendationGrid isLoading={false} recommendations={mockRecs} sortBy="year_asc" />)
       const titles = screen.getAllByRole('heading', { level: 3 }).map((el) => el.textContent)
       expect(titles).toEqual(['HasYear', 'NoYear'])
+    })
+  })
+
+  describe('favorite dub integration', () => {
+    beforeEach(() => {
+      fetchDubInfo.mockClear()
+      fetchDubInfo.mockResolvedValue(new Map())
+    })
+
+    it('does not call fetchDubInfo when favoriteDub is "nenhuma" (default)', async () => {
+      const mockRecs = [{ id: 1, title: 'Anime 1', predictedScore: 8.5, communityScore: 8.0 }]
+      render(<RecommendationGrid recommendations={mockRecs} />)
+      await waitFor(() => {
+        expect(screen.getByText('Anime 1')).toBeInTheDocument()
+      })
+      expect(fetchDubInfo).not.toHaveBeenCalled()
+    })
+
+    it('calls fetchDubInfo with the selected favorite language', async () => {
+      const mockRecs = [{ id: 1, title: 'Anime 1', predictedScore: 8.5, communityScore: 8.0 }]
+      render(<RecommendationGrid recommendations={mockRecs} favoriteDub="en" />)
+      await waitFor(() => {
+        expect(fetchDubInfo).toHaveBeenCalledWith([1], 'en')
+      })
+    })
+
+    it('shows the dub badge with the correct language label when the anime has the favorite dub', async () => {
+      fetchDubInfo.mockResolvedValueOnce(new Map([[1, true]]))
+      const mockRecs = [{ id: 1, title: 'Anime 1', predictedScore: 8.5, communityScore: 8.0 }]
+      render(<RecommendationGrid recommendations={mockRecs} favoriteDub="ja" />)
+      await waitFor(() => {
+        expect(screen.getByText('🎙️ Dublado Japonês')).toBeInTheDocument()
+      })
+    })
+
+    it('shows the "somente com minha dublagem favorita" checkbox only when favoriteDub is set', async () => {
+      const mockRecs = [{ id: 1, title: 'Anime 1', predictedScore: 8.5, communityScore: 8.0 }]
+      const { rerender } = render(<RecommendationGrid recommendations={mockRecs} />)
+      expect(screen.queryByLabelText(/somente com minha dublagem favorita/i)).not.toBeInTheDocument()
+
+      rerender(<RecommendationGrid recommendations={mockRecs} favoriteDub="pt-br" />)
+      await waitFor(() => {
+        expect(screen.getByLabelText(/somente com minha dublagem favorita/i)).toBeInTheDocument()
+      })
+    })
+
+    it('filters out non-dubbed recommendations when "somente com minha dublagem favorita" is checked', async () => {
+      fetchDubInfo.mockResolvedValueOnce(new Map([[1, true], [2, false]]))
+      const mockRecs = [
+        { id: 1, title: 'Dubbed Anime', predictedScore: 8.5, communityScore: 8.0 },
+        { id: 2, title: 'Not Dubbed Anime', predictedScore: 9.0, communityScore: 8.8 },
+      ]
+      render(<RecommendationGrid recommendations={mockRecs} favoriteDub="pt-br" />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Not Dubbed Anime')).toBeInTheDocument()
+      })
+
+      fireEvent.click(screen.getByLabelText(/somente com minha dublagem favorita/i))
+
+      expect(screen.getByText('Dubbed Anime')).toBeInTheDocument()
+      expect(screen.queryByText('Not Dubbed Anime')).not.toBeInTheDocument()
     })
   })
 })

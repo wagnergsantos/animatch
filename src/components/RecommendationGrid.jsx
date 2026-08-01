@@ -17,12 +17,18 @@ function SkeletonCard() {
   )
 }
 
-export default function RecommendationGrid({ recommendations = [], isLoading = false, sortBy = 'predicted' }) {
+export default function RecommendationGrid({ recommendations = [], isLoading = false, sortBy = 'predicted', favoriteDub = 'nenhuma' }) {
   const [dubMap, setDubMap] = useState(new Map())
   const [ignoreDub, setIgnoreDub] = useState(false)
+  const [showOnlyFavoriteDub, setShowOnlyFavoriteDub] = useState(false)
 
   useEffect(() => {
     if (!recommendations || recommendations.length === 0) return
+
+    if (favoriteDub === 'nenhuma') {
+      setDubMap(new Map())
+      return
+    }
 
     const fetchDubs = async () => {
       // Fetch up to 100 recommendations
@@ -32,7 +38,7 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
       // Fetch in chunks of 50
       for (let i = 0; i < ids.length; i += 50) {
         const chunk = ids.slice(i, i + 50)
-        const chunkMap = await fetchDubInfo(chunk)
+        const chunkMap = await fetchDubInfo(chunk, favoriteDub)
         for (const [key, val] of chunkMap.entries()) {
           newMap.set(key, val)
         }
@@ -41,7 +47,7 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
     }
 
     fetchDubs()
-  }, [recommendations])
+  }, [recommendations, favoriteDub])
 
   const displayRecommendations = useMemo(() => {
     if (!recommendations || recommendations.length === 0) return []
@@ -55,7 +61,7 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
       }
     })
 
-    return list.sort((a, b) => {
+    const sorted = list.sort((a, b) => {
       if (sortBy === 'year_desc') {
         const yA = resolveYear(a)
         const yB = resolveYear(b)
@@ -93,7 +99,13 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
       }
       return (b.communityScore || 0) - (a.communityScore || 0)
     })
-  }, [recommendations, dubMap, ignoreDub, sortBy])
+
+    if (favoriteDub !== 'nenhuma' && showOnlyFavoriteDub) {
+      return sorted.filter((rec) => dubMap.get(rec.id) === true)
+    }
+
+    return sorted
+  }, [recommendations, dubMap, ignoreDub, sortBy, favoriteDub, showOnlyFavoriteDub])
 
   if (isLoading) {
     return (
@@ -123,14 +135,26 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
         <h2 className="recommendation-grid__title" style={{ marginBottom: 0 }}>
           Recomendações — O Que Assistir Agora ({displayRecommendations.length})
         </h2>
-        <label className="dub-toggle">
-          <input
-            type="checkbox"
-            checked={ignoreDub}
-            onChange={(e) => setIgnoreDub(e.target.checked)}
-          />
-          Ignorar bônus de dublagem
-        </label>
+        {favoriteDub !== 'nenhuma' && (
+          <>
+            <label className="dub-toggle">
+              <input
+                type="checkbox"
+                checked={ignoreDub}
+                onChange={(e) => setIgnoreDub(e.target.checked)}
+              />
+              Ignorar bônus de dublagem
+            </label>
+            <label className="dub-toggle">
+              <input
+                type="checkbox"
+                checked={showOnlyFavoriteDub}
+                onChange={(e) => setShowOnlyFavoriteDub(e.target.checked)}
+              />
+              Mostrar somente com minha dublagem favorita
+            </label>
+          </>
+        )}
       </div>
       <div className="recommendation-grid__grid">
         {displayRecommendations.map((rec) => (
@@ -138,6 +162,7 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
             key={rec.id}
             anime={rec}
             hasDub={dubMap.get(rec.id) ?? false}
+            dubLanguage={favoriteDub === 'nenhuma' ? 'pt-br' : favoriteDub}
           />
         ))}
       </div>
