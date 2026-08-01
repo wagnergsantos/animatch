@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { fetchCompletedList, fetchPlanningList, fetchAllLists, flattenEntries } from './anilist.js'
+import { fetchCompletedList, fetchPlanningList, fetchAllLists, flattenEntries, fetchDubInfo, CACHE_KEY_DUB } from './anilist.js'
 
 
 const mockFetch = vi.fn()
@@ -376,5 +376,103 @@ describe('flattenEntries', () => {
     const result = flattenEntries(data)
     expect(result).toHaveLength(3)
     expect(result.map(e => e.media.id)).toEqual([1, 2, 3])
+  })
+})
+
+describe('fetchDubInfo', () => {
+  it('returns empty map when mediaIds is empty or falsy', async () => {
+    expect(await fetchDubInfo([])).toEqual(new Map())
+    expect(await fetchDubInfo(null)).toEqual(new Map())
+  })
+
+  it('uses dub cache from localStorage when available within 24h TTL', async () => {
+    const mockCache = {
+      timestamp: Date.now(),
+      dubs: { 101: true, 102: false }
+    }
+    localStorage.setItem(CACHE_KEY_DUB, JSON.stringify(mockCache))
+
+    const dubMap = await fetchDubInfo([101, 102])
+    expect(dubMap.get(101)).toBe(true)
+    expect(dubMap.get(102)).toBe(false)
+    expect(mockFetch).not.toHaveBeenCalled()
+  })
+
+  it('fetches only uncached media IDs and updates localStorage cache', async () => {
+    const mockCache = {
+      timestamp: Date.now(),
+      dubs: { 101: true }
+    }
+    localStorage.setItem(CACHE_KEY_DUB, JSON.stringify(mockCache))
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({
+        data: {
+          Page: {
+            media: [
+              {
+                id: 102,
+                characters: {
+                  edges: [
+                    {
+                      node: { id: 1 },
+                      voiceActors: [{ languageV2: 'Portuguese' }]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      })
+    })
+
+    const dubMap = await fetchDubInfo([101, 102])
+
+    expect(dubMap.get(101)).toBe(true)
+    expect(dubMap.get(102)).toBe(true)
+
+    expect(mockFetch).toHaveBeenCalledTimes(1)
+    const bodyStr = mockFetch.mock.calls[0][1].body
+    const parsedBody = JSON.parse(bodyStr)
+    expect(parsedBody.variables.idIn).toEqual([102])
+
+    const savedCache = JSON.parse(localStorage.getItem(CACHE_KEY_DUB))
+    expect(savedCache.dubs[101]).toBe(true)
+    expect(savedCache.dubs[102]).toBe(true)
+  })
+
+  it('refetches expired cache entries (older than 24h)', async () => {
+    const EXPIRED_TIMESTAMP = Date.now() - (25 * 60 * 60 * 1000)
+    const mockCache = {
+      timestamp: EXPIRED_TIMESTAMP,
+      dubs: { 101: true }
+    }
+    localStorage.setItem(CACHE_KEY_DUB, JSON.stringify(mockCache))
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({
+        data: {
+          Page: {
+            media: [
+              {
+                id: 101,
+                characters: { edges: [] }
+              }
+            ]
+          }
+        }
+      })
+    })
+
+    const dubMap = await fetchDubInfo([101])
+
+    expect(dubMap.get(101)).toBe(false)
+    expect(mockFetch).toHaveBeenCalledTimes(1)
+    const bodyStr = mockFetch.mock.calls[0][1].body
+    const parsedBody = JSON.parse(bodyStr)
+    expect(parsedBody.variables.idIn).toEqual([101])
   })
 })

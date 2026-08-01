@@ -1,6 +1,8 @@
 const ANILIST_API = 'https://graphql.anilist.co'
 const CACHE_KEY_PREFIX = 'animatch_cache_'
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutos em ms
+export const CACHE_KEY_DUB = 'animatch_dub_cache'
+export const CACHE_DUB_TTL = 24 * 60 * 60 * 1000 // 24 horas em ms
 
 const COMPLETED_QUERY = `
 query ($userName: String) {
@@ -238,25 +240,66 @@ query ($idIn: [Int]) {
 
 export async function fetchDubInfo(mediaIds) {
   if (!mediaIds || mediaIds.length === 0) return new Map()
-  
+
+  const dubMap = new Map()
+  let cachedDubs = {}
+
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      const cached = window.localStorage.getItem(CACHE_KEY_DUB)
+      if (cached) {
+        const { timestamp, dubs } = JSON.parse(cached)
+        if (Date.now() - timestamp < CACHE_DUB_TTL && dubs) {
+          cachedDubs = dubs
+        }
+      }
+    } catch (e) {
+      // Ignore cache read error
+    }
+  }
+
+  const missingIds = []
+  for (const id of mediaIds) {
+    if (id in cachedDubs) {
+      dubMap.set(id, cachedDubs[id])
+    } else {
+      missingIds.push(id)
+    }
+  }
+
+  if (missingIds.length === 0) {
+    return dubMap
+  }
+
   try {
-    const data = await queryAniList(DUB_QUERY, { idIn: mediaIds })
+    const data = await queryAniList(DUB_QUERY, { idIn: missingIds })
     const mediaList = data?.Page?.media ?? []
-    
-    const dubMap = new Map()
+
     for (const media of mediaList) {
       const chars = media?.characters?.edges ?? []
-      const hasPtBr = chars.some(char => 
-        char?.voiceActors && 
-        char.voiceActors.some(va => va?.languageV2 === 'Portuguese')
+      const hasPtBr = chars.some(
+        (char) => char?.voiceActors && char.voiceActors.some((va) => va?.languageV2 === 'Portuguese')
       )
       dubMap.set(media.id, hasPtBr)
+      cachedDubs[media.id] = hasPtBr
     }
-    return dubMap
+
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        window.localStorage.setItem(
+          CACHE_KEY_DUB,
+          JSON.stringify({
+            timestamp: Date.now(),
+            dubs: cachedDubs,
+          })
+        )
+      } catch (e) {
+        // Ignore cache write error
+      }
+    }
   } catch (err) {
-    console.error("Failed to fetch dub info", err)
-    return new Map()
+    console.error('Failed to fetch dub info', err)
   }
+
+  return dubMap
 }
-
-
