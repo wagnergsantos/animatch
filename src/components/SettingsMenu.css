@@ -1,0 +1,69 @@
+.settings-menu {
+  position: relative;
+  display: inline-flex;
+}
+
+.settings-menu__trigger {
+  background: var(--surface-2);
+  color: var(--text-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background var(--transition-default), transform var(--transition-default);
+}
+
+.settings-menu__trigger:hover {
+  background: var(--color-border);
+  transform: scale(1.05);
+}
+
+.settings-menu__panel {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background: var(--surface-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  min-width: 220px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.settings-menu__label {
+  font-size: var(--text-sm);
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+.settings-menu__select {
+  background: var(--surface-2);
+  color: var(--text-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.settings-menu__close {
+  align-self: flex-end;
+  background: none;
+  border: none;
+  color: var(--text-2);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  padding: var(--space-1) var(--space-2);
+}
+
+.settings-menu__close:hover {
+  color: var(--text-1);
+}
