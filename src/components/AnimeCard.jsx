@@ -1,6 +1,17 @@
 import './AnimeCard.css'
 
-export default function AnimeCard({ anime, hasDub }) {
+const DUB_LABELS = {
+  'pt-br': 'PT-BR',
+  'en': 'Inglês',
+  'ja': 'Japonês',
+  'es': 'Espanhol',
+  'de': 'Alemão',
+  'ko': 'Coreano',
+  'fr': 'Francês',
+  'it': 'Italiano',
+}
+
+export default function AnimeCard({ anime, hasDub, dubLanguage = 'pt-br' }) {
   const genres = anime?.genres ?? []
   const title = anime?.title || 'Untitled'
   const siteUrl = anime?.siteUrl || (anime?.id ? `https://anilist.co/anime/${anime.id}` : '#')
@@ -59,7 +70,7 @@ export default function AnimeCard({ anime, hasDub }) {
 
         {hasDub && (
           <div className="anime-card__dub-badge">
-            🎙️ Dublado PT-BR
+            🎙️ Dublado {DUB_LABELS[dubLanguage] || dubLanguage}
           </div>
         )}
 
