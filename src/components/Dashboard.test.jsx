@@ -194,4 +194,78 @@ describe('Dashboard', () => {
     titles = screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)
     expect(titles).toEqual(['Anime 2020', 'Anime 2024', 'Anime No Year'])
   })
+
+  it('sorts recommendations by predictedScore as secondary sort when entries share same year or have no year', async () => {
+    const customEntries = [
+      { status: 'COMPLETED', score: 10, media: { id: 1, title: { romaji: 'Action Fav' }, genres: ['Action'] } },
+      { status: 'COMPLETED', score: 2, media: { id: 2, title: { romaji: 'Drama Low' }, genres: ['Drama'] } },
+      { status: 'PLANNING', media: { id: 10, title: { romaji: 'Anime 2024 Low' }, seasonYear: 2024, genres: ['Drama'], averageScore: 50 } },
+      { status: 'PLANNING', media: { id: 11, title: { romaji: 'Anime 2024 High' }, seasonYear: 2024, genres: ['Action'], averageScore: 90 } },
+      { status: 'PLANNING', media: { id: 12, title: { romaji: 'Anime No Year Low' }, genres: ['Drama'], averageScore: 50 } },
+      { status: 'PLANNING', media: { id: 13, title: { romaji: 'Anime No Year High' }, genres: ['Action'], averageScore: 90 } },
+    ]
+
+    render(
+      <Dashboard
+        allEntries={customEntries}
+        username="testuser"
+        onLogout={vi.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Anime 2024 High')).toBeInTheDocument()
+    })
+
+    const sortSelect = screen.getByDisplayValue('Ordenar: Predicted Score')
+
+    // Sort by year_desc
+    fireEvent.change(sortSelect, { target: { value: 'year_desc' } })
+    let titles = screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)
+    expect(titles).toEqual(['Anime 2024 High', 'Anime 2024 Low', 'Anime No Year High', 'Anime No Year Low'])
+
+    // Sort by year_asc
+    fireEvent.change(sortSelect, { target: { value: 'year_asc' } })
+    titles = screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)
+    expect(titles).toEqual(['Anime 2024 High', 'Anime 2024 Low', 'Anime No Year High', 'Anime No Year Low'])
+  })
+
+  it('resolves year from all 6 possible properties (year, seasonYear, startDate.year, media.year, media.seasonYear, media.startDate.year)', async () => {
+    const customEntries = [
+      { status: 'COMPLETED', score: 9, media: { id: 99, title: { romaji: 'Comp' }, genres: ['Action'] } },
+      { status: 'PLANNING', year: 2025, media: { id: 1, title: { romaji: 'Anime Prop Year' }, genres: ['Action'], averageScore: 80 } },
+      { status: 'PLANNING', seasonYear: 2024, media: { id: 2, title: { romaji: 'Anime Prop SeasonYear' }, genres: ['Action'], averageScore: 80 } },
+      { status: 'PLANNING', startDate: { year: 2023 }, media: { id: 3, title: { romaji: 'Anime Prop StartDate' }, genres: ['Action'], averageScore: 80 } },
+      { status: 'PLANNING', media: { id: 4, title: { romaji: 'Anime Media Year' }, year: 2022, genres: ['Action'], averageScore: 80 } },
+      { status: 'PLANNING', media: { id: 5, title: { romaji: 'Anime Media SeasonYear' }, seasonYear: 2021, genres: ['Action'], averageScore: 80 } },
+      { status: 'PLANNING', media: { id: 6, title: { romaji: 'Anime Media StartDate' }, startDate: { year: 2020 }, genres: ['Action'], averageScore: 80 } },
+    ]
+
+    render(
+      <Dashboard
+        allEntries={customEntries}
+        username="testuser"
+        onLogout={vi.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Anime Prop Year')).toBeInTheDocument()
+    })
+
+    const yearSelect = screen.getByDisplayValue('Todos os Anos')
+    const options = Array.from(yearSelect.querySelectorAll('option')).map((opt) => opt.value)
+
+    expect(options).toEqual(['ALL', 'NONE', '2025', '2024', '2023', '2022', '2021', '2020'])
+
+    // Filter by year 2025 (from entry.year)
+    fireEvent.change(yearSelect, { target: { value: '2025' } })
+    expect(screen.getByText('Anime Prop Year')).toBeInTheDocument()
+    expect(screen.queryByText('Anime Prop SeasonYear')).not.toBeInTheDocument()
+
+    // Filter by year 2022 (from entry.media.year)
+    fireEvent.change(yearSelect, { target: { value: '2022' } })
+    expect(screen.getByText('Anime Media Year')).toBeInTheDocument()
+    expect(screen.queryByText('Anime Prop Year')).not.toBeInTheDocument()
+  })
 })

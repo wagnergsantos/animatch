@@ -62,14 +62,23 @@ export default function Dashboard({ allEntries = [], username, onLogout, onRefre
     return Array.from(set).sort((a, b) => a.localeCompare(b))
   }, [planningEntries])
 
+function resolveYear(entry) {
+  if (!entry) return null
+  return (
+    entry.year ||
+    entry.seasonYear ||
+    entry.startDate?.year ||
+    entry.media?.year ||
+    entry.media?.seasonYear ||
+    entry.media?.startDate?.year ||
+    null
+  )
+}
+
   const availableYears = useMemo(() => {
     const set = new Set()
     for (const entry of planningEntries) {
-      const year =
-        entry.seasonYear ||
-        entry.startDate?.year ||
-        entry.media?.seasonYear ||
-        entry.media?.startDate?.year
+      const year = resolveYear(entry)
       if (year != null) set.add(Number(year))
     }
     return Array.from(set).sort((a, b) => b - a)
@@ -84,7 +93,7 @@ export default function Dashboard({ allEntries = [], username, onLogout, onRefre
       const match = planningEntries.find((e) => (e.media?.id ?? e.id) === r.id)
       const seasonYear = match?.seasonYear ?? match?.media?.seasonYear
       const startDate = match?.startDate ?? match?.media?.startDate
-      const year = match?.year ?? match?.media?.year ?? seasonYear ?? startDate?.year
+      const year = resolveYear(match)
       return { ...r, seasonYear, startDate, year }
     })
 
@@ -103,12 +112,12 @@ export default function Dashboard({ allEntries = [], username, onLogout, onRefre
     if (selectedYear !== 'ALL') {
       if (selectedYear === 'NONE') {
         recs = recs.filter((r) => {
-          const year = r.seasonYear || r.startDate?.year
+          const year = resolveYear(r)
           return !year
         })
       } else {
         recs = recs.filter((r) => {
-          const year = r.seasonYear || r.startDate?.year
+          const year = resolveYear(r)
           return year == selectedYear
         })
       }
