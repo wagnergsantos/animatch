@@ -41,4 +41,59 @@ describe('FilterBar', () => {
     fireEvent.click(screen.getByText('📥 Exportar CSV'))
     expect(onExportCSV).toHaveBeenCalled()
   })
+
+  it('renders dynamic genres when availableGenres prop is provided', () => {
+    const onSelectGenre = vi.fn()
+    render(
+      <FilterBar
+        availableGenres={['Mecha', 'Psychological']}
+        onSelectGenre={onSelectGenre}
+      />
+    )
+
+    expect(screen.getByText('Todos os Gêneros')).toBeInTheDocument()
+    expect(screen.getByText('Mecha')).toBeInTheDocument()
+    expect(screen.getByText('Psychological')).toBeInTheDocument()
+    expect(screen.queryByText('Ação')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByText('Mecha'))
+    expect(onSelectGenre).toHaveBeenCalledWith('Mecha')
+  })
+
+  it('renders year selector when availableYears is provided', () => {
+    const onSelectYear = vi.fn()
+    render(
+      <FilterBar
+        availableYears={[2024, 2023]}
+        selectedYear="ALL"
+        onSelectYear={onSelectYear}
+      />
+    )
+
+    const yearSelect = screen.getByDisplayValue('Todos os Anos')
+    expect(yearSelect).toBeInTheDocument()
+    expect(screen.getByText('Sem Ano')).toBeInTheDocument()
+    expect(screen.getByText('2024')).toBeInTheDocument()
+    expect(screen.getByText('2023')).toBeInTheDocument()
+
+    fireEvent.change(yearSelect, { target: { value: '2024' } })
+    expect(onSelectYear).toHaveBeenCalledWith('2024')
+  })
+
+  it('renders year sort options in sort selector', () => {
+    const onSortChange = vi.fn()
+    render(
+      <FilterBar
+        sortBy="predicted"
+        onSortChange={onSortChange}
+      />
+    )
+
+    expect(screen.getByText('Ordenar: Ano (Mais Recente)')).toBeInTheDocument()
+    expect(screen.getByText('Ordenar: Ano (Mais Antigo)')).toBeInTheDocument()
+
+    const sortSelect = screen.getByDisplayValue('Ordenar: Predicted Score')
+    fireEvent.change(sortSelect, { target: { value: 'year_desc' } })
+    expect(onSortChange).toHaveBeenCalledWith('year_desc')
+  })
 })

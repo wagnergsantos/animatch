@@ -1,6 +1,6 @@
 import './FilterBar.css'
 
-const MAIN_GENRES = [
+const DEFAULT_MAIN_GENRES = [
   { id: 'ALL', label: 'Todos os Gêneros' },
   { id: 'Action', label: 'Ação' },
   { id: 'Adventure', label: 'Aventura' },
@@ -24,20 +24,34 @@ const FORMATS = [
 const SORT_OPTIONS = [
   { id: 'predicted', label: 'Predicted Score' },
   { id: 'community', label: 'Nota Comunitária' },
+  { id: 'year_desc', label: 'Ano (Mais Recente)' },
+  { id: 'year_asc', label: 'Ano (Mais Antigo)' },
   { id: 'title', label: 'Título (A-Z)' },
 ]
 
 export default function FilterBar({
   selectedGenre = 'ALL',
   onSelectGenre,
+  availableGenres,
   searchQuery = '',
   onSearchChange,
   selectedFormat = 'ALL',
   onSelectFormat,
+  availableYears,
+  selectedYear = 'ALL',
+  onSelectYear,
   sortBy = 'predicted',
   onSortChange,
   onExportCSV,
 }) {
+  const genresToRender =
+    availableGenres && availableGenres.length > 0
+      ? [
+          { id: 'ALL', label: 'Todos os Gêneros' },
+          ...availableGenres.map((g) => ({ id: g, label: g })),
+        ]
+      : DEFAULT_MAIN_GENRES
+
   return (
     <div className="filter-container">
       <div className="filter-controls">
@@ -59,6 +73,22 @@ export default function FilterBar({
               {FORMATS.map((f) => (
                 <option key={f.id} value={f.id}>
                   {f.label}
+                </option>
+              ))}
+            </select>
+          )}
+
+          {availableYears && availableYears.length > 0 && (
+            <select
+              className="filter-select"
+              value={selectedYear}
+              onChange={(e) => onSelectYear && onSelectYear(e.target.value)}
+            >
+              <option value="ALL">Todos os Anos</option>
+              <option value="NONE">Sem Ano</option>
+              {availableYears.map((year) => (
+                <option key={year} value={year}>
+                  {year}
                 </option>
               ))}
             </select>
@@ -87,11 +117,11 @@ export default function FilterBar({
       </div>
 
       <div className="filter-bar">
-        {MAIN_GENRES.map((genre) => (
+        {genresToRender.map((genre) => (
           <button
             key={genre.id}
             className={`filter-bar__btn ${selectedGenre === genre.id ? 'filter-bar__btn--active' : ''}`}
-            onClick={() => onSelectGenre(genre.id)}
+            onClick={() => onSelectGenre && onSelectGenre(genre.id)}
           >
             {genre.label}
           </button>
