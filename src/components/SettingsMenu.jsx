@@ -116,11 +116,10 @@ export default function SettingsMenu({
               className="settings-menu__btn"
               onClick={() => {
                 onRefresh()
-                setIsOpen(false)
               }}
               disabled={isLoading}
             >
-              {isLoading ? '⏳ Atualizando...' : '🔄 Sincronizar AniList'}
+              {isLoading ? '⏳ Sincronizando com AniList...' : '🔄 Sincronizar AniList'}
             </button>
           )}
 

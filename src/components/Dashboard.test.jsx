@@ -124,7 +124,7 @@ describe('Dashboard', () => {
     )
 
     fireEvent.click(screen.getByRole('button', { name: /configurações/i }))
-    const refreshButton = screen.getByRole('button', { name: /atualizando/i })
+    const refreshButton = screen.getByRole('button', { name: /sincronizando com anilist/i })
     expect(refreshButton).toBeInTheDocument()
     expect(refreshButton).toBeDisabled()
   })
