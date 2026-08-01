@@ -27,6 +27,10 @@ Como a ferramenta é usada por múltiplas pessoas com gostos diferentes, cada us
     'en': 'English',
     'ja': 'Japanese',
     'es': 'Spanish',
+    'de': 'German',
+    'ko': 'Korean',
+    'fr': 'French',
+    'it': 'Italian',
   }
   ```
   (valores de `languageV2` a confirmar/ajustar durante a implementação, comparando com os testes existentes — `'pt-br'` deve continuar mapeando para o mesmo valor já usado hoje, preservando o comportamento atual quando o idioma passado for `'pt-br'`).
@@ -42,7 +46,7 @@ Como a ferramenta é usada por múltiplas pessoas com gostos diferentes, cada us
 
 ### 2. Preferência do usuário — armazenamento e estado
 
-* Chave de `localStorage`: `animatch_favorite_dub`, valores possíveis: `'nenhuma' | 'pt-br' | 'en' | 'ja' | 'es'`.
+* Chave de `localStorage`: `animatch_favorite_dub`, valores possíveis: `'nenhuma' | 'pt-br' | 'en' | 'ja' | 'es' | 'de' | 'ko' | 'fr' | 'it'`.
 * **Valor padrão: `'nenhuma'`** (usuários novos ou que nunca configuraram não recebem bônus/badge/filtro de dublagem até escolherem explicitamente um idioma).
 * Estado vive em `src/components/Dashboard.jsx` (mesmo padrão usado hoje para preferências locais, ex. `ThemeToggle`):
   ```js
@@ -64,6 +68,10 @@ Como a ferramenta é usada por múltiplas pessoas com gostos diferentes, cada us
   * Inglês (`'en'`)
   * Japonês (`'ja'`)
   * Espanhol (`'es'`)
+  * Alemão (`'de'`)
+  * Coreano (`'ko'`)
+  * Francês (`'fr'`)
+  * Italiano (`'it'`)
 * Componente controlado: recebe `favoriteDub` e `onChange` via props; não gerencia `localStorage` diretamente (isso é responsabilidade do `Dashboard`, que já centraliza a persistência).
 * Fecha ao clicar fora ou em um botão "Fechar".
 
@@ -79,7 +87,7 @@ Como a ferramenta é usada por múltiplas pessoas com gostos diferentes, cada us
 
 * Texto do badge passa de fixo "🎙️ Dublado PT-BR" para dinâmico, usando um mapa de rótulos:
   ```js
-  const DUB_LABELS = { 'pt-br': 'PT-BR', 'en': 'Inglês', 'ja': 'Japonês', 'es': 'Espanhol' }
+  const DUB_LABELS = { 'pt-br': 'PT-BR', 'en': 'Inglês', 'ja': 'Japonês', 'es': 'Espanhol', 'de': 'Alemão', 'ko': 'Coreano', 'fr': 'Francês', 'it': 'Italiano' }
   ```
   Exibido como "🎙️ Dublado {label}" apenas quando `hasDub` é `true` (prop já existente, sem mudança de contrato).
 * `AnimeCard` recebe o idioma atual (via prop nova `dubLanguage`, vinda de `RecommendationGrid` → `favoriteDub`) só para escolher o rótulo — não decide sozinho se há dublagem.
@@ -88,7 +96,7 @@ Como a ferramenta é usada por múltiplas pessoas com gostos diferentes, cada us
 
 ## 🧪 Plano de Testes
 
-* **`anilist.test.js`:** Atualizar testes de `fetchDubInfo` para passar o parâmetro de idioma; garantir que o default `'pt-br'` preserva as asserções já existentes; adicionar casos para `'en'`/`'ja'`/`'es'` e para cache namespaced por idioma (TTL expirado por idioma, idiomas diferentes não colidem no cache).
+* **`anilist.test.js`:** Atualizar testes de `fetchDubInfo` para passar o parâmetro de idioma; garantir que o default `'pt-br'` preserva as asserções já existentes; adicionar casos para os demais idiomas (`'en'`, `'ja'`, `'es'`, `'de'`, `'ko'`, `'fr'`, `'it'`) e para cache namespaced por idioma (TTL expirado por idioma, idiomas diferentes não colidem no cache).
 * **`SettingsMenu.test.jsx` (novo):** Renderização das opções, seleção dispara `onChange` com o valor correto, estado controlado reflete a prop `favoriteDub`.
 * **`Dashboard.test.jsx`:** Verificar que a preferência é lida/gravada em `localStorage['animatch_favorite_dub']` e propagada para `RecommendationGrid`.
 * **`RecommendationGrid.test.jsx`:** Verificar que `fetchDubInfo` não é chamado quando `favoriteDub === 'nenhuma'`; que o bônus/reordenação funciona para idiomas diferentes de PT-BR; e o novo filtro "somente com minha dublagem favorita".
