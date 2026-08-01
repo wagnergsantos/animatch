@@ -107,4 +107,91 @@ describe('Dashboard', () => {
     expect(refreshButton).toBeInTheDocument()
     expect(refreshButton).toBeDisabled()
   })
+
+  it('extracts dynamic genres from planning entries and renders them in filter bar', () => {
+    const customEntries = [
+      { status: 'COMPLETED', score: 9, media: { id: 1, title: { romaji: 'A' }, genres: ['Action'] } },
+      { status: 'PLANNING', media: { id: 10, title: { romaji: 'Cyberpunk Edgerunners' }, genres: ['Cyberpunk'], averageScore: 80 } },
+      { status: 'PLANNING', media: { id: 11, title: { romaji: 'Gundam' }, genres: ['Mecha'], averageScore: 90 } },
+    ]
+
+    render(
+      <Dashboard
+        allEntries={customEntries}
+        username="testuser"
+        onLogout={vi.fn()}
+      />
+    )
+
+    expect(screen.getByRole('button', { name: 'Cyberpunk' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Mecha' })).toBeInTheDocument()
+  })
+
+  it('filters recommendations by selected year including NONE', async () => {
+    const customEntries = [
+      { status: 'COMPLETED', score: 9, media: { id: 1, title: { romaji: 'A' }, genres: ['Action'] } },
+      { status: 'PLANNING', media: { id: 10, title: { romaji: 'Anime 2024' }, seasonYear: 2024, genres: ['Action'], averageScore: 80 } },
+      { status: 'PLANNING', media: { id: 11, title: { romaji: 'Anime 2020' }, startDate: { year: 2020 }, genres: ['Action'], averageScore: 90 } },
+      { status: 'PLANNING', media: { id: 12, title: { romaji: 'Anime No Year' }, genres: ['Action'], averageScore: 85 } },
+    ]
+
+    render(
+      <Dashboard
+        allEntries={customEntries}
+        username="testuser"
+        onLogout={vi.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Anime 2024')).toBeInTheDocument()
+    })
+
+    const yearSelect = screen.getByDisplayValue('Todos os Anos')
+    
+    // Filter by year 2024
+    fireEvent.change(yearSelect, { target: { value: '2024' } })
+    expect(screen.getByText('Anime 2024')).toBeInTheDocument()
+    expect(screen.queryByText('Anime 2020')).not.toBeInTheDocument()
+    expect(screen.queryByText('Anime No Year')).not.toBeInTheDocument()
+
+    // Filter by NONE
+    fireEvent.change(yearSelect, { target: { value: 'NONE' } })
+    expect(screen.getByText('Anime No Year')).toBeInTheDocument()
+    expect(screen.queryByText('Anime 2024')).not.toBeInTheDocument()
+    expect(screen.queryByText('Anime 2020')).not.toBeInTheDocument()
+  })
+
+  it('sorts recommendations by year_desc and year_asc placing entries without year last', async () => {
+    const customEntries = [
+      { status: 'COMPLETED', score: 9, media: { id: 1, title: { romaji: 'A' }, genres: ['Action'] } },
+      { status: 'PLANNING', media: { id: 10, title: { romaji: 'Anime 2024' }, seasonYear: 2024, genres: ['Action'], averageScore: 80 } },
+      { status: 'PLANNING', media: { id: 11, title: { romaji: 'Anime 2020' }, startDate: { year: 2020 }, genres: ['Action'], averageScore: 90 } },
+      { status: 'PLANNING', media: { id: 12, title: { romaji: 'Anime No Year' }, genres: ['Action'], averageScore: 85 } },
+    ]
+
+    render(
+      <Dashboard
+        allEntries={customEntries}
+        username="testuser"
+        onLogout={vi.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Anime 2024')).toBeInTheDocument()
+    })
+
+    const sortSelect = screen.getByDisplayValue('Ordenar: Predicted Score')
+
+    // Sort by year_desc
+    fireEvent.change(sortSelect, { target: { value: 'year_desc' } })
+    let titles = screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)
+    expect(titles).toEqual(['Anime 2024', 'Anime 2020', 'Anime No Year'])
+
+    // Sort by year_asc
+    fireEvent.change(sortSelect, { target: { value: 'year_asc' } })
+    titles = screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)
+    expect(titles).toEqual(['Anime 2020', 'Anime 2024', 'Anime No Year'])
+  })
 })

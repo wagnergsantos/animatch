@@ -37,6 +37,7 @@ export default function Dashboard({ allEntries = [], username, onLogout, onRefre
   const [selectedFilterGenre, setSelectedFilterGenre] = useState('ALL')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedFormat, setSelectedFormat] = useState('ALL')
+  const [selectedYear, setSelectedYear] = useState('ALL')
   const [sortBy, setSortBy] = useState('predicted')
   const [modalGenre, setModalGenre] = useState(null)
   const [copied, setCopied] = useState(false)
@@ -50,8 +51,42 @@ export default function Dashboard({ allEntries = [], username, onLogout, onRefre
     return allEntries.filter((e) => e.status === 'PLANNING')
   }, [allEntries])
 
+  const availableGenres = useMemo(() => {
+    const set = new Set()
+    for (const entry of planningEntries) {
+      const genres = entry.genres || entry.media?.genres || []
+      for (const genre of genres) {
+        if (genre) set.add(genre)
+      }
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b))
+  }, [planningEntries])
+
+  const availableYears = useMemo(() => {
+    const set = new Set()
+    for (const entry of planningEntries) {
+      const year =
+        entry.seasonYear ||
+        entry.startDate?.year ||
+        entry.media?.seasonYear ||
+        entry.media?.startDate?.year
+      if (year != null) set.add(Number(year))
+    }
+    return Array.from(set).sort((a, b) => b - a)
+  }, [planningEntries])
+
   const recommendations = useMemo(() => {
     let recs = scoreRecommendations(planningEntries, tasteProfile, selectedFilterGenre)
+
+    // Map year, seasonYear, startDate to recs from planningEntries if not present
+    recs = recs.map((r) => {
+      if (r.seasonYear !== undefined || r.startDate !== undefined || r.year !== undefined) return r
+      const match = planningEntries.find((e) => (e.media?.id ?? e.id) === r.id)
+      const seasonYear = match?.seasonYear ?? match?.media?.seasonYear
+      const startDate = match?.startDate ?? match?.media?.startDate
+      const year = match?.year ?? match?.media?.year ?? seasonYear ?? startDate?.year
+      return { ...r, seasonYear, startDate, year }
+    })
 
     // Filter by search query
     if (searchQuery.trim()) {
@@ -64,8 +99,23 @@ export default function Dashboard({ allEntries = [], username, onLogout, onRefre
       recs = recs.filter((r) => r.format === selectedFormat)
     }
 
+    // Filter by year
+    if (selectedYear !== 'ALL') {
+      if (selectedYear === 'NONE') {
+        recs = recs.filter((r) => {
+          const year = r.seasonYear || r.startDate?.year
+          return !year
+        })
+      } else {
+        recs = recs.filter((r) => {
+          const year = r.seasonYear || r.startDate?.year
+          return year == selectedYear
+        })
+      }
+    }
+
     return recs
-  }, [planningEntries, tasteProfile, selectedFilterGenre, searchQuery, selectedFormat])
+  }, [planningEntries, tasteProfile, selectedFilterGenre, searchQuery, selectedFormat, selectedYear])
 
   const handleShare = () => {
     if (typeof window !== 'undefined' && navigator.clipboard) {
@@ -152,10 +202,14 @@ export default function Dashboard({ allEntries = [], username, onLogout, onRefre
             <FilterBar
               selectedGenre={selectedFilterGenre}
               onSelectGenre={setSelectedFilterGenre}
+              availableGenres={availableGenres}
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
               selectedFormat={selectedFormat}
               onSelectFormat={setSelectedFormat}
+              availableYears={availableYears}
+              selectedYear={selectedYear}
+              onSelectYear={setSelectedYear}
               sortBy={sortBy}
               onSortChange={setSortBy}
               onExportCSV={() => exportRecommendationsToCSV(recommendations)}

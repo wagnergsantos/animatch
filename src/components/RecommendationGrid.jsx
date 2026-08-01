@@ -55,6 +55,28 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
     })
 
     return list.sort((a, b) => {
+      if (sortBy === 'year_desc') {
+        const yA = a.year ?? a.seasonYear ?? a.startDate?.year
+        const yB = b.year ?? b.seasonYear ?? b.startDate?.year
+        if (yA != null && yB != null) {
+          if (yA !== yB) return yB - yA
+          return (b.predictedScore || 0) - (a.predictedScore || 0)
+        }
+        if (yA != null) return -1
+        if (yB != null) return 1
+        return (b.predictedScore || 0) - (a.predictedScore || 0)
+      }
+      if (sortBy === 'year_asc') {
+        const yA = a.year ?? a.seasonYear ?? a.startDate?.year
+        const yB = b.year ?? b.seasonYear ?? b.startDate?.year
+        if (yA != null && yB != null) {
+          if (yA !== yB) return yA - yB
+          return (b.predictedScore || 0) - (a.predictedScore || 0)
+        }
+        if (yA != null) return -1
+        if (yB != null) return 1
+        return (b.predictedScore || 0) - (a.predictedScore || 0)
+      }
       if (sortBy === 'community') {
         if (b.communityScore !== a.communityScore) {
           return (b.communityScore || 0) - (a.communityScore || 0)
