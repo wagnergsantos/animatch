@@ -385,14 +385,44 @@ describe('fetchDubInfo', () => {
     expect(await fetchDubInfo(null)).toEqual(new Map())
   })
 
+  it('returns empty map for an unsupported language without calling the API', async () => {
+    const result = await fetchDubInfo([101], 'xx')
+    expect(result).toEqual(new Map())
+    expect(mockFetch).not.toHaveBeenCalled()
+  })
+
+  it('defaults to pt-br when no language is passed', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({
+        data: {
+          Page: {
+            media: [
+              {
+                id: 101,
+                characters: {
+                  edges: [
+                    { node: { id: 1 }, voiceActors: [{ languageV2: 'Portuguese' }] }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      })
+    })
+
+    const dubMap = await fetchDubInfo([101])
+    expect(dubMap.get(101)).toBe(true)
+  })
+
   it('uses dub cache from localStorage when available within 24h TTL', async () => {
     const mockCache = {
-      timestamp: Date.now(),
-      dubs: { 101: true, 102: false }
+      'pt-br': { timestamp: Date.now(), dubs: { 101: true, 102: false } }
     }
     localStorage.setItem(CACHE_KEY_DUB, JSON.stringify(mockCache))
 
-    const dubMap = await fetchDubInfo([101, 102])
+    const dubMap = await fetchDubInfo([101, 102], 'pt-br')
     expect(dubMap.get(101)).toBe(true)
     expect(dubMap.get(102)).toBe(false)
     expect(mockFetch).not.toHaveBeenCalled()
@@ -400,8 +430,7 @@ describe('fetchDubInfo', () => {
 
   it('fetches only uncached media IDs and updates localStorage cache', async () => {
     const mockCache = {
-      timestamp: Date.now(),
-      dubs: { 101: true }
+      'pt-br': { timestamp: Date.now(), dubs: { 101: true } }
     }
     localStorage.setItem(CACHE_KEY_DUB, JSON.stringify(mockCache))
 
@@ -428,7 +457,7 @@ describe('fetchDubInfo', () => {
       })
     })
 
-    const dubMap = await fetchDubInfo([101, 102])
+    const dubMap = await fetchDubInfo([101, 102], 'pt-br')
 
     expect(dubMap.get(101)).toBe(true)
     expect(dubMap.get(102)).toBe(true)
@@ -439,15 +468,14 @@ describe('fetchDubInfo', () => {
     expect(parsedBody.variables.idIn).toEqual([102])
 
     const savedCache = JSON.parse(localStorage.getItem(CACHE_KEY_DUB))
-    expect(savedCache.dubs[101]).toBe(true)
-    expect(savedCache.dubs[102]).toBe(true)
+    expect(savedCache['pt-br'].dubs[101]).toBe(true)
+    expect(savedCache['pt-br'].dubs[102]).toBe(true)
   })
 
   it('refetches expired cache entries (older than 24h)', async () => {
     const EXPIRED_TIMESTAMP = Date.now() - (25 * 60 * 60 * 1000)
     const mockCache = {
-      timestamp: EXPIRED_TIMESTAMP,
-      dubs: { 101: true }
+      'pt-br': { timestamp: EXPIRED_TIMESTAMP, dubs: { 101: true } }
     }
     localStorage.setItem(CACHE_KEY_DUB, JSON.stringify(mockCache))
 
@@ -467,12 +495,65 @@ describe('fetchDubInfo', () => {
       })
     })
 
-    const dubMap = await fetchDubInfo([101])
+    const dubMap = await fetchDubInfo([101], 'pt-br')
 
     expect(dubMap.get(101)).toBe(false)
     expect(mockFetch).toHaveBeenCalledTimes(1)
     const bodyStr = mockFetch.mock.calls[0][1].body
     const parsedBody = JSON.parse(bodyStr)
     expect(parsedBody.variables.idIn).toEqual([101])
+  })
+
+  it('fetches dub info for a non-default language (English) using the correct languageV2 value', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({
+        data: {
+          Page: {
+            media: [
+              {
+                id: 201,
+                characters: {
+                  edges: [
+                    { node: { id: 1 }, voiceActors: [{ languageV2: 'English' }] }
+                  ]
+                }
+              },
+              {
+                id: 202,
+                characters: {
+                  edges: [
+                    { node: { id: 2 }, voiceActors: [{ languageV2: 'Japanese' }] }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      })
+    })
+
+    const dubMap = await fetchDubInfo([201, 202], 'en')
+    expect(dubMap.get(201)).toBe(true)
+    expect(dubMap.get(202)).toBe(false)
+
+    const savedCache = JSON.parse(localStorage.getItem(CACHE_KEY_DUB))
+    expect(savedCache['en'].dubs[201]).toBe(true)
+    expect(savedCache['en'].dubs[202]).toBe(false)
+  })
+
+  it('keeps cache entries for different languages isolated from one another', async () => {
+    const mockCache = {
+      'pt-br': { timestamp: Date.now(), dubs: { 101: true } },
+      'en': { timestamp: Date.now(), dubs: { 101: false } },
+    }
+    localStorage.setItem(CACHE_KEY_DUB, JSON.stringify(mockCache))
+
+    const ptBrMap = await fetchDubInfo([101], 'pt-br')
+    const enMap = await fetchDubInfo([101], 'en')
+
+    expect(ptBrMap.get(101)).toBe(true)
+    expect(enMap.get(101)).toBe(false)
+    expect(mockFetch).not.toHaveBeenCalled()
   })
 })

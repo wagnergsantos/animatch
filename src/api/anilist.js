@@ -1,8 +1,19 @@
 const ANILIST_API = 'https://graphql.anilist.co'
 const CACHE_KEY_PREFIX = 'animatch_cache_'
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutos em ms
-export const CACHE_KEY_DUB = 'animatch_dub_cache'
+export const CACHE_KEY_DUB = 'animatch_dub_cache_v2'
 export const CACHE_DUB_TTL = 24 * 60 * 60 * 1000 // 24 horas em ms
+
+export const DUB_LANGUAGE_MAP = {
+  'pt-br': 'Portuguese',
+  'en': 'English',
+  'ja': 'Japanese',
+  'es': 'Spanish',
+  'de': 'German',
+  'ko': 'Korean',
+  'fr': 'French',
+  'it': 'Italian',
+}
 
 const COMPLETED_QUERY = `
 query ($userName: String) {
@@ -238,19 +249,24 @@ query ($idIn: [Int]) {
 }
 `
 
-export async function fetchDubInfo(mediaIds) {
+export async function fetchDubInfo(mediaIds, language = 'pt-br') {
   if (!mediaIds || mediaIds.length === 0) return new Map()
 
+  const languageV2Value = DUB_LANGUAGE_MAP[language]
+  if (!languageV2Value) return new Map()
+
   const dubMap = new Map()
+  let cacheByLanguage = {}
   let cachedDubs = {}
 
   if (typeof window !== 'undefined' && window.localStorage) {
     try {
       const cached = window.localStorage.getItem(CACHE_KEY_DUB)
       if (cached) {
-        const { timestamp, dubs } = JSON.parse(cached)
-        if (Date.now() - timestamp < CACHE_DUB_TTL && dubs) {
-          cachedDubs = dubs
+        cacheByLanguage = JSON.parse(cached) || {}
+        const entry = cacheByLanguage[language]
+        if (entry && Date.now() - entry.timestamp < CACHE_DUB_TTL && entry.dubs) {
+          cachedDubs = entry.dubs
         }
       }
     } catch (e) {
@@ -277,22 +293,20 @@ export async function fetchDubInfo(mediaIds) {
 
     for (const media of mediaList) {
       const chars = media?.characters?.edges ?? []
-      const hasPtBr = chars.some(
-        (char) => char?.voiceActors && char.voiceActors.some((va) => va?.languageV2 === 'Portuguese')
+      const hasDub = chars.some(
+        (char) => char?.voiceActors && char.voiceActors.some((va) => va?.languageV2 === languageV2Value)
       )
-      dubMap.set(media.id, hasPtBr)
-      cachedDubs[media.id] = hasPtBr
+      dubMap.set(media.id, hasDub)
+      cachedDubs[media.id] = hasDub
     }
 
     if (typeof window !== 'undefined' && window.localStorage) {
       try {
-        window.localStorage.setItem(
-          CACHE_KEY_DUB,
-          JSON.stringify({
-            timestamp: Date.now(),
-            dubs: cachedDubs,
-          })
-        )
+        cacheByLanguage[language] = {
+          timestamp: Date.now(),
+          dubs: cachedDubs,
+        }
+        window.localStorage.setItem(CACHE_KEY_DUB, JSON.stringify(cacheByLanguage))
       } catch (e) {
         // Ignore cache write error
       }
