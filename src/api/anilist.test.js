@@ -65,7 +65,7 @@ describe('fetchCompletedList', () => {
     await expect(fetchCompletedList('nonexistent')).rejects.toThrow('Usuário não encontrado no AniList.')
   })
 
-  it('throws an error when the list is private', async () => {
+  it('throws Portuguese error when response status is HTTP 403', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 403,

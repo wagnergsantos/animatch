@@ -1,4 +1,4 @@
-const ANILIST_API = 'https://graphql.anilist.co'
+const ANILIST_API = import.meta.env.DEV ? '/anilist-api' : 'https://graphql.anilist.co'
 const CACHE_KEY_PREFIX = 'animatch_cache_'
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutos em ms
 export const CACHE_KEY_DUB = 'animatch_dub_cache_v2'
@@ -63,6 +63,7 @@ query ($userName: String) {
         media {
           id
           title { romaji english }
+          status
           format
           episodes
           seasonYear
@@ -91,7 +92,10 @@ async function queryAniList(query, variables, retries = 2, delayMs = 100) {
     try {
       const response = await fetch(ANILIST_API, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
         body: JSON.stringify({ query, variables }),
       })
 
@@ -104,9 +108,6 @@ async function queryAniList(query, variables, retries = 2, delayMs = 100) {
       }
       if (response.status === 404) {
         throw new Error('Usuário não encontrado no AniList.')
-      }
-      if (response.status === 403) {
-        throw new Error('A lista deste usuário é privada.')
       }
 
       let json = null
@@ -122,10 +123,14 @@ async function queryAniList(query, variables, retries = 2, delayMs = 100) {
         if (error.status === 404 || msg.includes('not found')) {
           throw new Error('Usuário não encontrado no AniList.')
         }
-        if (error.status === 403 || msg.includes('private')) {
+        if (msg.includes('private')) {
           throw new Error('A lista deste usuário é privada.')
         }
         throw new Error(error.message || 'Erro desconhecido da API.')
+      }
+
+      if (response.status === 403) {
+        throw new Error('O AniList bloqueou temporariamente a requisição (403). Tente novamente em 1 minuto.')
       }
 
       if (!response.ok) {

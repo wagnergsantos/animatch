@@ -64,8 +64,18 @@ export default function SettingsMenu({
       }
     }
 
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setIsOpen(false)
+      }
+    }
+
     document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
   }, [isOpen])
 
   return (
@@ -76,6 +86,8 @@ export default function SettingsMenu({
         onClick={() => setIsOpen((prev) => !prev)}
         aria-label="Configurações"
         title="Configurações"
+        aria-expanded={isOpen}
+        aria-haspopup="true"
       >
         ⚙️
       </button>

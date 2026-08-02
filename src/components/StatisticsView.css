@@ -93,11 +93,11 @@
   color: var(--text-1);
 }
 
-.status-completed strong { color: #10b981; }
-.status-planning strong { color: #3b82f6; }
-.status-current strong { color: #f59e0b; }
-.status-dropped strong { color: #ef4444; }
-.status-paused strong { color: #8b5cf6; }
+.status-completed strong { color: var(--color-success); }
+.status-planning strong { color: var(--color-primary); }
+.status-current strong { color: var(--color-warning); }
+.status-dropped strong { color: var(--color-error); }
+.status-paused strong { color: var(--color-accent); }
 
 .year-chart-container {
   overflow-x: auto;
@@ -129,8 +129,8 @@
   background: var(--accent);
   border-radius: 4px 4px 0 0;
   min-height: 2px;
-  transition: height 0.3s ease;
-  opacity: 0.8;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  opacity: 0.85;
 }
 
 .year-chart__bar:hover {

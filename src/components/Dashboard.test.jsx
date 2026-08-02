@@ -59,7 +59,7 @@ describe('Dashboard', () => {
     expect(screen.queryByLabelText('Fechar modal')).not.toBeInTheDocument()
   })
 
-  it('renders recommendation cards and opens window on click', async () => {
+  it('renders recommendation cards, opens modal on card click and opens AniList on quick button click', async () => {
     window.open = vi.fn()
     render(<Dashboard allEntries={mockEntries} username="testuser" onLogout={vi.fn()} />)
     
@@ -72,6 +72,10 @@ describe('Dashboard', () => {
 
     const article = screen.getByText('Made in Abyss').closest('article')
     fireEvent.click(article)
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+
+    const quickBtn = article.querySelector('.anime-card__anilist-quickbtn')
+    fireEvent.click(quickBtn)
     expect(window.open).toHaveBeenCalledWith('https://anilist.co/anime/10', '_blank', 'noopener,noreferrer')
   })
 

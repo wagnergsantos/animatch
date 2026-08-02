@@ -91,11 +91,10 @@ export default function Dashboard({ allEntries = [], username, onLogout, onRefre
 
     // Map year, seasonYear, startDate to recs from planningEntries if not present
     recs = recs.map((r) => {
-      if (r.seasonYear !== undefined || r.startDate !== undefined || r.year !== undefined) return r
       const match = planningEntries.find((e) => (e.media?.id ?? e.id) === r.id)
-      const seasonYear = match?.seasonYear ?? match?.media?.seasonYear
-      const startDate = match?.startDate ?? match?.media?.startDate
-      const year = resolveYear(match)
+      const seasonYear = r.seasonYear ?? match?.seasonYear ?? match?.media?.seasonYear
+      const startDate = r.startDate ?? match?.startDate ?? match?.media?.startDate
+      const year = resolveYear(r) ?? resolveYear(match)
       return { ...r, seasonYear, startDate, year }
     })
 

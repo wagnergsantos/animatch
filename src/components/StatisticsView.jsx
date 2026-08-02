@@ -88,8 +88,8 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
       <section className="stats-section">
         <div className="stats-section__header">
           <h3 className="stats-section__title">Gêneros Favoritos (Média Bayesiana)</h3>
-          <div className="bayesian-controls">
-            <label htmlFor="confidence-c">C = {confidenceC}</label>
+          <div className="bayesian-controls" title="Parâmetro de confiança C: quanto maior o valor, mais votos são necessários para alterar a média global.">
+            <label htmlFor="confidence-c">Confiança (C = {confidenceC})</label>
             <input
               id="confidence-c"
               type="range"
@@ -117,7 +117,16 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
                 <tr
                   key={item.genre}
                   className="genre-table__row"
+                  tabIndex={0}
+                  role="button"
                   onClick={() => onSelectGenre && onSelectGenre(item.genre)}
+                  onKeyDown={(e) => {
+                    if ((e.key === 'Enter' || e.key === ' ') && onSelectGenre) {
+                      e.preventDefault()
+                      onSelectGenre(item.genre)
+                    }
+                  }}
+                  title={`Ver recomendações para ${item.genre}`}
                 >
                   <td className="genre-table__genre">{item.genre} 🔍</td>
                   <td>{item.count}</td>

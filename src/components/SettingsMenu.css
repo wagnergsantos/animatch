@@ -37,10 +37,33 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+}
+
 .settings-menu__section {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
+}
+
+.settings-menu__label {
+  font-size: var(--text-xs);
+  color: var(--text-2);
+  font-weight: 500;
+}
+
+.settings-menu__select {
+  background: var(--surface-2);
+  color: var(--text-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  font-size: var(--text-sm);
+  outline: none;
+  cursor: pointer;
+}
+
+.settings-menu__select:focus-visible {
+  border-color: var(--color-primary);
 }
 
 .settings-menu__divider {
