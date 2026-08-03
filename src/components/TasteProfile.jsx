@@ -1,6 +1,10 @@
+import { useState } from 'react'
+import GenreOriginModal from './GenreOriginModal'
 import './TasteProfile.css'
 
 export default function TasteProfile({ profile = new Map(), onGenreClick }) {
+  const [selectedModalGenre, setSelectedModalGenre] = useState(null)
+
   const entries = profile?.entries ? [...profile.entries()] : []
   const sorted = entries.sort((a, b) => {
     const scoreA = a[1]?.adjustedAverage ?? a[1]?.average ?? 0
@@ -27,16 +31,22 @@ export default function TasteProfile({ profile = new Map(), onGenreClick }) {
             <span
               key={genre}
               className={`taste-badge ${isFilled ? 'taste-badge--filled' : 'taste-badge--outline'}`}
-              onClick={() => onGenreClick?.(genre)}
-              style={{ cursor: onGenreClick ? 'pointer' : 'default' }}
-            >
-              {genre} ★ {realAvg.toFixed(2)} ({count})
+              onClick={() => setSelectedModalGenre({ genre, stats })}
+              style={{ cursor: 'pointer' }}>
+              {genre} &#9733; {realAvg.toFixed(2)} ({count})
             </span>
           )
         })}
       </div>
+
+      {selectedModalGenre && (
+        <GenreOriginModal
+          genre={selectedModalGenre.genre}
+          stats={selectedModalGenre.stats}
+          onClose={() => setSelectedModalGenre(null)}
+          onFilterGenre={onGenreClick}
+        />
+      )}
     </section>
   )
 }
-
-
