@@ -129,8 +129,7 @@ export default function Dashboard({ allEntries = [], username, provider = 'anili
 
     if (isSeasonOnly) {
       recs = recs.filter((rec) => {
-        const year = rec.year ?? rec.seasonYear ?? rec.startDate?.year ?? rec.media?.year ?? rec.media?.seasonYear ?? rec.media?.startDate?.year
-        const isCurrentYear = year === currentYear
+        const isCurrentYear = Number(rec.year) === currentYear
         const status = rec.status || rec.media?.status
         const isReleasing = status === "RELEASING"
         return isCurrentYear || isReleasing

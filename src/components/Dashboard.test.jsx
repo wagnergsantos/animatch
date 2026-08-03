@@ -362,4 +362,30 @@ describe('Dashboard', () => {
     expect(screen.getByText("Releasing Anime")).toBeInTheDocument()
     expect(screen.queryByText("Old Finished Anime")).not.toBeInTheDocument()
   })
+  it('filters recommendations by seasonal filter correctly when year is a string', async () => {
+    const currentYear = new Date().getFullYear()
+    const customEntries = [
+      { status: 'COMPLETED', score: 9, media: { id: 1, title: { romaji: 'A' }, genres: ['Action'] } },
+      { status: 'PLANNING', media: { id: 10, seasonYear: String(currentYear), title: { romaji: 'String Year Anime' }, genres: ['Action'], averageScore: 80 } },
+      { status: 'PLANNING', media: { id: 12, seasonYear: 2010, status: 'FINISHED', title: { romaji: 'Old Anime' }, genres: ['Action'], averageScore: 90 } },
+    ]
+
+    render(
+      <Dashboard
+        allEntries={customEntries}
+        username='testuser'
+        onLogout={vi.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('String Year Anime')).toBeInTheDocument()
+    })
+
+    const seasonCheckbox = screen.getByLabelText(/Apenas da Temporada/i)
+    fireEvent.click(seasonCheckbox)
+
+    expect(screen.getByText('String Year Anime')).toBeInTheDocument()
+    expect(screen.queryByText('Old Anime')).not.toBeInTheDocument()
+  })
 })
