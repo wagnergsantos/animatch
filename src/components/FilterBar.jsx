@@ -42,6 +42,8 @@ export default function FilterBar({
   onSelectYear,
   sortBy = 'predicted',
   onSortChange,
+  isSeasonOnly = false,
+  onSeasonOnlyChange,
   onExportCSV,
 }) {
   const genresToRender =
@@ -107,7 +109,19 @@ export default function FilterBar({
               ))}
             </select>
           )}
-        </div>
+        
+          <div className="filter-bar__group filter-bar__checkbox-group">
+            <label className="filter-bar__checkbox-label">
+              <input
+                type="checkbox"
+                checked={isSeasonOnly}
+                onChange={(e) => onSeasonOnlyChange?.(e.target.checked)}
+                className="filter-bar__checkbox"
+              />
+              Apenas da Temporada
+            </label>
+          </div>
+</div>
 
         {onExportCSV && (
           <button className="export-csv-btn" onClick={onExportCSV} title="Exportar recomendações em CSV">

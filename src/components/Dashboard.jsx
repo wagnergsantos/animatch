@@ -42,6 +42,8 @@ export default function Dashboard({ allEntries = [], username, provider = 'anili
   const [sortBy, setSortBy] = useState('predicted')
   const [modalGenre, setModalGenre] = useState(null)
   const [copied, setCopied] = useState(false)
+  const [isSeasonOnly, setIsSeasonOnly] = useState(false)
+  const currentYear = new Date().getFullYear()
   const gridRef = useRef(null)
 
   const [favoriteDub, setFavoriteDub] = useState(() => {
@@ -95,7 +97,8 @@ export default function Dashboard({ allEntries = [], username, provider = 'anili
       const seasonYear = r.seasonYear ?? match?.seasonYear ?? match?.media?.seasonYear
       const startDate = r.startDate ?? match?.startDate ?? match?.media?.startDate
       const year = resolveYear(r) ?? resolveYear(match)
-      return { ...r, seasonYear, startDate, year }
+      const status = r.status ?? match?.status ?? match?.media?.status
+      return { ...r, seasonYear, startDate, year, status }
     })
 
     // Filter by search query
@@ -124,8 +127,18 @@ export default function Dashboard({ allEntries = [], username, provider = 'anili
       }
     }
 
+    if (isSeasonOnly) {
+      recs = recs.filter((rec) => {
+        const year = rec.year ?? rec.seasonYear ?? rec.startDate?.year ?? rec.media?.year ?? rec.media?.seasonYear ?? rec.media?.startDate?.year
+        const isCurrentYear = year === currentYear
+        const status = rec.status || rec.media?.status
+        const isReleasing = status === "RELEASING"
+        return isCurrentYear || isReleasing
+      })
+    }
+
     return recs
-  }, [planningEntries, tasteProfile, selectedFilterGenre, searchQuery, selectedFormat, selectedYear])
+  }, [planningEntries, tasteProfile, selectedFilterGenre, searchQuery, selectedFormat, selectedYear, isSeasonOnly, currentYear])
 
   const handleTasteProfileGenreClick = (genre) => {
     setSelectedFilterGenre(genre)
@@ -215,6 +228,8 @@ export default function Dashboard({ allEntries = [], username, provider = 'anili
               onSelectYear={setSelectedYear}
               sortBy={sortBy}
               onSortChange={setSortBy}
+              isSeasonOnly={isSeasonOnly}
+              onSeasonOnlyChange={setIsSeasonOnly}
               onExportCSV={() => exportRecommendationsToCSV(recommendations)}
             />
             <div ref={gridRef}>

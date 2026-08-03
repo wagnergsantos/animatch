@@ -96,4 +96,20 @@ describe('FilterBar', () => {
     fireEvent.change(sortSelect, { target: { value: 'year_desc' } })
     expect(onSortChange).toHaveBeenCalledWith('year_desc')
   })
+
+  it('calls onSeasonOnlyChange when season toggle is clicked', () => {
+    const handleSeasonChange = vi.fn()
+    render(
+      <FilterBar
+        selectedGenre="ALL"
+        onSelectGenre={vi.fn()}
+        isSeasonOnly={false}
+        onSeasonOnlyChange={handleSeasonChange}
+      />
+    )
+
+    const seasonToggle = screen.getByLabelText(/Apenas da Temporada/i)
+    fireEvent.click(seasonToggle)
+    expect(handleSeasonChange).toHaveBeenCalledWith(true)
+  })
 })
