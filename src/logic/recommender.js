@@ -29,12 +29,21 @@ export function buildTasteProfile(completedEntries = []) {
       globalScoredCount += 1
     }
 
+    const animeInfo = {
+      id: entry.media.id,
+      title: entry.media.title?.english || entry.media.title?.romaji || 'Untitled',
+      score: score,
+      coverImage: entry.media.coverImage?.large ?? '',
+      status: entry.status || 'COMPLETED',
+    }
+
     for (const genre of genres) {
       if (!genreStats.has(genre)) {
-        genreStats.set(genre, { total: 0, count: 0, scoredCount: 0 })
+        genreStats.set(genre, { total: 0, count: 0, scoredCount: 0, sourceAnimes: [] })
       }
       const stats = genreStats.get(genre)
       stats.count += 1
+      stats.sourceAnimes.push(animeInfo)
 
       if (score > 0) {
         stats.total += score
@@ -59,6 +68,7 @@ export function buildTasteProfile(completedEntries = []) {
         adjustedAverage: Math.round(adjustedAverage * 100) / 100,
         count: stats.count,
         scoredCount: stats.scoredCount,
+        sourceAnimes: stats.sourceAnimes,
       })
     }
   }

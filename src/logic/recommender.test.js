@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, test, expect } from 'vitest'
 import { buildTasteProfile, scoreRecommendations, resolveYear } from './recommender.js'
 
 describe('resolveYear', () => {
@@ -56,8 +56,8 @@ describe('buildTasteProfile', () => {
 
     const profile = buildTasteProfile(entries)
 
-    expect(profile.get('Action')).toEqual({ average: 7, adjustedAverage: 7.59, count: 3, scoredCount: 2 })
-    expect(profile.get('Adventure')).toEqual({ average: 8.5, adjustedAverage: 7.76, count: 2, scoredCount: 2 })
+    expect(profile.get('Action')).toMatchObject({ average: 7, adjustedAverage: 7.59, count: 3, scoredCount: 2 })
+    expect(profile.get('Adventure')).toMatchObject({ average: 8.5, adjustedAverage: 7.76, count: 2, scoredCount: 2 })
   })
 
   it('excludes genres with fewer than 2 scored anime', () => {
@@ -104,7 +104,7 @@ describe('buildTasteProfile', () => {
 
     const profile = buildTasteProfile(entries)
 
-    expect(profile.get('Action')).toEqual({ average: 8.5, adjustedAverage: 8.35, count: 2, scoredCount: 2 })
+    expect(profile.get('Action')).toMatchObject({ average: 8.5, adjustedAverage: 8.35, count: 2, scoredCount: 2 })
   })
 
   it('calculates Bayesian adjustedAverage using user global average and C=15', () => {
@@ -125,6 +125,44 @@ describe('buildTasteProfile', () => {
     expect(profile.get('Fantasy').adjustedAverage).toBeGreaterThan(profile.get('Action').adjustedAverage)
   })
 
+
+  test("buildTasteProfile includes sourceAnimes for each genre", () => {
+    const mockCompleted = [
+      {
+        score: 9,
+        status: "COMPLETED",
+        media: {
+          id: 101,
+          title: { english: "Anime A", romaji: "Anime A" },
+          genres: ["Action", "Drama"],
+          coverImage: { large: "http://img.com/a.jpg" }
+        }
+      },
+      {
+        score: 8,
+        status: "COMPLETED",
+        media: {
+          id: 102,
+          title: { english: "Anime B", romaji: "Anime B" },
+          genres: ["Action"],
+          coverImage: { large: "http://img.com/b.jpg" }
+        }
+      }
+    ]
+
+    const profile = buildTasteProfile(mockCompleted)
+    const actionStats = profile.get("Action")
+
+    expect(actionStats).toBeDefined()
+    expect(actionStats.sourceAnimes).toHaveLength(2)
+    expect(actionStats.sourceAnimes[0]).toEqual({
+      id: 101,
+      title: "Anime A",
+      score: 9,
+      coverImage: "http://img.com/a.jpg",
+      status: "COMPLETED"
+    })
+  })
   it('calculates Bayesian adjustedAverage using C=15 and 2 decimal precision', () => {
     const entries = [
       ...Array.from({ length: 15 }, () => ({ score: 8.33, media: { genres: ['Action'] } })),
