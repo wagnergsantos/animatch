@@ -118,6 +118,75 @@ describe('kitsuFetchAll', () => {
     ])
   })
 
+  it('filters out non-canonical tags when canonical genres exist', async () => {
+    // 1st call: user lookup
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({
+        data: [{ id: '12345', type: 'users', attributes: { name: 'testuser' } }],
+      }),
+    })
+
+    // 2nd call: library-entries
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({
+        data: [
+          {
+            id: '100',
+            type: 'libraryEntries',
+            attributes: { status: 'completed', ratingTwenty: 16 },
+            relationships: {
+              anime: { data: { type: 'anime', id: '999' } },
+            },
+          },
+        ],
+        included: [
+          {
+            id: '999',
+            type: 'anime',
+            attributes: {
+              canonicalTitle: 'Some Anime',
+              status: 'finished',
+            },
+            relationships: {
+              categories: { data: [
+                { type: 'categories', id: 'c1' },
+                { type: 'categories', id: 'c2' },
+                { type: 'categories', id: 'c3' },
+                { type: 'categories', id: 'c4' }
+              ] },
+            },
+          },
+          {
+            id: 'c1',
+            type: 'categories',
+            attributes: { title: 'Action', isVanilla: false },
+          },
+          {
+            id: 'c2',
+            type: 'categories',
+            attributes: { title: 'Germany', isVanilla: false },
+          },
+          {
+            id: 'c3',
+            type: 'categories',
+            attributes: { title: 'Sci-Fi', isVanilla: true },
+          },
+          {
+            id: 'c4',
+            type: 'categories',
+            attributes: { title: 'Air Force', isVanilla: false },
+          },
+        ],
+        links: {},
+      }),
+    })
+
+    const result = await kitsuFetchAll('testuser')
+    expect(result[0].media.genres).toEqual(['Action', 'Sci-Fi'])
+  })
+
   it('maps Kitsu library statuses correctly', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,

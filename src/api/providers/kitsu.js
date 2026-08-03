@@ -42,6 +42,10 @@ export const DUB_LANGUAGE_MAP = {
   'en': 'English'
 }
 
+const CANONICAL_GENRES = new Set([
+  'Action', 'Adventure', 'Comedy', 'Drama', 'Ecchi', 'Fantasy', 'Horror', 'Mahou Shoujo', 'Mecha', 'Music', 'Mystery', 'Psychological', 'Romance', 'Sci-Fi', 'Slice of Life', 'Sports', 'Supernatural', 'Thriller'
+])
+
 export function clearKitsuCache(username) {
   try {
     localStorage.removeItem(KITSU_CACHE_PREFIX + username)
@@ -62,8 +66,13 @@ function normalizeEntry(entry, included) {
       .map(catRef => included.find(inc => inc.type === 'categories' && inc.id === catRef.id))
       .filter(Boolean)
 
-    const vanillaCats = allCats.filter(cat => cat.attributes?.isVanilla === true)
-    const targetCats = vanillaCats.length > 0 ? vanillaCats : allCats.slice(0, 5)
+    const canonicalCats = allCats.filter(cat => cat.attributes?.title && CANONICAL_GENRES.has(cat.attributes.title))
+    
+    let targetCats = canonicalCats
+    if (targetCats.length === 0) {
+      const vanillaCats = allCats.filter(cat => cat.attributes?.isVanilla === true)
+      targetCats = vanillaCats.length > 0 ? vanillaCats.slice(0, 3) : allCats.slice(0, 3)
+    }
 
     targetCats.forEach(cat => {
       if (cat.attributes?.title) {
