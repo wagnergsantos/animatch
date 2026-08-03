@@ -33,6 +33,7 @@ export default function FilterBar({
   selectedGenre = 'ALL',
   onSelectGenre,
   availableGenres,
+  totalPlanningCount,
   searchQuery = '',
   onSearchChange,
   selectedFormat = 'ALL',
@@ -49,8 +50,16 @@ export default function FilterBar({
   const genresToRender =
     availableGenres && availableGenres.length > 0
       ? [
-          { id: 'ALL', label: 'Todos os Gêneros' },
-          ...availableGenres.map((g) => ({ id: g, label: g })),
+          {
+            id: 'ALL',
+            label: totalPlanningCount != null ? `Todos os Gêneros (${totalPlanningCount})` : 'Todos os Gêneros',
+          },
+          ...availableGenres.map((g) => {
+            if (typeof g === 'object' && g !== null) {
+              return { id: g.name, label: `${g.name} (${g.count})` }
+            }
+            return { id: g, label: g }
+          }),
         ]
       : DEFAULT_MAIN_GENRES
 

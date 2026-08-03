@@ -112,4 +112,25 @@ describe('FilterBar', () => {
     fireEvent.click(seasonToggle)
     expect(handleSeasonChange).toHaveBeenCalledWith(true)
   })
+
+  it('renders genre buttons with counts when provided as objects', () => {
+    const genres = [
+      { name: 'Action', count: 5 },
+      { name: 'Comedy', count: 3 },
+    ]
+
+    render(
+      <FilterBar
+        availableGenres={genres}
+        totalPlanningCount={8}
+        selectedGenre="ALL"
+        onSelectGenre={() => {}}
+      />
+    )
+
+    expect(screen.getByRole('button', { name: 'Todos os Gêneros (8)' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Action (5)' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Comedy (3)' })).toBeInTheDocument()
+  })
 })
+
