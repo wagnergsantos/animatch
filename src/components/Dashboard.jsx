@@ -69,14 +69,18 @@ export default function Dashboard({ allEntries = [], username, provider = 'anili
   }, [allEntries])
 
   const availableGenres = useMemo(() => {
-    const set = new Set()
+    const genreCounts = new Map()
     for (const entry of planningEntries) {
       const genres = entry.genres || entry.media?.genres || []
       for (const genre of genres) {
-        if (genre) set.add(genre)
+        if (genre) {
+          genreCounts.set(genre, (genreCounts.get(genre) || 0) + 1)
+        }
       }
     }
-    return Array.from(set).sort((a, b) => a.localeCompare(b))
+    return Array.from(genreCounts.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => a.name.localeCompare(b.name))
   }, [planningEntries])
 
   const availableYears = useMemo(() => {
@@ -218,6 +222,7 @@ export default function Dashboard({ allEntries = [], username, provider = 'anili
               selectedGenre={selectedFilterGenre}
               onSelectGenre={setSelectedFilterGenre}
               availableGenres={availableGenres}
+              totalPlanningCount={planningEntries.length}
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
               selectedFormat={selectedFormat}
