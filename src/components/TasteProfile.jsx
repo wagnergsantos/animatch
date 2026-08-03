@@ -10,7 +10,7 @@ export default function TasteProfile({ profile = new Map(), onGenreClick }) {
   })
 
   const countAbove8 = sorted.filter(([_, stats]) => (stats?.adjustedAverage ?? stats?.average ?? 0) >= 8.00).length
-  const limit = Math.max(5, countAbove8)
+  const limit = Math.min(10, Math.max(5, countAbove8))
   const displayBadges = sorted.slice(0, limit)
 
   return (

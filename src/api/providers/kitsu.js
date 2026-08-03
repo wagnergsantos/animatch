@@ -62,20 +62,9 @@ function normalizeEntry(entry, included) {
   // Resolve Categories (Genres)
   const genres = []
   if (anime.relationships?.categories?.data) {
-    const allCats = anime.relationships.categories.data
-      .map(catRef => included.find(inc => inc.type === 'categories' && inc.id === catRef.id))
-      .filter(Boolean)
-
-    const canonicalCats = allCats.filter(cat => cat.attributes?.title && CANONICAL_GENRES.has(cat.attributes.title))
-    
-    let targetCats = canonicalCats
-    if (targetCats.length === 0) {
-      const vanillaCats = allCats.filter(cat => cat.attributes?.isVanilla === true)
-      targetCats = vanillaCats.length > 0 ? vanillaCats.slice(0, 3) : allCats.slice(0, 3)
-    }
-
-    targetCats.forEach(cat => {
-      if (cat.attributes?.title) {
+    anime.relationships.categories.data.forEach(catRef => {
+      const cat = included.find(inc => inc.type === 'categories' && inc.id === catRef.id)
+      if (cat?.attributes?.title && !genres.includes(cat.attributes.title)) {
         genres.push(cat.attributes.title)
       }
     })
@@ -246,13 +235,30 @@ export async function kitsuFetchDubInfo(mediaIds, language = 'pt-br') {
 
   await Promise.all(toFetch.map(async (id) => {
     try {
-      const res = await fetch(`${KITSU_API}/castings?filter[media_id]=${id}&filter[media_type]=Anime&filter[language]=${languageValue}&include=person&page[limit]=5`, {
+      // Busca castings do anime com limite 20 para checar vozes/dublagens registradas
+      const res = await fetch(`${KITSU_API}/castings?filter[media_id]=${id}&filter[media_type]=Anime&include=person&page[limit]=20`, {
         headers: KITSU_HEADERS
       })
       if (!res.ok) return
       
       const data = await res.json()
-      const hasDub = data.data && data.data.length > 0
+      const langLower = language.toLowerCase()
+      
+      // Checa se algum casting bate com o idioma pesquisado (ex: Portuguese, pt-br, English, etc.)
+      const hasDub = Boolean(
+        data.data && data.data.some(casting => {
+          const castLang = (casting.attributes?.language || '').toLowerCase()
+          const role = (casting.attributes?.role || '').toLowerCase()
+          if (langLower === 'pt-br') {
+            return castLang.includes('portuguese') || castLang.includes('pt') || castLang.includes('brazil')
+          }
+          if (langLower === 'en') {
+            return castLang.includes('english') || castLang.includes('en')
+          }
+          return castLang.includes(langLower) || role.includes(langLower)
+        })
+      )
+
       result.set(id, hasDub)
       
       if (!cache[language]) cache[language] = {}

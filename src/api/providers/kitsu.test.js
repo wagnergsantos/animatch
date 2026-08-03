@@ -108,7 +108,7 @@ describe('kitsuFetchAll', () => {
     expect(result[0].media.format).toBe('TV')
     expect(result[0].media.seasonYear).toBe(2011)
     expect(result[0].media.startDate).toEqual({ year: 2011, month: 4, day: 6 })
-    expect(result[0].media.genres).toEqual(['Sci-Fi']) // Germany (isVanilla: false) deve ser ignorado
+    expect(result[0].media.genres).toEqual(['Sci-Fi', 'Germany'])
     expect(result[0].media.averageScore).toBe(89)
     expect(result[0].media.coverImage.large).toBe('https://media.kitsu.io/anime/poster/999/large.jpg')
     expect(result[0].media.siteUrl).toBe('https://kitsu.io/anime/999')
@@ -118,74 +118,7 @@ describe('kitsuFetchAll', () => {
     ])
   })
 
-  it('filters out non-canonical tags when canonical genres exist', async () => {
-    // 1st call: user lookup
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve({
-        data: [{ id: '12345', type: 'users', attributes: { name: 'testuser' } }],
-      }),
-    })
 
-    // 2nd call: library-entries
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve({
-        data: [
-          {
-            id: '100',
-            type: 'libraryEntries',
-            attributes: { status: 'completed', ratingTwenty: 16 },
-            relationships: {
-              anime: { data: { type: 'anime', id: '999' } },
-            },
-          },
-        ],
-        included: [
-          {
-            id: '999',
-            type: 'anime',
-            attributes: {
-              canonicalTitle: 'Some Anime',
-              status: 'finished',
-            },
-            relationships: {
-              categories: { data: [
-                { type: 'categories', id: 'c1' },
-                { type: 'categories', id: 'c2' },
-                { type: 'categories', id: 'c3' },
-                { type: 'categories', id: 'c4' }
-              ] },
-            },
-          },
-          {
-            id: 'c1',
-            type: 'categories',
-            attributes: { title: 'Action', isVanilla: false },
-          },
-          {
-            id: 'c2',
-            type: 'categories',
-            attributes: { title: 'Germany', isVanilla: false },
-          },
-          {
-            id: 'c3',
-            type: 'categories',
-            attributes: { title: 'Sci-Fi', isVanilla: true },
-          },
-          {
-            id: 'c4',
-            type: 'categories',
-            attributes: { title: 'Air Force', isVanilla: false },
-          },
-        ],
-        links: {},
-      }),
-    })
-
-    const result = await kitsuFetchAll('testuser')
-    expect(result[0].media.genres).toEqual(['Action', 'Sci-Fi'])
-  })
 
   it('maps Kitsu library statuses correctly', async () => {
     mockFetch.mockResolvedValueOnce({
@@ -327,14 +260,14 @@ describe('kitsuFetchDubInfo', () => {
     it('returns dub info and caches it', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve({ data: [{ id: '1' }] })
+      json: () => Promise.resolve({ data: [{ id: '1', attributes: { language: 'Portuguese' } }] })
     })
 
     const result = await kitsuFetchDubInfo([999], 'pt-br')
     
     // VERIFY EXACT URL
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://kitsu.io/api/edge/castings?filter[media_id]=999&filter[media_type]=Anime&filter[language]=Portuguese&include=person&page[limit]=5',
+      'https://kitsu.io/api/edge/castings?filter[media_id]=999&filter[media_type]=Anime&include=person&page[limit]=20',
       expect.anything()
     )
     
