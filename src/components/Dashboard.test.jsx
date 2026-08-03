@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import Dashboard from './Dashboard.jsx'
 
-vi.mock('../api/anilist.js', () => ({
+vi.mock('../api/index.js', () => ({
   fetchDubInfo: vi.fn().mockResolvedValue(new Map()),
 }))
 
@@ -319,3 +319,4 @@ describe('Dashboard', () => {
     expect(screen.queryByText('Anime Prop Year')).not.toBeInTheDocument()
   })
 })
+

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { fetchAllLists } from './api/anilist.js'
+import { fetchUserEntries } from './api/index.js'
 import LoginScreen from './components/LoginScreen.jsx'
 import Dashboard from './components/Dashboard.jsx'
 
@@ -52,7 +52,7 @@ export default function App() {
     setError(null)
 
     try {
-      const entries = await fetchAllLists(inputUsername, options)
+      const entries = await fetchUserEntries(inputUsername, 'anilist', options)
 
       const planning = entries.filter((e) => e.status === 'PLANNING')
       if (planning.length === 0) {
@@ -128,3 +128,4 @@ export default function App() {
     />
   )
 }
+

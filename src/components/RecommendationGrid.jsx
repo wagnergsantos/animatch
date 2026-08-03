@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import AnimeCard from './AnimeCard.jsx'
-import { fetchDubInfo } from '../api/anilist.js'
+import { fetchDubInfo } from '../api/index.js'
 import { resolveYear } from '../logic/recommender.js'
 import './RecommendationGrid.css'
 
@@ -169,3 +169,4 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
     </section>
   )
 }
+

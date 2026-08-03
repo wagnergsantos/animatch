@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import RecommendationGrid from './RecommendationGrid.jsx'
-import { fetchDubInfo } from '../api/anilist.js'
+import { fetchDubInfo } from '../api/index.js'
 
-vi.mock('../api/anilist.js', () => ({
+vi.mock('../api/index.js', () => ({
   fetchDubInfo: vi.fn().mockResolvedValue(new Map()),
 }))
 
@@ -149,3 +149,4 @@ describe('RecommendationGrid', () => {
     })
   })
 })
+

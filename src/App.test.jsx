@@ -3,12 +3,12 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import App from './App.jsx'
 
 // Mock the API module
-vi.mock('./api/anilist.js', () => ({
-  fetchAllLists: vi.fn(),
+vi.mock('./api/index.js', () => ({
+  fetchUserEntries: vi.fn(),
   fetchDubInfo: vi.fn().mockResolvedValue(new Map()),
 }))
 
-import { fetchAllLists } from './api/anilist.js'
+import { fetchUserEntries } from './api/index.js'
 
 const allData = [
   { status: 'COMPLETED', score: 9, media: { id: 1, title: { romaji: 'A', english: 'A' }, genres: ['Adventure', 'Fantasy'], coverImage: { large: '' } } },
@@ -20,7 +20,7 @@ const allData = [
 ]
 
 beforeEach(() => {
-  fetchAllLists.mockReset()
+  fetchUserEntries.mockReset()
   window.localStorage.clear()
   if (typeof window !== 'undefined' && window.history) {
     window.history.replaceState({}, '', '/')
@@ -35,7 +35,7 @@ describe('App', () => {
   })
 
   it('transitions to dashboard after successful login', async () => {
-    fetchAllLists.mockResolvedValueOnce(allData)
+    fetchUserEntries.mockResolvedValueOnce(allData)
 
     render(<App />)
 
@@ -54,7 +54,7 @@ describe('App', () => {
   })
 
   it('shows error on login screen when API fails', async () => {
-    fetchAllLists.mockRejectedValueOnce(new Error('Usuário não encontrado no AniList.'))
+    fetchUserEntries.mockRejectedValueOnce(new Error('Usuário não encontrado no AniList.'))
 
     render(<App />)
 
@@ -69,7 +69,7 @@ describe('App', () => {
   })
 
   it('returns to login screen when logout is clicked', async () => {
-    fetchAllLists.mockResolvedValueOnce(allData)
+    fetchUserEntries.mockResolvedValueOnce(allData)
 
     render(<App />)
 
@@ -89,7 +89,7 @@ describe('App', () => {
   })
 
   it('shows error when planning list is empty', async () => {
-    fetchAllLists.mockResolvedValueOnce(allData.filter(e => e.status !== 'PLANNING'))
+    fetchUserEntries.mockResolvedValueOnce(allData.filter(e => e.status !== 'PLANNING'))
 
     render(<App />)
 
@@ -103,7 +103,7 @@ describe('App', () => {
     })
   })
   it('calls fetchAllLists with forceRefresh: true when handleRefresh is triggered', async () => {
-    fetchAllLists.mockResolvedValue(allData)
+    fetchUserEntries.mockResolvedValue(allData)
 
     render(<App />)
 
@@ -116,13 +116,15 @@ describe('App', () => {
       expect(screen.getByText('testuser')).toBeInTheDocument()
     })
 
-    expect(fetchAllLists).toHaveBeenCalledWith('testuser', {})
+    expect(fetchUserEntries).toHaveBeenCalledWith('testuser', 'anilist', {})
 
     fireEvent.click(screen.getByRole('button', { name: /configurações/i }))
     fireEvent.click(screen.getByRole('button', { name: /sincronizar anilist/i }))
 
     await waitFor(() => {
-      expect(fetchAllLists).toHaveBeenCalledWith('testuser', { forceRefresh: true })
+      expect(fetchUserEntries).toHaveBeenCalledWith('testuser', 'anilist', { forceRefresh: true })
     })
   })
 })
+
+
