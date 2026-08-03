@@ -32,14 +32,24 @@ export default function App() {
   })
 
   useEffect(() => {
-    // Check URL parameters for ?user=username
+    // Check URL parameters for ?user=username&provider=provider
     const params = new URLSearchParams(window.location.search)
     const urlUser = params.get('user')
-    const savedUsername = urlUser || (typeof window !== 'undefined' && window.localStorage ? localStorage.getItem('animatch_username') : null)
+    const urlProvider = params.get('provider')
+    const validProviders = ['anilist', 'kitsu']
 
-    if (savedUsername) {
-      const savedProvider = (typeof window !== 'undefined' && window.localStorage ? localStorage.getItem('animatch_provider') : null) || 'anilist'
-      handleLogin(savedUsername, savedProvider)
+    if (urlUser) {
+      if (urlProvider && validProviders.includes(urlProvider.toLowerCase())) {
+        handleLogin(urlUser, urlProvider.toLowerCase())
+      } else {
+        setUsername(urlUser)
+      }
+    } else {
+      const savedUsername = typeof window !== 'undefined' && window.localStorage ? localStorage.getItem('animatch_username') : null
+      if (savedUsername) {
+        const savedProvider = (typeof window !== 'undefined' && window.localStorage ? localStorage.getItem('animatch_provider') : null) || 'anilist'
+        handleLogin(savedUsername, savedProvider)
+      }
     }
   }, [])
 
@@ -86,10 +96,11 @@ export default function App() {
         localStorage.setItem('animatch_provider', inputProvider)
       }
 
-      // Update URL with ?user=username
+      // Update URL with ?user=username&provider=provider
       if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
         const url = new URL(window.location.href)
         url.searchParams.set('user', inputUsername)
+        url.searchParams.set('provider', inputProvider)
         window.history.replaceState({}, '', url.toString())
       }
     } catch (err) {
@@ -119,6 +130,7 @@ export default function App() {
     if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
       const url = new URL(window.location.href)
       url.searchParams.delete('user')
+      url.searchParams.delete('provider')
       window.history.replaceState({}, '', url.toString())
     }
   }
@@ -130,6 +142,7 @@ export default function App() {
         isLoading={isLoading}
         error={error}
         recentUsers={recentUsers}
+        initialUsername={username}
       />
     )
   }

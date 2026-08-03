@@ -2,13 +2,19 @@ import { useState, useEffect } from 'react'
 import ThemeToggle from './ThemeToggle.jsx'
 import './LoginScreen.css'
 
-export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = [] }) {
-  const [username, setUsername] = useState('')
+export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = [], initialUsername = '' }) {
+  const [username, setUsername] = useState(initialUsername)
   const [provider, setProvider] = useState(() => localStorage.getItem('animatch_provider') || 'anilist')
 
   useEffect(() => {
     localStorage.setItem('animatch_provider', provider)
   }, [provider])
+
+  useEffect(() => {
+    if (initialUsername) {
+      setUsername(initialUsername)
+    }
+  }, [initialUsername])
 
   function handleSubmit(e) {
     e.preventDefault()

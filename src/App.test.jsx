@@ -48,6 +48,9 @@ describe('App', () => {
       expect(screen.getByText('testuser')).toBeInTheDocument()
     })
 
+    expect(window.location.search).toContain('user=testuser')
+    expect(window.location.search).toContain('provider=anilist')
+
     expect(screen.getByText('Rec1')).toBeInTheDocument()
     expect(screen.getByText('Match: 6.74/10')).toBeInTheDocument()
     expect(screen.getByText('Comunidade: 8.50/10')).toBeInTheDocument()
@@ -86,6 +89,8 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: /trocar de conta/i }))
 
     expect(screen.getByLabelText('Username do AniList')).toBeInTheDocument()
+    expect(window.location.search).not.toContain('user=')
+    expect(window.location.search).not.toContain('provider=')
   })
 
   it('shows error when planning list is empty', async () => {
@@ -124,6 +129,32 @@ describe('App', () => {
     await waitFor(() => {
       expect(fetchUserEntries).toHaveBeenCalledWith('testuser', 'anilist', { forceRefresh: true })
     })
+  })
+
+  it('auto-logins when ?user=testuser&provider=kitsu is in URL', async () => {
+    fetchUserEntries.mockResolvedValueOnce(allData)
+    window.history.replaceState({}, '', '/?user=testuser&provider=kitsu')
+    
+    render(<App />)
+    
+    await waitFor(() => {
+      expect(fetchUserEntries).toHaveBeenCalledWith('testuser', 'kitsu', {})
+    })
+    
+    expect(screen.getByText('testuser')).toBeInTheDocument()
+  })
+
+  it('fills username input but does not auto-login when ?user=testuser is in URL without provider', async () => {
+    window.history.replaceState({}, '', '/?user=testuser')
+    
+    render(<App />)
+    
+    // fetchUserEntries should NOT be called
+    expect(fetchUserEntries).not.toHaveBeenCalled()
+    
+    // The username input should have the value
+    const input = await screen.findByDisplayValue('testuser')
+    expect(input).toBeInTheDocument()
   })
 })
 
