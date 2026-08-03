@@ -91,25 +91,30 @@ export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = 
               Consultas recentes:
             </p>
             <div style={{ display: 'flex', gap: 'var(--space-2)', justifyContent: 'center', flexWrap: 'wrap' }}>
-              {recentUsers.map((user) => (
-                <button
-                  key={user}
-                  type="button"
-                  onClick={() => onSubmit(user, provider)}
-                  disabled={isLoading}
-                  style={{
-                    background: 'var(--surface-2)',
-                    border: '1px solid var(--color-border)',
-                    color: 'var(--color-primary)',
-                    padding: 'var(--space-1) var(--space-3)',
-                    borderRadius: 'var(--radius-full)',
-                    fontSize: 'var(--text-sm)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  @{user}
-                </button>
-              ))}
+              {recentUsers.map((item) => {
+                const uName = typeof item === 'string' ? item : item.username
+                const uProv = typeof item === 'string' ? 'anilist' : item.provider
+                const provLabel = uProv === 'kitsu' ? 'Kitsu' : 'AniList'
+                return (
+                  <button
+                    key={`${uName}-${uProv}`}
+                    type="button"
+                    onClick={() => onSubmit(uName, uProv)}
+                    disabled={isLoading}
+                    style={{
+                      background: 'var(--surface-2)',
+                      border: '1px solid var(--color-border)',
+                      color: 'var(--color-primary)',
+                      padding: 'var(--space-1) var(--space-3)',
+                      borderRadius: 'var(--radius-full)',
+                      fontSize: 'var(--text-sm)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    @{uName} ({provLabel})
+                  </button>
+                )
+              })}
             </div>
           </div>
         )}

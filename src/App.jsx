@@ -19,7 +19,11 @@ export default function App() {
     if (typeof window !== 'undefined' && window.localStorage) {
       try {
         const saved = localStorage.getItem('animatch_recent_users')
-        return saved ? JSON.parse(saved) : []
+        if (!saved) return []
+        const parsed = JSON.parse(saved)
+        return parsed.map((item) =>
+          typeof item === 'string' ? { username: item, provider: 'anilist' } : item
+        )
       } catch (e) {
         return []
       }
@@ -39,10 +43,12 @@ export default function App() {
     }
   }, [])
 
-  function addRecentUser(user) {
+  function addRecentUser(user, prov) {
     setRecentUsers((prev) => {
-      const filtered = prev.filter((u) => u.toLowerCase() !== user.toLowerCase())
-      const updated = [user, ...filtered].slice(0, 5)
+      const filtered = prev.filter(
+        (u) => !(u.username.toLowerCase() === user.toLowerCase() && u.provider === prov)
+      )
+      const updated = [{ username: user, provider: prov }, ...filtered].slice(0, 5)
       if (typeof window !== 'undefined' && window.localStorage) {
         try {
           localStorage.setItem('animatch_recent_users', JSON.stringify(updated))
@@ -73,7 +79,7 @@ export default function App() {
       setProvider(inputProvider)
       setAllEntries(entries)
       setScreen('dashboard')
-      addRecentUser(inputUsername)
+      addRecentUser(inputUsername, inputProvider)
 
       if (typeof window !== 'undefined' && window.localStorage) {
         localStorage.setItem('animatch_username', inputUsername)

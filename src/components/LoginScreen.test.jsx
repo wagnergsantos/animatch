@@ -109,4 +109,22 @@ describe('LoginScreen', () => {
     expect(screen.getByRole('button', { name: 'Kitsu' })).toHaveClass('provider-pill--active')
     expect(screen.getByPlaceholderText('Seu usuário no Kitsu...')).toBeInTheDocument()
   })
+
+  it('renders recent users with provider label and handles click', () => {
+    const onSubmit = vi.fn()
+    const recent = [
+      { username: 'user1', provider: 'anilist' },
+      { username: 'user2', provider: 'kitsu' },
+    ]
+    render(<LoginScreen onSubmit={onSubmit} isLoading={false} error={null} recentUsers={recent} />)
+
+    const btn1 = screen.getByRole('button', { name: '@user1 (AniList)' })
+    const btn2 = screen.getByRole('button', { name: '@user2 (Kitsu)' })
+
+    expect(btn1).toBeInTheDocument()
+    expect(btn2).toBeInTheDocument()
+
+    fireEvent.click(btn2)
+    expect(onSubmit).toHaveBeenCalledWith('user2', 'kitsu')
+  })
 })

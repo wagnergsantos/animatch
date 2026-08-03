@@ -62,14 +62,19 @@ describe('kitsuFetchAll', () => {
               description: 'A sci-fi thriller about time travel.',
             },
             relationships: {
-              categories: { data: [{ type: 'categories', id: 'c1' }] },
+              categories: { data: [{ type: 'categories', id: 'c1' }, { type: 'categories', id: 'c2' }] },
               streamingLinks: { data: [{ type: 'streamingLinks', id: 'sl1' }] },
             },
           },
           {
             id: 'c1',
             type: 'categories',
-            attributes: { title: 'Sci-Fi' },
+            attributes: { title: 'Sci-Fi', isVanilla: true },
+          },
+          {
+            id: 'c2',
+            type: 'categories',
+            attributes: { title: 'Germany', isVanilla: false },
           },
           {
             id: 'sl1',
@@ -103,7 +108,7 @@ describe('kitsuFetchAll', () => {
     expect(result[0].media.format).toBe('TV')
     expect(result[0].media.seasonYear).toBe(2011)
     expect(result[0].media.startDate).toEqual({ year: 2011, month: 4, day: 6 })
-    expect(result[0].media.genres).toEqual(['Sci-Fi'])
+    expect(result[0].media.genres).toEqual(['Sci-Fi']) // Germany (isVanilla: false) deve ser ignorado
     expect(result[0].media.averageScore).toBe(89)
     expect(result[0].media.coverImage.large).toBe('https://media.kitsu.io/anime/poster/999/large.jpg')
     expect(result[0].media.siteUrl).toBe('https://kitsu.io/anime/999')

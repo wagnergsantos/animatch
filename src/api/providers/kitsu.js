@@ -58,9 +58,15 @@ function normalizeEntry(entry, included) {
   // Resolve Categories (Genres)
   const genres = []
   if (anime.relationships?.categories?.data) {
-    anime.relationships.categories.data.forEach(catRef => {
-      const cat = included.find(inc => inc.type === 'categories' && inc.id === catRef.id)
-      if (cat?.attributes?.title) {
+    const allCats = anime.relationships.categories.data
+      .map(catRef => included.find(inc => inc.type === 'categories' && inc.id === catRef.id))
+      .filter(Boolean)
+
+    const vanillaCats = allCats.filter(cat => cat.attributes?.isVanilla === true)
+    const targetCats = vanillaCats.length > 0 ? vanillaCats : allCats.slice(0, 5)
+
+    targetCats.forEach(cat => {
+      if (cat.attributes?.title) {
         genres.push(cat.attributes.title)
       }
     })

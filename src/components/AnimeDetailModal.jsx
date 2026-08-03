@@ -136,7 +136,7 @@ export default function AnimeDetailModal({ anime, hasDub, dubLanguage = 'pt-br',
             rel="noopener noreferrer"
             className="anime-modal__anilist-btn"
           >
-            🔗 Ver mais no AniList ↗
+            🔗 Ver mais no {anime?.provider === 'kitsu' ? 'Kitsu' : 'AniList'} ↗
           </a>
         </div>
       </div>
