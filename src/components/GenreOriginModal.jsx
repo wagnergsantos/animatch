@@ -1,16 +1,71 @@
+import { useEffect, useRef } from 'react'
 import './GenreOriginModal.css'
 
 export default function GenreOriginModal({ genre, stats, onClose, onFilterGenre }) {
+  const modalRef = useRef(null)
+
+  useEffect(() => {
+    if (!genre || !stats) return
+
+    const modalElement = modalRef.current
+    if (!modalElement) return
+
+    // Focus first focusable element or modal container
+    const focusableElements = modalElement.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    )
+    const firstElement = focusableElements[0]
+    const lastElement = focusableElements[focusableElements.length - 1]
+
+    if (firstElement) {
+      firstElement.focus()
+    } else {
+      modalElement.focus()
+    }
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose?.()
+        return
+      }
+
+      if (e.key === 'Tab' && focusableElements.length > 0) {
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            e.preventDefault()
+            lastElement?.focus()
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            e.preventDefault()
+            firstElement?.focus()
+          }
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [genre, stats, onClose])
+
   if (!genre || !stats) return null
 
   const sourceAnimes = stats.sourceAnimes || []
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="genre-origin-modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+      <div
+        ref={modalRef}
+        className="genre-origin-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="genre-origin-modal-title"
+        tabIndex={-1}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="genre-origin-modal__header">
-          <h2>Origem da nota: {genre}</h2>
-          <button className="genre-origin-modal__close-btn" onClick={onClose} aria-label="Fechar">
+          <h2 id="genre-origin-modal-title">Origem da nota: {genre}</h2>
+          <button className="genre-origin-modal__close-btn" onClick={onClose} aria-label="Fechar modal">
             &times;
           </button>
         </div>

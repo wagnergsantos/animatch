@@ -1,7 +1,6 @@
-# Refinements & URL Navigation Progress Ledger
+# SDD Progress Ledger
 
-| Task | Status | Commits | Notes |
-|---|---|---|---|
-| Task 1: Preservar provider em recommender.js e Dinamizar Links nos Cards e Modal | Complete | 4c7f950..1954ea0 | review clean, 153 tests passing |
-| Task 2: Restringir Gêneros do Kitsu aos Gêneros Canônicos da Indústria | Complete | 1954ea0..42216cd | spec & code quality review clean, 153 tests passing |
-| Task 3: Suporte a ?user=... e ?provider=... na URL | Complete | 42216cd..f8ec823 | spec & code quality review clean after fixes, 156 tests passing |
+Plan: docs/superpowers/plans/2026-08-03-season-anime-and-taste-profile.md
+Task 1: complete (commits 3c8b843..6dd661c, review clean) 
+Task 2: complete (commits 6dd661c..92cd994, review clean) 
+Task 3: complete (commits 92cd994..3e9b0fd, review clean) 

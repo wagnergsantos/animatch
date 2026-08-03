@@ -54,6 +54,21 @@ export default function FilterBar({
         ]
       : DEFAULT_MAIN_GENRES
 
+  const isFiltered =
+    selectedGenre !== 'ALL' ||
+    selectedFormat !== 'ALL' ||
+    selectedYear !== 'ALL' ||
+    searchQuery.trim() !== '' ||
+    isSeasonOnly
+
+  const handleResetFilters = () => {
+    onSelectGenre?.('ALL')
+    onSelectFormat?.('ALL')
+    onSelectYear?.('ALL')
+    onSearchChange?.('')
+    onSeasonOnlyChange?.(false)
+  }
+
   return (
     <div className="filter-container">
       <div className="filter-controls">
@@ -109,7 +124,7 @@ export default function FilterBar({
               ))}
             </select>
           )}
-        
+
           <div className="filter-bar__group filter-bar__checkbox-group">
             <label className="filter-bar__checkbox-label">
               <input
@@ -121,7 +136,17 @@ export default function FilterBar({
               Apenas da Temporada
             </label>
           </div>
-</div>
+
+          {isFiltered && (
+            <button
+              className="filter-clear-btn"
+              onClick={handleResetFilters}
+              title="Limpar todos os filtros"
+            >
+              ✕ Limpar Filtros
+            </button>
+          )}
+        </div>
 
         {onExportCSV && (
           <button className="export-csv-btn" onClick={onExportCSV} title="Exportar recomendações em CSV">

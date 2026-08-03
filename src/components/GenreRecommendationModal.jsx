@@ -1,16 +1,53 @@
-import { useMemo, useEffect } from 'react'
+import { useMemo, useEffect, useRef } from 'react'
 import { scoreRecommendations } from '../logic/recommender.js'
 import RecommendationGrid from './RecommendationGrid.jsx'
 import './GenreRecommendationModal.css'
 
 export default function GenreRecommendationModal({ genre, planningEntries, tasteProfile, onClose }) {
+  const modalRef = useRef(null)
+
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') onClose()
+    if (!genre) return
+
+    const modalElement = modalRef.current
+    if (!modalElement) return
+
+    const focusableElements = modalElement.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    )
+    const firstElement = focusableElements[0]
+    const lastElement = focusableElements[focusableElements.length - 1]
+
+    if (firstElement) {
+      firstElement.focus()
+    } else {
+      modalElement.focus()
     }
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose?.()
+        return
+      }
+
+      if (e.key === 'Tab' && focusableElements.length > 0) {
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            e.preventDefault()
+            lastElement?.focus()
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            e.preventDefault()
+            firstElement?.focus()
+          }
+        }
+      }
+    }
+
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [onClose])
+  }, [genre, onClose])
 
   const genreRecommendations = useMemo(() => {
     if (!genre) return []
@@ -25,9 +62,17 @@ export default function GenreRecommendationModal({ genre, planningEntries, taste
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+      <div
+        ref={modalRef}
+        className="modal-container"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="genre-recommendation-modal-title"
+        tabIndex={-1}
+        onClick={(e) => e.stopPropagation()}
+      >
         <header className="modal-header">
-          <h2>Recomendações do Gênero: <span>{genre}</span></h2>
+          <h2 id="genre-recommendation-modal-title">Recomendações do Gênero: <span>{genre}</span></h2>
           <button className="modal-close-btn" onClick={onClose} aria-label="Fechar modal">✕</button>
         </header>
         <main className="modal-body">
