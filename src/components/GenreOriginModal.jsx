@@ -16,7 +16,7 @@ export default function GenreOriginModal({ genre, stats, onClose, onFilterGenre 
         </div>
 
         <div className="genre-origin-modal__summary">
-          <p>M)dia Real: <strong>&#9733; {stats.average?.toFixed(2)}</strong></p>
+          <p>Média Real: <strong>&#9733; {stats.average?.toFixed(2)}</strong></p>
           <p>Animes avaliados: <strong>{stats.scoredCount || sourceAnimes.length}</strong></p>
         </div>
 

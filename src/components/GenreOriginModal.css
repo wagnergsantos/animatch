@@ -17,7 +17,7 @@
   align-items: center;
   border-bottom: 1px solid var(--border-color, #333);
   padding-bottom: 0.75rem;
-  margin-bottom: 1rom;
+  margin-bottom: 1rem;
 }
 
 .genre-origin-modal__close-btn {
@@ -88,7 +88,7 @@
   background: var(--accent-color, #ff4757);
   color: white;
   border: none;
-  padding: 0.5rem 1rom;
+  padding: 0.5rem 1rem;
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
