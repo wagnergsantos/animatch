@@ -28,6 +28,7 @@ export default function AnimeDetailModal({ anime, hasDub, dubLanguage = 'pt-br',
   const title = anime?.title || 'Untitled'
   const siteUrl = anime?.siteUrl || (anime?.id ? `https://anilist.co/anime/${anime.id}` : '#')
   const genres = anime?.genres ?? []
+  const providerLabel = anime?.provider === 'kitsu' ? 'Kitsu' : 'AniList'
   
   const streamingLinks = []
   const seenSites = new Set()
@@ -136,7 +137,7 @@ export default function AnimeDetailModal({ anime, hasDub, dubLanguage = 'pt-br',
             rel="noopener noreferrer"
             className="anime-modal__anilist-btn"
           >
-            🔗 Ver mais no {anime?.provider === 'kitsu' ? 'Kitsu' : 'AniList'} ↗
+            🔗 Ver mais no {providerLabel} ↗
           </a>
         </div>
       </div>

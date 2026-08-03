@@ -123,4 +123,17 @@ describe('AnimeCard', () => {
 
     openSpy.mockRestore()
   })
+
+  it('renders quick button correctly for kitsu provider', () => {
+    const anime = {
+      id: 789,
+      title: 'Kitsu Anime',
+      provider: 'kitsu',
+      siteUrl: 'https://kitsu.io/anime/789',
+    }
+    render(<AnimeCard anime={anime} />)
+    const quickBtn = screen.getByRole('button', { name: /Abrir no Kitsu/i })
+    expect(quickBtn).toBeInTheDocument()
+    expect(quickBtn).toHaveTextContent('🔗 Kitsu ↗')
+  })
 })

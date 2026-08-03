@@ -19,6 +19,7 @@ export default function AnimeCard({ anime, hasDub, dubLanguage = 'pt-br', onCard
   const genres = anime?.genres ?? []
   const title = anime?.title || 'Untitled'
   const siteUrl = anime?.siteUrl || (anime?.id ? `https://anilist.co/anime/${anime.id}` : '#')
+  const providerLabel = anime?.provider === 'kitsu' ? 'Kitsu' : 'AniList'
   
   // Deduplicate streaming links by site
   const streamingLinks = []
@@ -75,10 +76,10 @@ export default function AnimeCard({ anime, hasDub, dubLanguage = 'pt-br', onCard
           <button
             className="anime-card__anilist-quickbtn"
             onClick={handleDirectAnilistClick}
-            title="Abrir diretamente no AniList"
-            aria-label="Abrir no AniList"
+            title={`Abrir diretamente no ${providerLabel}`}
+            aria-label={`Abrir no ${providerLabel}`}
           >
-            🔗 AniList ↗
+            🔗 {providerLabel} ↗
           </button>
         </div>
         <div className="anime-card__body">

@@ -110,7 +110,8 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
       predictedScore,
       communityScore,
       siteUrl: media.siteUrl || (media.id ? `https://anilist.co/anime/${media.id}` : '#'),
-      streamingLinks,
+      streamingLinks: media.streamingLinks || streamingLinks,
+      provider: media.provider || 'anilist',
     }
   })
 
