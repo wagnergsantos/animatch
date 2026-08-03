@@ -7,7 +7,7 @@ export default function GenreOriginModal({ genre, stats, onClose, onFilterGenre 
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="genre-origin-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="genre-origin-modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
         <div className="genre-origin-modal__header">
           <h2>Origem da nota: {genre}</h2>
           <button className="genre-origin-modal__close-btn" onClick={onClose} aria-label="Fechar">
@@ -16,8 +16,8 @@ export default function GenreOriginModal({ genre, stats, onClose, onFilterGenre 
         </div>
 
         <div className="genre-origin-modal__summary">
-          <p>Média Real: <strong>&#9733; {stats.average?.toFixed(2)}</strong></p>
-          <p>Animes avaliados: <strong>{stats.scoredCount || sourceAnimes.length}</strong></p>
+          <p>Média Real: <strong>&#9733; {(stats.average ?? 0).toFixed(2)}</strong></p>
+          <p>Animes avaliados: <strong>{stats.scoredCount ?? sourceAnimes.length}</strong></p>
         </div>
 
         <div className="genre-origin-modal__list">
@@ -28,7 +28,7 @@ export default function GenreOriginModal({ genre, stats, onClose, onFilterGenre 
               )}
               <div className="genre-origin-card__info">
                 <span className="genre-origin-card__title">{anime.title}</span>
-                <span className="genre-origin-card__score">Sua Nota: &#9733; {anime.score || 'N/A'}</span>
+                <span className="genre-origin-card__score">Sua Nota: &#9733; {anime.score ?? 'N/A'}</span>
               </div>
             </div>
           ))}

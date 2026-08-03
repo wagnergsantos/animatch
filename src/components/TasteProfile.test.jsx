@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import TasteProfile from './TasteProfile.jsx'
 
 describe('TasteProfile Component', () => {
@@ -108,5 +108,18 @@ describe('TasteProfile Component', () => {
     render(<TasteProfile profile={null} />)
     expect(screen.getByText('Seu Perfil de Gosto')).toBeInTheDocument()
   })
-})
 
+  it('opens GenreOriginModal when a genre badge is clicked', () => {
+    const profile = new Map([
+      ['Action', { average: 8.5, adjustedAverage: 8.5, count: 10, sourceAnimes: [{ id: 1, title: 'Attack on Titan', score: 9 }] }],
+    ])
+
+    render(<TasteProfile profile={profile} />)
+
+    const badge = screen.getByText('Action \u2605 8.50 (10)')
+    fireEvent.click(badge)
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(screen.getByText(/Origem da nota: Action/i)).toBeInTheDocument()
+  })
+})

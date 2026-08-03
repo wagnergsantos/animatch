@@ -28,4 +28,14 @@ describe('GenreOriginModal', () => {
     fireEvent.click(screen.getByRole('button', { name: /fechar/i }))
     expect(handleClose).toHaveBeenCalledTimes(1)
   })
+
+  test('calls onFilterGenre and onClose when filter button is clicked', () => {
+    const handleClose = vi.fn()
+    const handleFilterGenre = vi.fn()
+    render(<GenreOriginModal genre="Action" stats={mockStats} onClose={handleClose} onFilterGenre={handleFilterGenre} />)
+
+    fireEvent.click(screen.getByRole('button', { name: /filtrar recomendações por action/i }))
+    expect(handleFilterGenre).toHaveBeenCalledWith('Action')
+    expect(handleClose).toHaveBeenCalledTimes(1)
+  })
 })
