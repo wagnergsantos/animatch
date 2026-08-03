@@ -1,0 +1,259 @@
+const KITSU_API = 'https://kitsu.io/api/edge'
+const KITSU_CACHE_PREFIX = 'animatch_kitsu_cache_'
+const KITSU_CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+export const KITSU_CACHE_KEY_DUB = 'animatch_kitsu_dub_cache_v1'
+const KITSU_CACHE_DUB_TTL = 24 * 60 * 60 * 1000 // 24 hours
+
+const KITSU_HEADERS = {
+  'Accept': 'application/vnd.api+json',
+  'Content-Type': 'application/vnd.api+json',
+}
+
+const STATUS_MAP = {
+  completed: 'COMPLETED',
+  planned: 'PLANNING',
+  current: 'CURRENT',
+  on_hold: 'PAUSED',
+  dropped: 'DROPPED',
+}
+
+const MEDIA_STATUS_MAP = {
+  finished: 'FINISHED',
+  current: 'RELEASING',
+  upcoming: 'NOT_YET_RELEASED',
+  unreleased: 'NOT_YET_RELEASED',
+  tba: 'NOT_YET_RELEASED',
+}
+
+const FORMAT_MAP = {
+  TV: 'TV',
+  tv: 'TV',
+  movie: 'MOVIE',
+  OVA: 'OVA',
+  ova: 'OVA',
+  ONA: 'ONA',
+  ona: 'ONA',
+  special: 'SPECIAL',
+  music: 'OTHER',
+}
+
+export const DUB_LANGUAGE_MAP = {
+  'pt-br': 'Portuguese',
+  'en': 'English'
+}
+
+export function clearKitsuCache(username) {
+  try {
+    localStorage.removeItem(KITSU_CACHE_PREFIX + username)
+  } catch(e) {}
+}
+
+function normalizeEntry(entry, included) {
+  const animeRef = entry.relationships?.anime?.data
+  if (!animeRef) return null
+  const anime = included.find(inc => inc.type === 'anime' && inc.id === animeRef.id)
+  
+  if (!anime) return null
+
+  // Resolve Categories (Genres)
+  const genres = []
+  if (anime.relationships?.categories?.data) {
+    anime.relationships.categories.data.forEach(catRef => {
+      const cat = included.find(inc => inc.type === 'categories' && inc.id === catRef.id)
+      if (cat?.attributes?.title) {
+        genres.push(cat.attributes.title)
+      }
+    })
+  }
+
+  // Resolve Streaming Links
+  const streamingLinks = []
+  if (anime.relationships?.streamingLinks?.data) {
+    anime.relationships.streamingLinks.data.forEach(slRef => {
+      const sl = included.find(inc => inc.type === 'streamingLinks' && inc.id === slRef.id)
+      if (sl) {
+        const streamerRef = sl.relationships?.streamer?.data
+        let siteName = 'Unknown'
+        if (streamerRef) {
+          const streamer = included.find(inc => inc.type === 'streamers' && inc.id === streamerRef.id)
+          if (streamer?.attributes?.siteName) {
+            siteName = streamer.attributes.siteName
+          }
+        }
+        streamingLinks.push({
+          site: siteName,
+          url: sl.attributes.url
+        })
+      }
+    })
+  }
+
+  let startDateObj = null
+  let seasonYear = null
+  if (anime.attributes.startDate) {
+    const parts = anime.attributes.startDate.split('-')
+    if (parts.length === 3) {
+      startDateObj = {
+        year: parseInt(parts[0], 10),
+        month: parseInt(parts[1], 10),
+        day: parseInt(parts[2], 10)
+      }
+      seasonYear = startDateObj.year
+    }
+  }
+
+  const score = entry.attributes.ratingTwenty ? entry.attributes.ratingTwenty / 2 : 0
+
+  return {
+    status: STATUS_MAP[entry.attributes.status] || 'PLANNING',
+    score: score,
+    media: {
+      id: parseInt(animeRef.id, 10),
+      provider: 'kitsu',
+      title: {
+        english: anime.attributes.titles?.en || anime.attributes.canonicalTitle,
+        romaji: anime.attributes.titles?.en_jp || anime.attributes.canonicalTitle,
+      },
+      episodes: anime.attributes.episodeCount || 0,
+      status: MEDIA_STATUS_MAP[anime.attributes.status] || 'NOT_YET_RELEASED',
+      format: FORMAT_MAP[anime.attributes.subtype] || 'TV',
+      seasonYear: seasonYear,
+      startDate: startDateObj,
+      genres: genres,
+      averageScore: anime.attributes.averageRating ? Math.round(parseFloat(anime.attributes.averageRating)) : 0,
+      coverImage: {
+        large: anime.attributes.posterImage?.large || ''
+      },
+      siteUrl: `https://kitsu.io/anime/${animeRef.id}`,
+      description: anime.attributes.description || '',
+      streamingLinks: streamingLinks
+    }
+  }
+}
+
+export async function kitsuFetchAll(username, options = {}) {
+  const cacheKey = KITSU_CACHE_PREFIX + username
+  if (!options.forceRefresh) {
+    try {
+      const cached = localStorage.getItem(cacheKey)
+      if (cached) {
+        const parsed = JSON.parse(cached)
+        if (Date.now() - parsed.timestamp < KITSU_CACHE_TTL) {
+          return parsed.data
+        }
+      }
+    } catch(e) {}
+  }
+
+  try {
+    const userRes = await fetch(`${KITSU_API}/users?filter[name]=${encodeURIComponent(username)}`, {
+      headers: KITSU_HEADERS
+    })
+    if (!userRes.ok) throw new Error('Erro ao conectar com o Kitsu.')
+    
+    const userData = await userRes.json()
+    if (!userData.data || userData.data.length === 0) {
+      throw new Error('Usuário não encontrado no Kitsu.')
+    }
+    
+    const userId = userData.data[0].id
+    
+    let entries = []
+    let nextUrl = `${KITSU_API}/library-entries?filter[userId]=${userId}&filter[kind]=anime&include=anime,anime.categories,anime.streamingLinks,anime.streamingLinks.streamer&page[limit]=500`
+    
+    while (nextUrl) {
+      const res = await fetch(nextUrl, { headers: KITSU_HEADERS })
+      if (!res.ok) throw new Error('Erro ao conectar com o Kitsu.')
+      const data = await res.json()
+      
+      const included = data.included || []
+      
+      data.data.forEach(entry => {
+        if (entry.type === 'libraryEntries') {
+          const normalized = normalizeEntry(entry, included)
+          if (normalized) {
+            entries.push(normalized)
+          }
+        }
+      })
+      
+      nextUrl = data.links?.next || null
+    }
+
+    const seen = new Set()
+    const deduped = entries.filter((entry) => {
+      if (seen.has(entry.media.id)) return false
+      seen.add(entry.media.id)
+      return true
+    })
+
+    try {
+      localStorage.setItem(cacheKey, JSON.stringify({
+        timestamp: Date.now(),
+        data: deduped
+      }))
+    } catch(e) {}
+
+    return deduped
+  } catch (error) {
+    if (error.message.includes('Usuário não encontrado')) throw error;
+    throw new Error('Erro ao conectar com o Kitsu.')
+  }
+}
+
+export async function kitsuFetchDubInfo(mediaIds, language = 'pt-br') {
+  let cache = {}
+  try {
+    const cachedStr = localStorage.getItem(KITSU_CACHE_KEY_DUB)
+    if (cachedStr) {
+      const parsed = JSON.parse(cachedStr)
+      if (Date.now() - parsed.timestamp < KITSU_CACHE_DUB_TTL) {
+        cache = parsed.data || {}
+      }
+    }
+  } catch(e) {}
+
+  const result = new Map()
+  const toFetch = []
+  
+  for (const id of mediaIds) {
+    const langCache = cache[language] || {}
+    if (langCache[id] !== undefined) {
+      result.set(id, langCache[id])
+    } else {
+      toFetch.push(id)
+    }
+  }
+  
+  if (toFetch.length === 0) return result
+
+  const languageValue = DUB_LANGUAGE_MAP[language] || 'Portuguese'
+
+  await Promise.all(toFetch.map(async (id) => {
+    try {
+      const res = await fetch(`${KITSU_API}/castings?filter[media_id]=${id}&filter[media_type]=Anime&filter[language]=${languageValue}&include=person&page[limit]=5`, {
+        headers: KITSU_HEADERS
+      })
+      if (!res.ok) return
+      
+      const data = await res.json()
+      const hasDub = data.data && data.data.length > 0
+      result.set(id, hasDub)
+      
+      if (!cache[language]) cache[language] = {}
+      cache[language][id] = hasDub
+      
+    } catch (e) {
+      // Ignora falhas de dublagem individuais
+    }
+  }))
+  
+  try {
+    localStorage.setItem(KITSU_CACHE_KEY_DUB, JSON.stringify({
+      timestamp: Date.now(),
+      data: cache
+    }))
+  } catch(e) {}
+
+  return result
+}
