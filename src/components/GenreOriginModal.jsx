@@ -76,17 +76,32 @@ export default function GenreOriginModal({ genre, stats, onClose, onFilterGenre 
         </div>
 
         <div className="genre-origin-modal__list">
-          {sourceAnimes.map((anime) => (
-            <div key={anime.id} className="genre-origin-card">
-              {anime.coverImage && (
-                <img src={anime.coverImage} alt={anime.title} className="genre-origin-card__cover" />
-              )}
-              <div className="genre-origin-card__info">
-                <span className="genre-origin-card__title">{anime.title}</span>
-                <span className="genre-origin-card__score">Sua Nota: &#9733; {anime.score ?? 'N/A'}</span>
-              </div>
-            </div>
-          ))}
+          {sourceAnimes.map((anime) => {
+            const siteUrl = anime.siteUrl || (anime.id ? `https://anilist.co/anime/${anime.id}` : '#')
+            const providerLabel = anime.provider === 'kitsu' ? 'Kitsu' : 'AniList'
+
+            return (
+              <a
+                key={anime.id}
+                href={siteUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="genre-origin-card"
+                title={`Abrir ${anime.title} no ${providerLabel}`}
+              >
+                {anime.coverImage && (
+                  <img src={anime.coverImage} alt={anime.title} className="genre-origin-card__cover" />
+                )}
+                <div className="genre-origin-card__info">
+                  <span className="genre-origin-card__title">
+                    {anime.title}
+                    <span className="genre-origin-card__link-icon" aria-hidden="true"> ↗</span>
+                  </span>
+                  <span className="genre-origin-card__score">Sua Nota: &#9733; {anime.score ?? 'N/A'}</span>
+                </div>
+              </a>
+            )
+          })}
         </div>
 
         <div className="genre-origin-modal__actions">

@@ -13,12 +13,14 @@ describe('GenreOriginModal', () => {
     ]
   }
 
-  test('renders genre details and source animes', () => {
+  test('renders genre details and source animes as clickable links', () => {
     render(<GenreOriginModal genre="Action" stats={mockStats} onClose={vi.fn()} onFilterGenre={vi.fn()} />)
 
     expect(screen.getByText(/Origem da nota: Action/i)).toBeInTheDocument()
-    expect(screen.getByText(/Attack on Titan/i)).toBeInTheDocument()
-    expect(screen.getByText(/Demon Slayer/i)).toBeInTheDocument()
+    const titanLink = screen.getByText(/Attack on Titan/i).closest('a')
+    expect(titanLink).toHaveAttribute('href', 'https://anilist.co/anime/1')
+    expect(titanLink).toHaveAttribute('target', '_blank')
+    expect(titanLink).toHaveAttribute('rel', 'noopener noreferrer')
   })
 
   test('calls onClose when close button clicked', () => {
