@@ -8,6 +8,12 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
   const [username, setUsername] = useState('')
+  const [provider, setProvider] = useState(() => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      return localStorage.getItem('animatch_provider') || 'anilist'
+    }
+    return 'anilist'
+  })
   const [allEntries, setAllEntries] = useState([])
   const [recentUsers, setRecentUsers] = useState(() => {
     if (typeof window !== 'undefined' && window.localStorage) {
@@ -28,7 +34,8 @@ export default function App() {
     const savedUsername = urlUser || (typeof window !== 'undefined' && window.localStorage ? localStorage.getItem('animatch_username') : null)
 
     if (savedUsername) {
-      handleLogin(savedUsername)
+      const savedProvider = (typeof window !== 'undefined' && window.localStorage ? localStorage.getItem('animatch_provider') : null) || 'anilist'
+      handleLogin(savedUsername, savedProvider)
     }
   }, [])
 
@@ -47,27 +54,30 @@ export default function App() {
     })
   }
 
-  async function handleLogin(inputUsername, options = {}) {
+  async function handleLogin(inputUsername, inputProvider = 'anilist', options = {}) {
     setIsLoading(true)
     setError(null)
 
     try {
-      const entries = await fetchUserEntries(inputUsername, 'anilist', options)
+      const entries = await fetchUserEntries(inputUsername, inputProvider, options)
 
       const planning = entries.filter((e) => e.status === 'PLANNING')
       if (planning.length === 0) {
-        setError("Adicione animes à sua lista 'Planning' no AniList.")
+        const providerName = inputProvider === 'kitsu' ? 'Kitsu' : 'AniList';
+        setError(`Adicione animes à sua lista 'Planning' no ${providerName}.`)
         setIsLoading(false)
         return
       }
 
       setUsername(inputUsername)
+      setProvider(inputProvider)
       setAllEntries(entries)
       setScreen('dashboard')
       addRecentUser(inputUsername)
 
       if (typeof window !== 'undefined' && window.localStorage) {
         localStorage.setItem('animatch_username', inputUsername)
+        localStorage.setItem('animatch_provider', inputProvider)
       }
 
       // Update URL with ?user=username
@@ -87,7 +97,7 @@ export default function App() {
   }
 
   function handleRefresh() {
-    handleLogin(username, { forceRefresh: true })
+    handleLogin(username, provider, { forceRefresh: true })
   }
 
   function handleLogout() {
@@ -110,7 +120,7 @@ export default function App() {
   if (screen === 'login') {
     return (
       <LoginScreen
-        onSubmit={handleLogin}
+        onSubmit={(user, prov) => handleLogin(user, prov)}
         isLoading={isLoading}
         error={error}
         recentUsers={recentUsers}
@@ -122,6 +132,7 @@ export default function App() {
     <Dashboard
       allEntries={allEntries}
       username={username}
+      provider={provider}
       onLogout={handleLogout}
       onRefresh={handleRefresh}
       isLoading={isLoading}

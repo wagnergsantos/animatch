@@ -33,7 +33,7 @@ function exportRecommendationsToCSV(recommendations) {
   document.body.removeChild(link)
 }
 
-export default function Dashboard({ allEntries = [], username, onLogout, onRefresh, isLoading }) {
+export default function Dashboard({ allEntries = [], username, provider = 'anilist', onLogout, onRefresh, isLoading }) {
   const [activeTab, setActiveTab] = useState('recommendations')
   const [selectedFilterGenre, setSelectedFilterGenre] = useState('ALL')
   const [searchQuery, setSearchQuery] = useState('')
@@ -132,6 +132,8 @@ export default function Dashboard({ allEntries = [], username, onLogout, onRefre
     gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
+  const providerLabel = provider === 'kitsu' ? 'Kitsu' : 'AniList'
+
   const handleShare = () => {
     if (typeof window !== 'undefined' && navigator.clipboard) {
       const url = new URL(window.location.href)
@@ -147,7 +149,7 @@ export default function Dashboard({ allEntries = [], username, onLogout, onRefre
     <div className="dashboard">
       <header className="dashboard__header">
         <div className="dashboard__header-left">
-          <span className="dashboard__username">{username}</span>
+          <span className="dashboard__username">{username} <span className="dashboard__provider-badge">({providerLabel})</span></span>
           <nav className="dashboard__nav">
             <button
               className={activeTab === 'recommendations' ? 'active' : ''}
@@ -181,6 +183,7 @@ export default function Dashboard({ allEntries = [], username, onLogout, onRefre
             {copied ? '✅ Link copiado!' : '🔗 Compartilhar'}
           </button>
           <SettingsMenu
+            provider={provider}
             favoriteDub={favoriteDub}
             onChangeFavoriteDub={setFavoriteDub}
             onRefresh={onRefresh}

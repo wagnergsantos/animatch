@@ -1,17 +1,24 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import ThemeToggle from './ThemeToggle.jsx'
 import './LoginScreen.css'
 
 export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = [] }) {
   const [username, setUsername] = useState('')
+  const [provider, setProvider] = useState(() => localStorage.getItem('animatch_provider') || 'anilist')
+
+  useEffect(() => {
+    localStorage.setItem('animatch_provider', provider)
+  }, [provider])
 
   function handleSubmit(e) {
     e.preventDefault()
     const trimmed = username.trim()
     if (trimmed) {
-      onSubmit(trimmed)
+      onSubmit(trimmed, provider)
     }
   }
+
+  const providerLabel = provider === 'anilist' ? 'AniList' : 'Kitsu'
 
   return (
     <div className="login-screen">
@@ -24,8 +31,26 @@ export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = 
           Descubra o que assistir baseado no seu gosto real.
         </p>
         <form className="login-form" onSubmit={handleSubmit}>
+          <div className="provider-selector">
+            <button
+              type="button"
+              className={`provider-pill ${provider === 'anilist' ? 'provider-pill--active' : ''}`}
+              onClick={() => setProvider('anilist')}
+              disabled={isLoading}
+            >
+              AniList
+            </button>
+            <button
+              type="button"
+              className={`provider-pill ${provider === 'kitsu' ? 'provider-pill--active' : ''}`}
+              onClick={() => setProvider('kitsu')}
+              disabled={isLoading}
+            >
+              Kitsu
+            </button>
+          </div>
           <label htmlFor="username-input" className="login-label">
-            Username do AniList
+            Username do {providerLabel}
           </label>
           <input
             id="username-input"
@@ -33,7 +58,7 @@ export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = 
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            placeholder="seu username"
+            placeholder={`Seu usuário no ${providerLabel}...`}
             autoComplete="off"
             disabled={isLoading}
             aria-invalid={Boolean(error)}
@@ -70,7 +95,7 @@ export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = 
                 <button
                   key={user}
                   type="button"
-                  onClick={() => onSubmit(user)}
+                  onClick={() => onSubmit(user, provider)}
                   disabled={isLoading}
                   style={{
                     background: 'var(--surface-2)',

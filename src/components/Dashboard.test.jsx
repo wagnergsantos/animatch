@@ -16,6 +16,18 @@ const mockEntries = [
 ]
 
 describe('Dashboard', () => {
+
+  it('renders the provider badge correctly', () => {
+    render(<Dashboard username="testuser" provider="kitsu" />)
+    expect(screen.getByText('(Kitsu)')).toBeInTheDocument()
+    
+    render(<Dashboard username="testuser2" provider="anilist" />)
+    expect(screen.getByText('(AniList)')).toBeInTheDocument()
+  })
+
+
+
+
   it('renders the username in the header', () => {
     render(
       <Dashboard

@@ -3,6 +3,20 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import SettingsMenu from './SettingsMenu.jsx'
 
 describe('SettingsMenu', () => {
+
+  it('renders sync button text based on provider', () => {
+    const onRefresh = vi.fn()
+    const { rerender } = render(<SettingsMenu provider="anilist" isLoading={false} onRefresh={onRefresh} />)
+    fireEvent.click(screen.getByRole('button', { name: /Configura/i }))
+    expect(screen.getByRole('button', { name: /Sincronizar AniList/i })).toBeInTheDocument()
+
+    rerender(<SettingsMenu provider="kitsu" isLoading={false} onRefresh={onRefresh} />)
+    expect(screen.getByRole('button', { name: /Sincronizar Kitsu/i })).toBeInTheDocument()
+    
+    rerender(<SettingsMenu provider="kitsu" isLoading={true} onRefresh={onRefresh} />)
+    expect(screen.getByRole('button', { name: /Sincronizando com Kitsu/i })).toBeInTheDocument()
+  })
+
   it('renders a gear button and keeps the panel hidden until clicked', () => {
     render(<SettingsMenu favoriteDub="nenhuma" onChangeFavoriteDub={() => {}} />)
     expect(screen.getByRole('button', { name: /configurações/i })).toBeInTheDocument()

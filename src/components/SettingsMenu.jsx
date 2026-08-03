@@ -14,6 +14,7 @@ export const DUB_LANGUAGE_OPTIONS = [
 ]
 
 export default function SettingsMenu({
+  provider = 'anilist',
   favoriteDub,
   onChangeFavoriteDub,
   onRefresh,
@@ -141,7 +142,7 @@ export default function SettingsMenu({
               }}
               disabled={isLoading}
             >
-              {isLoading ? '⏳ Sincronizando com AniList...' : '🔄 Sincronizar AniList'}
+              {isLoading ? `⏳ Sincronizando com ${provider === 'kitsu' ? 'Kitsu' : 'AniList'}...` : `🔄 Sincronizar ${provider === 'kitsu' ? 'Kitsu' : 'AniList'}`}
             </button>
           )}
 
