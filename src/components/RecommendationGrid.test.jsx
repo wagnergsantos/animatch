@@ -106,7 +106,15 @@ describe('RecommendationGrid', () => {
       const mockRecs = [{ id: 1, title: 'Anime 1', predictedScore: 8.5, communityScore: 8.0 }]
       render(<RecommendationGrid recommendations={mockRecs} favoriteDub="en" />)
       await waitFor(() => {
-        expect(fetchDubInfo).toHaveBeenCalledWith([1], 'en')
+        expect(fetchDubInfo).toHaveBeenCalledWith([1], 'en', 'anilist')
+      })
+    })
+
+    it('calls fetchDubInfo with the selected provider', async () => {
+      const mockRecs = [{ id: 1, title: 'Anime 1', predictedScore: 8.5, communityScore: 8.0 }]
+      render(<RecommendationGrid recommendations={mockRecs} favoriteDub="en" provider="kitsu" />)
+      await waitFor(() => {
+        expect(fetchDubInfo).toHaveBeenCalledWith([1], 'en', 'kitsu')
       })
     })
 

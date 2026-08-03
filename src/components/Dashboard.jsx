@@ -223,6 +223,7 @@ export default function Dashboard({ allEntries = [], username, provider = 'anili
                 isLoading={false}
                 sortBy={sortBy}
                 favoriteDub={favoriteDub}
+                provider={provider}
               />
             </div>
           </>

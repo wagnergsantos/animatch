@@ -17,7 +17,7 @@ function SkeletonCard() {
   )
 }
 
-export default function RecommendationGrid({ recommendations = [], isLoading = false, sortBy = 'predicted', favoriteDub = 'nenhuma' }) {
+export default function RecommendationGrid({ recommendations = [], isLoading = false, sortBy = 'predicted', favoriteDub = 'nenhuma', provider = 'anilist' }) {
   const [dubMap, setDubMap] = useState(new Map())
   const [ignoreDub, setIgnoreDub] = useState(false)
   const [showOnlyFavoriteDub, setShowOnlyFavoriteDub] = useState(false)
@@ -38,7 +38,7 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
       // Fetch in chunks of 50
       for (let i = 0; i < ids.length; i += 50) {
         const chunk = ids.slice(i, i + 50)
-        const chunkMap = await fetchDubInfo(chunk, favoriteDub)
+        const chunkMap = await fetchDubInfo(chunk, favoriteDub, provider)
         for (const [key, val] of chunkMap.entries()) {
           newMap.set(key, val)
         }
@@ -47,7 +47,7 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
     }
 
     fetchDubs()
-  }, [recommendations, favoriteDub])
+  }, [recommendations, favoriteDub, provider])
 
   const displayRecommendations = useMemo(() => {
     if (!recommendations || recommendations.length === 0) return []
