@@ -1,0 +1,8 @@
+.genre-bar-chart { background: var(--surface-1); padding: 0.5rem; border-radius: 8px }
+.genre-list { list-style:none; padding:0; margin:0 }
+.genre-row { display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0; cursor:pointer }
+.genre-label { width:120px }
+.genre-bar-wrap { flex:1; background:#f1f1f1; height:12px; border-radius:6px; overflow:hidden }
+.genre-bar { height:100%; background:#4f46e5 }
+.genre-count { width:40px; text-align:right }
+.empty { color:#666 }

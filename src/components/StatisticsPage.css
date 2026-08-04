@@ -1,0 +1,18 @@
+.statistics-page { padding: 1rem }
+.statistics-header { display:flex; justify-content:space-between; align-items:center }
+.statistics-grid { display:flex; gap:1rem; margin-top:1rem }
+.statistics-left { flex:2 }
+.statistics-right { flex:1 }
+
+/* GenreBarChart */
+.genre-list { list-style:none; padding:0; margin:0 }
+.genre-row { display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0 }
+.genre-label { width:120px }
+.genre-bar-wrap { flex:1; background:#f1f1f1; height:12px; border-radius:6px; overflow:hidden }
+.genre-bar { height:100%; background:#4f46e5 }
+.genre-count { width:40px; text-align:right }
+
+.metrics-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:0.5rem }
+.metric { background:#fff; padding:0.5rem; border-radius:6px; box-shadow:0 0 0 1px rgba(0,0,0,0.03) }
+.metric-value { font-weight:700; font-size:1.2rem }
+.metric-label { font-size:0.8rem; color:#666 }
