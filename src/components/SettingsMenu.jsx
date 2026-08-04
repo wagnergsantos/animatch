@@ -1,16 +1,23 @@
 import { useState, useRef, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import './SettingsMenu.css'
 
 export const DUB_LANGUAGE_OPTIONS = [
-  { id: 'nenhuma', label: 'Nenhuma' },
-  { id: 'pt-br', label: 'Português (Brasil)' },
-  { id: 'en', label: 'Inglês' },
-  { id: 'ja', label: 'Japonês' },
-  { id: 'es', label: 'Espanhol' },
-  { id: 'de', label: 'Alemão' },
-  { id: 'ko', label: 'Coreano' },
-  { id: 'fr', label: 'Francês' },
-  { id: 'it', label: 'Italiano' },
+  { id: 'nenhuma' },
+  { id: 'pt-br' },
+  { id: 'en' },
+  { id: 'ja' },
+  { id: 'es' },
+  { id: 'de' },
+  { id: 'ko' },
+  { id: 'fr' },
+  { id: 'it' },
+]
+
+export const LANG_OPTIONS = [
+  { id: 'pt-BR' },
+  { id: 'en' },
+  { id: 'ja' },
 ]
 
 export default function SettingsMenu({
@@ -21,6 +28,7 @@ export default function SettingsMenu({
   isLoading,
   onLogout,
 }) {
+  const { t, i18n } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
   const containerRef = useRef(null)
 
@@ -35,6 +43,8 @@ export default function SettingsMenu({
     return 'dark'
   })
 
+  const currentLang = i18n.language || 'pt-BR'
+
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
     if (typeof window !== 'undefined' && window.localStorage) {
@@ -46,10 +56,20 @@ export default function SettingsMenu({
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
   }
 
+  const changeLanguage = (lng) => {
+    i18n.changeLanguage(lng)
+    try {
+      localStorage.setItem('animatch_lang', lng)
+    } catch (e) {
+      // ignore
+    }
+    setIsOpen(false)
+  }
+
   const wasLoadingRef = useRef(isLoading)
 
   useEffect(() => {
-    // Se estava carregando e finalizou, fecha o menu de configurações
+    // If it was loading and finished, close panel
     if (wasLoadingRef.current && !isLoading) {
       setIsOpen(false)
     }
@@ -79,14 +99,16 @@ export default function SettingsMenu({
     }
   }, [isOpen])
 
+  const providerLabel = provider === 'kitsu' ? t('providers.kitsu') : t('providers.anilist')
+
   return (
     <div className="settings-menu" ref={containerRef}>
       <button
         type="button"
         className="settings-menu__trigger"
         onClick={() => setIsOpen((prev) => !prev)}
-        aria-label="Configurações"
-        title="Configurações"
+        aria-label={t('settings.title')}
+        title={t('settings.title')}
         aria-expanded={isOpen}
         aria-haspopup="true"
       >
@@ -94,10 +116,28 @@ export default function SettingsMenu({
       </button>
 
       {isOpen && (
-        <div className="settings-menu__panel" role="dialog" aria-label="Configurações">
+        <div className="settings-menu__panel" role="dialog" aria-label={t('settings.title')}>
+          <div className="settings-menu__section">
+            <label className="settings-menu__label" htmlFor="language-select">
+              {t('settings.language')}
+            </label>
+            <select
+              id="language-select"
+              className="settings-menu__select"
+              value={currentLang}
+              onChange={(e) => changeLanguage(e.target.value)}
+            >
+              {LANG_OPTIONS.map((opt) => (
+                <option key={opt.id} value={opt.id}>
+                  {t(`settings.lang.${opt.id}`) || opt.id}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className="settings-menu__section">
             <label className="settings-menu__label" htmlFor="favorite-dub-select">
-              Dublagem favorita
+              {t('settings.favoriteDub')}
             </label>
             <select
               id="favorite-dub-select"
@@ -110,7 +150,7 @@ export default function SettingsMenu({
             >
               {DUB_LANGUAGE_OPTIONS.map((opt) => (
                 <option key={opt.id} value={opt.id}>
-                  {opt.label}
+                  {t(`dub.${opt.id}`) || opt.id}
                 </option>
               ))}
             </select>
@@ -119,15 +159,14 @@ export default function SettingsMenu({
           <div className="settings-menu__divider" />
 
           <div className="settings-menu__row">
-            <span className="settings-menu__label">Tema</span>
+            <span className="settings-menu__label">{t('settings.theme')}</span>
             <button
               type="button"
               className="settings-menu__theme-btn"
               onClick={toggleTheme}
-              aria-label={`Alternar para tema ${theme === 'dark' ? 'claro' : 'escuro'}`}
-
+              aria-label={theme === 'dark' ? t('settings.theme_light') : t('settings.theme_dark')}
             >
-              {theme === 'dark' ? '☀️ Modo Claro' : '🌙 Modo Escuro'}
+              {theme === 'dark' ? `☀️ ${t('settings.theme_light')}` : `🌙 ${t('settings.theme_dark')}`}
             </button>
           </div>
 
@@ -142,7 +181,7 @@ export default function SettingsMenu({
               }}
               disabled={isLoading}
             >
-              {isLoading ? `⏳ Sincronizando com ${provider === 'kitsu' ? 'Kitsu' : 'AniList'}...` : `🔄 Sincronizar ${provider === 'kitsu' ? 'Kitsu' : 'AniList'}`}
+              {isLoading ? `${t('settings.syncing', { provider: providerLabel })}` : `${t('settings.sync', { provider: providerLabel })}`}
             </button>
           )}
 
@@ -155,7 +194,7 @@ export default function SettingsMenu({
                 setIsOpen(false)
               }}
             >
-              🚪 Trocar de conta
+              {t('settings.logout')}
             </button>
           )}
         </div>

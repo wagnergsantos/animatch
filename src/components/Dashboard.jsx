@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { buildTasteProfile, scoreRecommendations, resolveYear } from '../logic/recommender.js'
 import TasteProfile from './TasteProfile.jsx'
 import RecommendationGrid from './RecommendationGrid.jsx'
@@ -9,12 +10,12 @@ import ThemeToggle from './ThemeToggle.jsx'
 import SettingsMenu from './SettingsMenu.jsx'
 import './Dashboard.css'
 
-function exportRecommendationsToCSV(recommendations) {
+function exportRecommendationsToCSV(recommendations, t, prefix) {
   if (!recommendations || recommendations.length === 0) return
 
-  const headers = ['Título', 'Nota Prevista', 'Nota Comunitária', 'Formato', 'Ano', 'Gêneros']
+  const headers = [t('labels.title'), t('labels.predictedScore'), t('labels.community'), t('labels.format'), t('labels.year'), t('labels.genres')]
   const rows = recommendations.map((r) => [
-    `"${(r.title || '').replace(/"/g, '""')}"`,
+    `"${(r.title || '').replace(/"/g, '""')}")`,
     r.predictedScore ? r.predictedScore.toFixed(1) : 'N/A',
     r.communityScore || 'N/A',
     r.format || 'N/A',
@@ -27,13 +28,14 @@ function exportRecommendationsToCSV(recommendations) {
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.setAttribute('href', url)
-  link.setAttribute('download', `animatch-recomendacoes-${Date.now()}.csv`)
+  link.setAttribute('download', `${prefix}-${Date.now()}.csv`)
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
 }
 
 export default function Dashboard({ allEntries = [], username, provider = 'anilist', onLogout, onRefresh, isLoading }) {
+  const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState('recommendations')
   const [selectedFilterGenre, setSelectedFilterGenre] = useState('ALL')
   const [searchQuery, setSearchQuery] = useState('')
@@ -148,7 +150,7 @@ export default function Dashboard({ allEntries = [], username, provider = 'anili
     gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
-  const providerLabel = provider === 'kitsu' ? 'Kitsu' : 'AniList'
+  const providerLabel = provider === 'kitsu' ? t('providers.kitsu') : t('providers.anilist')
 
   const handleShare = () => {
     if (typeof window !== 'undefined' && navigator.clipboard) {
@@ -171,13 +173,13 @@ export default function Dashboard({ allEntries = [], username, provider = 'anili
               className={activeTab === 'recommendations' ? 'active' : ''}
               onClick={() => setActiveTab('recommendations')}
             >
-              Recomendações
+              {t('dashboard.recommendationsTab')}
             </button>
             <button
               className={activeTab === 'statistics' ? 'active' : ''}
               onClick={() => setActiveTab('statistics')}
             >
-              Estatísticas
+              {t('dashboard.statisticsTab')}
             </button>
           </nav>
         </div>
@@ -194,9 +196,9 @@ export default function Dashboard({ allEntries = [], username, provider = 'anili
               fontSize: 'var(--text-sm)',
               cursor: 'pointer',
             }}
-            title="Copiar link das suas recomendações"
+            title={t('dashboard.shareTitle')}
           >
-            {copied ? '✅ Link copiado!' : '🔗 Compartilhar'}
+            {copied ? t('dashboard.linkCopied') : t('dashboard.share')}
           </button>
           <SettingsMenu
             provider={provider}
@@ -234,7 +236,7 @@ export default function Dashboard({ allEntries = [], username, provider = 'anili
               onSortChange={setSortBy}
               isSeasonOnly={isSeasonOnly}
               onSeasonOnlyChange={setIsSeasonOnly}
-              onExportCSV={() => exportRecommendationsToCSV(recommendations)}
+              onExportCSV={() => exportRecommendationsToCSV(recommendations, t, t('dashboard.exportFilenamePrefix'))}
             />
             <div ref={gridRef}>
               <RecommendationGrid

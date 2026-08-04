@@ -1,32 +1,33 @@
+import { useTranslation } from 'react-i18next'
 import './FilterBar.css'
 
 const DEFAULT_MAIN_GENRES = [
-  { id: 'ALL', label: 'Todos os Gêneros' },
-  { id: 'Action', label: 'Ação' },
-  { id: 'Adventure', label: 'Aventura' },
-  { id: 'Comedy', label: 'Comédia' },
-  { id: 'Drama', label: 'Drama' },
-  { id: 'Fantasy', label: 'Fantasia' },
-  { id: 'Romance', label: 'Romance' },
-  { id: 'Sci-Fi', label: 'Ficção' },
-  { id: 'Slice of Life', label: 'Slice of Life' },
+  { id: 'ALL', key: 'filter.allGenres' },
+  { id: 'Action', key: 'genres.Action' },
+  { id: 'Adventure', key: 'genres.Adventure' },
+  { id: 'Comedy', key: 'genres.Comedy' },
+  { id: 'Drama', key: 'genres.Drama' },
+  { id: 'Fantasy', key: 'genres.Fantasy' },
+  { id: 'Romance', key: 'genres.Romance' },
+  { id: 'Sci-Fi', key: 'genres.SciFi' },
+  { id: 'Slice of Life', key: 'genres.SliceOfLife' },
 ]
 
 const FORMATS = [
-  { id: 'ALL', label: 'Todos Formatos' },
-  { id: 'TV', label: 'TV' },
-  { id: 'MOVIE', label: 'Filmes' },
-  { id: 'OVA', label: 'OVA' },
-  { id: 'ONA', label: 'ONA' },
-  { id: 'SPECIAL', label: 'Especial' },
+  { id: 'ALL', key: 'formats.ALL' },
+  { id: 'TV', key: 'formats.TV' },
+  { id: 'MOVIE', key: 'formats.MOVIE' },
+  { id: 'OVA', key: 'formats.OVA' },
+  { id: 'ONA', key: 'formats.ONA' },
+  { id: 'SPECIAL', key: 'formats.SPECIAL' },
 ]
 
 const SORT_OPTIONS = [
-  { id: 'predicted', label: 'Predicted Score' },
-  { id: 'community', label: 'Nota Comunitária' },
-  { id: 'year_desc', label: 'Ano (Mais Recente)' },
-  { id: 'year_asc', label: 'Ano (Mais Antigo)' },
-  { id: 'title', label: 'Título (A-Z)' },
+  { id: 'predicted', key: 'sort.predicted' },
+  { id: 'community', key: 'sort.community' },
+  { id: 'year_desc', key: 'sort.year_desc' },
+  { id: 'year_asc', key: 'sort.year_asc' },
+  { id: 'title', key: 'sort.title' },
 ]
 
 export default function FilterBar({
@@ -47,12 +48,14 @@ export default function FilterBar({
   onSeasonOnlyChange,
   onExportCSV,
 }) {
+  const { t } = useTranslation()
+
   const genresToRender =
     availableGenres && availableGenres.length > 0
       ? [
           {
             id: 'ALL',
-            label: totalPlanningCount != null ? `Todos os Gêneros (${totalPlanningCount})` : 'Todos os Gêneros',
+            label: totalPlanningCount != null ? t('filter.allGenresWithCount', { count: totalPlanningCount }) : t('filter.allGenres'),
           },
           ...availableGenres.map((g) => {
             if (typeof g === 'object' && g !== null) {
@@ -61,7 +64,7 @@ export default function FilterBar({
             return { id: g, label: g }
           }),
         ]
-      : DEFAULT_MAIN_GENRES
+      : DEFAULT_MAIN_GENRES.map((g) => ({ id: g.id, label: t(g.key) }))
 
   const isFiltered =
     selectedGenre !== 'ALL' ||
@@ -85,7 +88,7 @@ export default function FilterBar({
           <input
             type="text"
             className="filter-search"
-            placeholder="🔍 Buscar por nome..."
+            placeholder={t('filter.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => onSearchChange && onSearchChange(e.target.value)}
           />
@@ -98,7 +101,7 @@ export default function FilterBar({
             >
               {FORMATS.map((f) => (
                 <option key={f.id} value={f.id}>
-                  {f.label}
+                  {t(f.key)}
                 </option>
               ))}
             </select>
@@ -110,8 +113,8 @@ export default function FilterBar({
               value={selectedYear}
               onChange={(e) => onSelectYear && onSelectYear(e.target.value)}
             >
-              <option value="ALL">Todos os Anos</option>
-              <option value="NONE">Sem Ano</option>
+              <option value="ALL">{t('filter.allYears')}</option>
+              <option value="NONE">{t('filter.noYear')}</option>
               {availableYears.map((year) => (
                 <option key={year} value={year}>
                   {year}
@@ -128,7 +131,7 @@ export default function FilterBar({
             >
               {SORT_OPTIONS.map((s) => (
                 <option key={s.id} value={s.id}>
-                  Ordenar: {s.label}
+                  {t(s.key)}
                 </option>
               ))}
             </select>
@@ -142,7 +145,7 @@ export default function FilterBar({
                 onChange={(e) => onSeasonOnlyChange?.(e.target.checked)}
                 className="filter-bar__checkbox"
               />
-              Apenas da Temporada
+              {t('filter.seasonOnly')}
             </label>
           </div>
 
@@ -150,16 +153,16 @@ export default function FilterBar({
             <button
               className="filter-clear-btn"
               onClick={handleResetFilters}
-              title="Limpar todos os filtros"
+              title={t('filter.clearAll')}
             >
-              ✕ Limpar Filtros
+              ✕ {t('filter.clear')}
             </button>
           )}
         </div>
 
         {onExportCSV && (
-          <button className="export-csv-btn" onClick={onExportCSV} title="Exportar recomendações em CSV">
-            📥 Exportar CSV
+          <button className="export-csv-btn" onClick={onExportCSV} title={t('filter.exportCSV')}>
+            📥 {t('filter.exportCSV')}
           </button>
         )}
       </div>

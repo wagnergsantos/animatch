@@ -1,8 +1,10 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import GenreOriginModal from './GenreOriginModal'
 import './TasteProfile.css'
 
 export default function TasteProfile({ profile = new Map(), onGenreClick }) {
+  const { t } = useTranslation()
   const [selectedModalGenre, setSelectedModalGenre] = useState(null)
 
   const entries = profile?.entries ? [...profile.entries()] : []
@@ -19,7 +21,7 @@ export default function TasteProfile({ profile = new Map(), onGenreClick }) {
 
   return (
     <section className="taste-profile">
-      <h2 className="taste-profile__title">Seu Perfil de Gosto</h2>
+      <h2 className="taste-profile__title">{t('tasteProfile.title')}</h2>
       <div className="taste-profile__badges">
         {displayBadges.map(([genre, stats]) => {
           const score = stats?.adjustedAverage ?? stats?.average ?? 0

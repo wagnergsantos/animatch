@@ -1,0 +1,162 @@
+{
+  "stats": {
+    "totalAnimes": "合計アニメ数",
+    "totalEpisodes": "合計エピソード数",
+    "userAverageScore": "あなたの平均",
+    "statusDistribution": "ステータス分布",
+    "status": {
+      "completed": "完了",
+      "planning": "プラン中",
+      "current": "視聴中",
+      "dropped": "中断",
+      "paused": "一時停止"
+    },
+    "releasesByYear": "年別リリース",
+    "favoriteGenresTitle": "お気に入りジャンル（ベイズ平均）",
+    "confidence": "信頼度 (C = {{c}})",
+    "genre": "ジャンル",
+    "watched": "視聴済み",
+    "scored": "評価済み",
+    "planned": "計画中",
+    "realAverage": "実平均",
+    "bayesianAverage": "ベイズ平均",
+    "viewRecommendationsFor": "{{genre}} のおすすめを見る"
+  },
+  "settings": {
+    "title": "設定",
+    "language": "言語",
+    "lang": {
+      "pt-BR": "Português (Brasil)",
+      "en": "English",
+      "ja": "日本語"
+    },
+    "favoriteDub": "お気に入り吹替",
+    "theme": "テーマ",
+    "theme_light": "ライトモード",
+    "theme_dark": "ダークモード",
+    "syncing": "⏳ {{provider}} と同期中...",
+    "sync": "🔄 {{provider}} と同期",
+    "logout": "🚪 アカウント切替"
+  },
+  "providers": {
+    "anilist": "AniList",
+    "kitsu": "Kitsu"
+  },
+  "dub": {
+    "nenhuma": "無し",
+    "pt-br": "PT-BR",
+    "en": "英語",
+    "ja": "日本語",
+    "es": "スペイン語",
+    "de": "ドイツ語",
+    "ko": "韓国語",
+    "fr": "フランス語",
+    "it": "イタリア語"
+  },
+  "labels": {
+    "untitled": "無題",
+    "coverAlt": "{{title}} の表紙",
+    "openProvider": "{{provider}} で開く",
+    "whereToWatch": "視聴先：",
+    "match": "マッチ",
+    "community": "コミュニティ",
+    "ep": "話",
+    "eps": "話",
+    "dubbed": "{{lang}} 吹替",
+    "synopsis": "あらすじ",
+    "genres": "ジャンル",
+    "noDescription": "説明がありません。",
+    "closeModal": "モーダルを閉じる",
+    "viewMoreOn": "{{provider}} で詳しく見る",
+    "title": "タイトル",
+    "predictedScore": "予測スコア",
+    "format": "形式",
+    "year": "年"
+  },
+  "status": {
+    "FINISHED": "完了",
+    "RELEASING": "放送中",
+    "NOT_YET_RELEASED": "未リリース",
+    "CANCELLED": "中止",
+    "HIATUS": "休止中"
+  },
+  "filter": {
+    "allGenres": "すべてのジャンル",
+    "allGenresWithCount": "すべてのジャンル ({{count}})",
+    "searchPlaceholder": "🔍 名前で検索...",
+    "allYears": "すべての年",
+    "noYear": "年なし",
+    "seasonOnly": "今期のみ",
+    "clearAll": "すべてのフィルタをクリア",
+    "clear": "フィルタをクリア",
+    "exportCSV": "おすすめをCSVでエクスポート"
+  },
+  "genres": {
+    "Action": "アクション",
+    "Adventure": "アドベンチャー",
+    "Comedy": "コメディ",
+    "Drama": "ドラマ",
+    "Fantasy": "ファンタジー",
+    "Romance": "ロマンス",
+    "SciFi": "SF",
+    "SliceOfLife": "日常"
+  },
+  "formats": {
+    "ALL": "すべての形式",
+    "TV": "TV",
+    "MOVIE": "映画",
+    "OVA": "OVA",
+    "ONA": "ONA",
+    "SPECIAL": "スペシャル"
+  },
+  "sort": {
+    "predicted": "予測スコア",
+    "community": "コミュニティスコア",
+    "year_desc": "年 (新しい順)",
+    "year_asc": "年 (古い順)",
+    "title": "タイトル (A-Z)"
+  },
+  "login": {
+    "title": "AniMatch",
+    "subtitle": "あなたの好みに基づいた視聴候補を発見",
+    "usernameLabel": "{{provider}} のユーザー名",
+    "usernamePlaceholder": "{{provider}} のユーザー名...",
+    "submit": "おすすめを生成",
+    "loading": "読み込み中…",
+    "recentQueries": "最近のクエリ："
+  },
+  "dashboard": {
+    "recommendationsTab": "おすすめ",
+    "statisticsTab": "統計",
+    "shareTitle": "おすすめのリンクをコピー",
+    "share": "🔗 共有",
+    "linkCopied": "✅ リンクをコピーしました！",
+    "exportFilenamePrefix": "animatch-recommendations"
+  },
+  "recommendationGrid": {
+    "calculating": "おすすめを計算中...",
+    "none": "現在おすすめはありません",
+    "planToWatchPrompt": "AniList の「Plan to Watch」リストにアニメを追加してください！",
+    "header": "おすすめ — 今見るべき作品 ({{count}})",
+    "ignoreDub": "吹替ボーナスを無視",
+    "onlyFavoriteDub": "お気に入りの吹替のみ表示"
+  },
+  "modals": {
+    "genreOrigin": {
+      "title": "スコアの由来：{{genre}}",
+      "close": "モーダルを閉じる",
+      "average": "実平均：{{avg}}",
+      "scoredCount": "評価済みアニメ：{{count}}",
+      "yourScore": "あなたの評価：{{score}}",
+      "filterBtn": "{{genre}} のおすすめで絞る"
+    },
+    "genreRecommendation": {
+      "title": "{{genre}} のおすすめ",
+      "none": "あなたの 'Planning' リストに {{genre}} ジャンルのアニメはありません。",
+      "prompt": "AniList にアニメを追加するとここにおすすめが表示されます。"
+    }
+  },
+  "tasteProfile": {
+    "title": "あなたが一番好きなものは？"
+  }
+}

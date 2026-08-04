@@ -1,0 +1,162 @@
+{
+  "stats": {
+    "totalAnimes": "Total de Animes",
+    "totalEpisodes": "Total de Episódios",
+    "userAverageScore": "Média Pessoal",
+    "statusDistribution": "Distribuição por Status",
+    "status": {
+      "completed": "Completo",
+      "planning": "Planejando",
+      "current": "Assistindo",
+      "dropped": "Dropped",
+      "paused": "Pausado"
+    },
+    "releasesByYear": "Lançamentos por Ano",
+    "favoriteGenresTitle": "Gêneros Favoritos (Média Bayesiana)",
+    "confidence": "Confiança (C = {{c}})",
+    "genre": "Gênero",
+    "watched": "Assistidos",
+    "scored": "Avaliados",
+    "planned": "Planejado",
+    "realAverage": "Média Real",
+    "bayesianAverage": "Média Bayesiana",
+    "viewRecommendationsFor": "Ver recomendações para {{genre}}"
+  },
+  "settings": {
+    "title": "Configurações",
+    "language": "Idioma",
+    "lang": {
+      "pt-BR": "Português (Brasil)",
+      "en": "English",
+      "ja": "日本語"
+    },
+    "favoriteDub": "Dublagem favorita",
+    "theme": "Tema",
+    "theme_light": "Modo Claro",
+    "theme_dark": "Modo Escuro",
+    "syncing": "⏳ Sincronizando com {{provider}}...",
+    "sync": "🔄 Sincronizar {{provider}}",
+    "logout": "🚪 Trocar de conta"
+  },
+  "providers": {
+    "anilist": "AniList",
+    "kitsu": "Kitsu"
+  },
+  "dub": {
+    "nenhuma": "Nenhuma",
+    "pt-br": "PT-BR",
+    "en": "Inglês",
+    "ja": "Japonês",
+    "es": "Espanhol",
+    "de": "Alemão",
+    "ko": "Coreano",
+    "fr": "Francês",
+    "it": "Italiano"
+  },
+  "labels": {
+    "untitled": "Sem título",
+    "coverAlt": "Capa de {{title}}",
+    "openProvider": "Abrir no {{provider}}",
+    "whereToWatch": "Onde assistir:",
+    "match": "Match",
+    "community": "Comunidade",
+    "ep": "ep",
+    "eps": "eps",
+    "dubbed": "Dublado {{lang}}",
+    "synopsis": "Sinopse",
+    "genres": "Gêneros",
+    "noDescription": "Sem descrição disponível.",
+    "closeModal": "Fechar modal",
+    "viewMoreOn": "Ver mais no {{provider}}",
+    "title": "Título",
+    "predictedScore": "Nota Prevista",
+    "format": "Formato",
+    "year": "Ano"
+  },
+  "status": {
+    "FINISHED": "Concluído",
+    "RELEASING": "Em exibição",
+    "NOT_YET_RELEASED": "Em breve",
+    "CANCELLED": "Cancelado",
+    "HIATUS": "Em hiato"
+  },
+  "filter": {
+    "allGenres": "Todos os Gêneros",
+    "allGenresWithCount": "Todos os Gêneros ({{count}})",
+    "searchPlaceholder": "🔍 Buscar por nome...",
+    "allYears": "Todos os Anos",
+    "noYear": "Sem Ano",
+    "seasonOnly": "Apenas da Temporada",
+    "clearAll": "Limpar todos os filtros",
+    "clear": "Limpar Filtros",
+    "exportCSV": "Exportar recomendações em CSV"
+  },
+  "genres": {
+    "Action": "Ação",
+    "Adventure": "Aventura",
+    "Comedy": "Comédia",
+    "Drama": "Drama",
+    "Fantasy": "Fantasia",
+    "Romance": "Romance",
+    "SciFi": "Ficção",
+    "SliceOfLife": "Slice of Life"
+  },
+  "formats": {
+    "ALL": "Todos Formatos",
+    "TV": "TV",
+    "MOVIE": "Filmes",
+    "OVA": "OVA",
+    "ONA": "ONA",
+    "SPECIAL": "Especial"
+  },
+  "sort": {
+    "predicted": "Predicted Score",
+    "community": "Nota Comunitária",
+    "year_desc": "Ano (Mais Recente)",
+    "year_asc": "Ano (Mais Antigo)",
+    "title": "Título (A-Z)"
+  },
+  "login": {
+    "title": "AniMatch",
+    "subtitle": "Descubra o que assistir baseado no seu gosto real.",
+    "usernameLabel": "Username do {{provider}}",
+    "usernamePlaceholder": "Seu usuário no {{provider}}...",
+    "submit": "Gerar Recomendações",
+    "loading": "Carregando…",
+    "recentQueries": "Consultas recentes:"
+  },
+  "dashboard": {
+    "recommendationsTab": "Recomendações",
+    "statisticsTab": "Estatísticas",
+    "shareTitle": "Copiar link das suas recomendações",
+    "share": "🔗 Compartilhar",
+    "linkCopied": "✅ Link copiado!",
+    "exportFilenamePrefix": "animatch-recomendacoes"
+  },
+  "tasteProfile": {
+    "title": "O que você mais gosta?"
+  },
+  "recommendationGrid": {
+    "calculating": "Calculando suas Recomendações...",
+    "none": "Sem recomendações no momento",
+    "planToWatchPrompt": "Adicione mais animes na sua lista \"Plan to Watch\" no AniList!",
+    "header": "Recomendações — O Que Assistir Agora ({{count}})",
+    "ignoreDub": "Ignorar bônus de dublagem",
+    "onlyFavoriteDub": "Mostrar somente com minha dublagem favorita"
+  },
+  "modals": {
+    "genreOrigin": {
+      "title": "Origem da nota: {{genre}}",
+      "close": "Fechar modal",
+      "average": "Média Real: {{avg}}",
+      "scoredCount": "Animes avaliados: {{count}}",
+      "yourScore": "Sua Nota: {{score}}",
+      "filterBtn": "Filtrar recomendações por {{genre}}"
+    },
+    "genreRecommendation": {
+      "title": "Recomendações do Gênero: {{genre}}",
+      "none": "Nenhum anime na sua lista 'Planning' possui o gênero {{genre}}.",
+      "prompt": "Adicione mais animes à sua lista no AniList para ver recomendações aqui."
+    }
+  }
+}

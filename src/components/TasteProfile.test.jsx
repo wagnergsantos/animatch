@@ -1,5 +1,25 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
+
+// Mock react-i18next to return Portuguese translations expected by tests
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key, opts) => {
+      const map = {
+        'tasteProfile.title': 'Seu Perfil de Gosto',
+        'modals.genreOrigin.title': `Origem da nota: ${opts?.genre ?? ''}`,
+        'modals.genreOrigin.average': `Média Real: ${opts?.avg}`,
+        'modals.genreOrigin.scoredCount': `Animes avaliados: ${opts?.count}`,
+        'modals.genreOrigin.yourScore': `Sua Nota: ${opts?.score}`,
+        'labels.openProvider': (o) => `Abrir no ${o.provider}`,
+        'labels.closeModal': 'Fechar modal',
+      }
+      const v = map[key]
+      return typeof v === 'function' ? v(opts) : v ?? key
+    },
+  }),
+}))
+
 import TasteProfile from './TasteProfile.jsx'
 
 describe('TasteProfile Component', () => {

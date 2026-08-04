@@ -259,7 +259,7 @@ describe('Dashboard', () => {
       expect(screen.getByText('Anime 2024')).toBeInTheDocument()
     })
 
-    const sortSelect = screen.getByDisplayValue('Ordenar: Predicted Score')
+    const sortSelect = screen.getByDisplayValue('Predicted Score')
 
     // Sort by year_desc
     fireEvent.change(sortSelect, { target: { value: 'year_desc' } })
@@ -294,7 +294,7 @@ describe('Dashboard', () => {
       expect(screen.getByText('Anime 2024 High')).toBeInTheDocument()
     })
 
-    const sortSelect = screen.getByDisplayValue('Ordenar: Predicted Score')
+    const sortSelect = screen.getByDisplayValue('Predicted Score')
 
     // Sort by year_desc
     fireEvent.change(sortSelect, { target: { value: 'year_desc' } })

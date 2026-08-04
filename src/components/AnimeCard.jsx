@@ -1,25 +1,16 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import AnimeDetailModal from './AnimeDetailModal.jsx'
 import './AnimeCard.css'
 
-const DUB_LABELS = {
-  'pt-br': 'PT-BR',
-  'en': 'Inglês',
-  'ja': 'Japonês',
-  'es': 'Espanhol',
-  'de': 'Alemão',
-  'ko': 'Coreano',
-  'fr': 'Francês',
-  'it': 'Italiano',
-}
-
 export default function AnimeCard({ anime, hasDub, dubLanguage = 'pt-br', onCardClick }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const { t } = useTranslation()
 
   const genres = anime?.genres ?? []
-  const title = anime?.title || 'Untitled'
+  const title = anime?.title || t('labels.untitled')
   const siteUrl = anime?.siteUrl || (anime?.id ? `https://anilist.co/anime/${anime.id}` : '#')
-  const providerLabel = anime?.provider === 'kitsu' ? 'Kitsu' : 'AniList'
+  const providerLabel = anime?.provider === 'kitsu' ? t('providers.kitsu') : t('providers.anilist')
   
   // Deduplicate streaming links by site
   const streamingLinks = []
@@ -70,14 +61,14 @@ export default function AnimeCard({ anime, hasDub, dubLanguage = 'pt-br', onCard
           <img
             className="anime-card__image"
             src={anime?.coverImage || undefined}
-            alt={`Capa de ${title}`}
+            alt={t('labels.coverAlt', { title })}
             loading="lazy"
           />
           <button
             className="anime-card__anilist-quickbtn"
             onClick={handleDirectAnilistClick}
-            title={`Abrir diretamente no ${providerLabel}`}
-            aria-label={`Abrir no ${providerLabel}`}
+            title={t('labels.openProvider', { provider: providerLabel })}
+            aria-label={t('labels.openProvider', { provider: providerLabel })}
           >
             🔗 {providerLabel} ↗
           </button>
@@ -90,16 +81,16 @@ export default function AnimeCard({ anime, hasDub, dubLanguage = 'pt-br', onCard
             if (year) parts.push(year)
 
             if (anime?.episodes) {
-              parts.push(`${anime.episodes} ${anime.episodes === 1 ? 'ep' : 'eps'}`)
+              parts.push(`${anime.episodes} ${anime.episodes === 1 ? t('labels.ep') : t('labels.eps')}`)
             }
 
             if (anime?.status) {
               const statusMap = {
-                FINISHED: 'Concluído',
-                RELEASING: 'Em exibição',
-                NOT_YET_RELEASED: 'Em breve',
-                CANCELLED: 'Cancelado',
-                HIATUS: 'Em hiato',
+                FINISHED: t('status.FINISHED'),
+                RELEASING: t('status.RELEASING'),
+                NOT_YET_RELEASED: t('status.NOT_YET_RELEASED'),
+                CANCELLED: t('status.CANCELLED'),
+                HIATUS: t('status.HIATUS'),
               }
               parts.push(statusMap[anime.status] || anime.status)
             }
@@ -109,24 +100,24 @@ export default function AnimeCard({ anime, hasDub, dubLanguage = 'pt-br', onCard
           })()}
           {typeof anime?.predictedScore === 'number' && !isNaN(anime.predictedScore) && (
             <p className="anime-card__predicted">
-              Match: {(anime.predictedScore).toFixed(2)}/10
+              {t('labels.match')}: {(anime.predictedScore).toFixed(2)}/10
             </p>
           )}
           {typeof anime?.communityScore === 'number' && !isNaN(anime.communityScore) && (
             <p className="anime-card__community">
-              Comunidade: {(anime.communityScore).toFixed(2)}/10
+              {t('labels.community')}: {(anime.communityScore).toFixed(2)}/10
             </p>
           )}
 
           {hasDub && (
             <div className="anime-card__dub-badge">
-              🎙️ Dublado {DUB_LABELS[dubLanguage] || dubLanguage}
+              🎙️ {t('labels.dubbed', { lang: t(`dub.${dubLanguage}`) })}
             </div>
           )}
 
           {streamingLinks.length > 0 && (
             <div className="anime-card__streaming">
-              <span className="anime-card__streaming-label">Onde assistir:</span>
+              <span className="anime-card__streaming-label">{t('labels.whereToWatch')}</span>
               <div className="anime-card__streaming-links">
                 {streamingLinks.map(link => (
                   <a

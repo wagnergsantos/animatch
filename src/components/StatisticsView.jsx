@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   computeOverviewStats,
   computeStatusDistribution,
@@ -9,6 +10,7 @@ import './StatisticsView.css'
 
 export default function StatisticsView({ entries = [], onSelectGenre }) {
   const [confidenceC, setConfidenceC] = useState(15)
+  const { t } = useTranslation()
 
   const overview = useMemo(() => computeOverviewStats(entries), [entries])
   const statuses = useMemo(() => computeStatusDistribution(entries), [entries])
@@ -26,40 +28,40 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
       <section className="stats-overview">
         <div className="stat-card">
           <span className="stat-card__value">{overview.totalAnimes}</span>
-          <span className="stat-card__label">Total de Animes</span>
+          <span className="stat-card__label">{t('stats.totalAnimes')}</span>
         </div>
         <div className="stat-card">
           <span className="stat-card__value">{overview.totalEpisodes}</span>
-          <span className="stat-card__label">Total de Episódios</span>
+          <span className="stat-card__label">{t('stats.totalEpisodes')}</span>
         </div>
         <div className="stat-card">
           <span className="stat-card__value">{overview.userAverageScore}</span>
-          <span className="stat-card__label">Média Pessoal</span>
+          <span className="stat-card__label">{t('stats.userAverageScore')}</span>
         </div>
       </section>
 
       {/* Distribution by Status */}
       <section className="stats-section">
-        <h3 className="stats-section__title">Distribuição por Status</h3>
+        <h3 className="stats-section__title">{t('stats.statusDistribution')}</h3>
         <div className="status-grid">
           <div className="status-item status-completed">
-            <span>Completo</span>
+            <span>{t('stats.status.completed')}</span>
             <strong>{statuses.COMPLETED}</strong>
           </div>
           <div className="status-item status-planning">
-            <span>Planejando</span>
+            <span>{t('stats.status.planning')}</span>
             <strong>{statuses.PLANNING}</strong>
           </div>
           <div className="status-item status-current">
-            <span>Assistindo</span>
+            <span>{t('stats.status.current')}</span>
             <strong>{statuses.CURRENT}</strong>
           </div>
           <div className="status-item status-dropped">
-            <span>Dropped</span>
+            <span>{t('stats.status.dropped')}</span>
             <strong>{statuses.DROPPED}</strong>
           </div>
           <div className="status-item status-paused">
-            <span>Pausado</span>
+            <span>{t('stats.status.paused')}</span>
             <strong>{statuses.PAUSED}</strong>
           </div>
         </div>
@@ -67,7 +69,7 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
 
       {/* Year Chart */}
       <section className="stats-section">
-        <h3 className="stats-section__title">Lançamentos por Ano</h3>
+        <h3 className="stats-section__title">{t('stats.releasesByYear')}</h3>
         <div className="year-chart-container">
           <div className="year-chart">
             {yearDistribution.map(({ year, count }) => (
@@ -86,9 +88,9 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
       {/* Genres Table */}
       <section className="stats-section">
         <div className="stats-section__header">
-          <h3 className="stats-section__title">Gêneros Favoritos (Média Bayesiana)</h3>
-          <div className="bayesian-controls" title="Parâmetro de confiança C: quanto maior o valor, mais votos são necessários para alterar a média global.">
-            <label htmlFor="confidence-c">Confiança (C = {confidenceC})</label>
+          <h3 className="stats-section__title">{t('stats.favoriteGenresTitle')}</h3>
+          <div className="bayesian-controls" title={t('stats.confidence') }>
+            <label htmlFor="confidence-c">{t('stats.confidence', { c: confidenceC })}</label>
             <input
               id="confidence-c"
               type="range"
@@ -104,12 +106,12 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
           <table className="genre-table">
             <thead>
               <tr>
-                <th>Gênero</th>
-                <th>Assistidos</th>
-                <th>Avaliados</th>
-                <th>Planejado</th>
-                <th>Média Real</th>
-                <th>Média Bayesiana</th>
+                <th>{t('stats.genre')}</th>
+                <th>{t('stats.watched')}</th>
+                <th>{t('stats.scored')}</th>
+                <th>{t('stats.planned')}</th>
+                <th>{t('stats.realAverage')}</th>
+                <th>{t('stats.bayesianAverage')}</th>
               </tr>
             </thead>
             <tbody>
@@ -126,7 +128,7 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
                       onSelectGenre(item.genre)
                     }
                   }}
-                  title={`Ver recomendações para ${item.genre}`}
+                  title={t('stats.viewRecommendationsFor', { genre: item.genre })}
                 >
                   <td className="genre-table__genre">{item.genre} 🔍</td>
                   <td>{item.count}</td>

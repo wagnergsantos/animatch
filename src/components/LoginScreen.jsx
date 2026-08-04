@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import ThemeToggle from './ThemeToggle.jsx'
+import { useTranslation } from 'react-i18next'
 import './LoginScreen.css'
 
 export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = [], initialUsername = '' }) {
+  const { t } = useTranslation()
   const [username, setUsername] = useState(initialUsername)
   const [provider, setProvider] = useState(() => localStorage.getItem('animatch_provider') || 'anilist')
 
@@ -24,7 +26,7 @@ export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = 
     }
   }
 
-  const providerLabel = provider === 'anilist' ? 'AniList' : 'Kitsu'
+  const providerLabel = provider === 'anilist' ? t('providers.anilist') : t('providers.kitsu')
 
   return (
     <div className="login-screen">
@@ -32,10 +34,8 @@ export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = 
         <ThemeToggle />
       </div>
       <div className="login-container">
-        <h1 className="login-title">AniMatch</h1>
-        <p className="login-subtitle">
-          Descubra o que assistir baseado no seu gosto real.
-        </p>
+        <h1 className="login-title">{t('login.title')}</h1>
+        <p className="login-subtitle">{t('login.subtitle')}</p>
         <form className="login-form" onSubmit={handleSubmit}>
           <div className="provider-selector">
             <button
@@ -44,7 +44,7 @@ export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = 
               onClick={() => setProvider('anilist')}
               disabled={isLoading}
             >
-              AniList
+              {t('providers.anilist')}
             </button>
             <button
               type="button"
@@ -52,11 +52,11 @@ export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = 
               onClick={() => setProvider('kitsu')}
               disabled={isLoading}
             >
-              Kitsu
+              {t('providers.kitsu')}
             </button>
           </div>
           <label htmlFor="username-input" className="login-label">
-            Username do {providerLabel}
+            {t('login.usernameLabel', { provider: providerLabel })}
           </label>
           <input
             id="username-input"
@@ -64,7 +64,7 @@ export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = 
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            placeholder={`Seu usuário no ${providerLabel}...`}
+            placeholder={t('login.usernamePlaceholder', { provider: providerLabel })}
             autoComplete="off"
             disabled={isLoading}
             aria-invalid={Boolean(error)}
@@ -83,10 +83,10 @@ export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = 
             {isLoading ? (
               <>
                 <span className="login-spinner" aria-hidden="true" />
-                Carregando…
+                {t('login.loading')}
               </>
             ) : (
-              'Gerar Recomendações'
+              t('login.submit')
             )}
           </button>
         </form>
@@ -94,13 +94,13 @@ export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = 
         {recentUsers.length > 0 && (
           <div className="recent-users" style={{ marginTop: 'var(--space-6)', textAlign: 'center' }}>
             <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-2)', marginBottom: 'var(--space-2)' }}>
-              Consultas recentes:
+              {t('login.recentQueries')}
             </p>
             <div style={{ display: 'flex', gap: 'var(--space-2)', justifyContent: 'center', flexWrap: 'wrap' }}>
               {recentUsers.map((item) => {
                 const uName = typeof item === 'string' ? item : item.username
                 const uProv = typeof item === 'string' ? 'anilist' : item.provider
-                const provLabel = uProv === 'kitsu' ? 'Kitsu' : 'AniList'
+                const provLabel = uProv === 'kitsu' ? t('providers.kitsu') : t('providers.anilist')
                 return (
                   <button
                     key={`${uName}-${uProv}`}

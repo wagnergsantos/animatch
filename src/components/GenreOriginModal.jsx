@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import './GenreOriginModal.css'
 
 export default function GenreOriginModal({ genre, stats, onClose, onFilterGenre }) {
+  const { t } = useTranslation()
   const modalRef = useRef(null)
 
   useEffect(() => {
@@ -64,15 +66,15 @@ export default function GenreOriginModal({ genre, stats, onClose, onFilterGenre 
         onClick={(e) => e.stopPropagation()}
       >
         <div className="genre-origin-modal__header">
-          <h2 id="genre-origin-modal-title">Origem da nota: {genre}</h2>
-          <button className="genre-origin-modal__close-btn" onClick={onClose} aria-label="Fechar modal">
+          <h2 id="genre-origin-modal-title">{t('modals.genreOrigin.title', { genre })}</h2>
+          <button className="genre-origin-modal__close-btn" onClick={onClose} aria-label={t('labels.closeModal')}>
             &times;
           </button>
         </div>
 
         <div className="genre-origin-modal__summary">
-          <p>Média Real: <strong>&#9733; {(stats.average ?? 0).toFixed(2)}</strong></p>
-          <p>Animes avaliados: <strong>{stats.scoredCount ?? sourceAnimes.length}</strong></p>
+          <p>{t('modals.genreOrigin.average', { avg: (stats.average ?? 0).toFixed(2) })}</p>
+          <p>{t('modals.genreOrigin.scoredCount', { count: stats.scoredCount ?? sourceAnimes.length })}</p>
         </div>
 
         <div className="genre-origin-modal__list">
@@ -87,7 +89,7 @@ export default function GenreOriginModal({ genre, stats, onClose, onFilterGenre 
                 target="_blank"
                 rel="noopener noreferrer"
                 className="genre-origin-card"
-                title={`Abrir ${anime.title} no ${providerLabel}`}
+                title={t('labels.openProvider', { provider: providerLabel })}
               >
                 {anime.coverImage && (
                   <img src={anime.coverImage} alt={anime.title} className="genre-origin-card__cover" />
@@ -97,7 +99,7 @@ export default function GenreOriginModal({ genre, stats, onClose, onFilterGenre 
                     {anime.title}
                     <span className="genre-origin-card__link-icon" aria-hidden="true"> ↗</span>
                   </span>
-                  <span className="genre-origin-card__score">Sua Nota: &#9733; {anime.score ?? 'N/A'}</span>
+                  <span className="genre-origin-card__score">{t('modals.genreOrigin.yourScore', { score: anime.score ?? 'N/A' })}</span>
                 </div>
               </a>
             )
@@ -113,7 +115,7 @@ export default function GenreOriginModal({ genre, stats, onClose, onFilterGenre 
                 onClose()
               }}
             >
-              Filtrar recomendações por {genre}
+              {t('modals.genreOrigin.filterBtn', { genre })}
             </button>
           )}
         </div>

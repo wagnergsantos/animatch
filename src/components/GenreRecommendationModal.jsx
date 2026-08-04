@@ -1,9 +1,11 @@
 import { useMemo, useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { scoreRecommendations } from '../logic/recommender.js'
 import RecommendationGrid from './RecommendationGrid.jsx'
 import './GenreRecommendationModal.css'
 
 export default function GenreRecommendationModal({ genre, planningEntries, tasteProfile, onClose }) {
+  const { t } = useTranslation()
   const modalRef = useRef(null)
 
   useEffect(() => {
@@ -72,16 +74,16 @@ export default function GenreRecommendationModal({ genre, planningEntries, taste
         onClick={(e) => e.stopPropagation()}
       >
         <header className="modal-header">
-          <h2 id="genre-recommendation-modal-title">Recomendações do Gênero: <span>{genre}</span></h2>
-          <button className="modal-close-btn" onClick={onClose} aria-label="Fechar modal">✕</button>
+          <h2 id="genre-recommendation-modal-title">{t('modals.genreRecommendation.title', { genre })}</h2>
+          <button className="modal-close-btn" onClick={onClose} aria-label={t('labels.closeModal')}>✕</button>
         </header>
         <main className="modal-body">
           {genreRecommendations.length > 0 ? (
             <RecommendationGrid recommendations={genreRecommendations} />
           ) : (
             <div className="modal-empty-msg">
-              <p>Nenhum anime na sua lista 'Planning' possui o gênero <strong>{genre}</strong>.</p>
-              <p>Adicione mais animes à sua lista no AniList para ver recomendações aqui.</p>
+              <p>{t('modals.genreRecommendation.none', { genre })}</p>
+              <p>{t('modals.genreRecommendation.prompt')}</p>
             </div>
           )}
         </main>

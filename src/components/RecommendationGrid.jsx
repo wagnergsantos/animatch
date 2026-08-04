@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import AnimeCard from './AnimeCard.jsx'
 import { fetchDubInfo } from '../api/index.js'
 import { resolveYear } from '../logic/recommender.js'
@@ -18,6 +19,7 @@ function SkeletonCard() {
 }
 
 export default function RecommendationGrid({ recommendations = [], isLoading = false, sortBy = 'predicted', favoriteDub = 'nenhuma', provider = 'anilist' }) {
+  const { t } = useTranslation()
   const [dubMap, setDubMap] = useState(new Map())
   const [ignoreDub, setIgnoreDub] = useState(false)
   const [showOnlyFavoriteDub, setShowOnlyFavoriteDub] = useState(false)
@@ -110,7 +112,7 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
   if (isLoading) {
     return (
       <section className="recommendation-grid">
-        <h2 className="recommendation-grid__title">Calculando suas Recomendações...</h2>
+        <h2 className="recommendation-grid__title">{t('recommendationGrid.calculating')}</h2>
         <div className="recommendation-grid__grid">
           {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
             <SkeletonCard key={i} />
@@ -123,8 +125,8 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
   if (!recommendations || recommendations.length === 0) {
     return (
       <section className="recommendation-grid">
-        <h2 className="recommendation-grid__title">Sem recomendações no momento</h2>
-        <p>Adicione mais animes na sua lista "Plan to Watch" no AniList!</p>
+        <h2 className="recommendation-grid__title">{t('recommendationGrid.none')}</h2>
+        <p>{t('recommendationGrid.planToWatchPrompt')}</p>
       </section>
     )
   }
@@ -133,7 +135,7 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
     <section className="recommendation-grid">
       <div className="recommendation-grid__header">
         <h2 className="recommendation-grid__title" style={{ marginBottom: 0 }}>
-          Recomendações — O Que Assistir Agora ({displayRecommendations.length})
+          {t('recommendationGrid.header', { count: displayRecommendations.length })}
         </h2>
         {favoriteDub !== 'nenhuma' && (
           <>
@@ -143,7 +145,7 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
                 checked={ignoreDub}
                 onChange={(e) => setIgnoreDub(e.target.checked)}
               />
-              Ignorar bônus de dublagem
+              {t('recommendationGrid.ignoreDub')}
             </label>
             <label className="dub-toggle">
               <input
@@ -151,7 +153,7 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
                 checked={showOnlyFavoriteDub}
                 onChange={(e) => setShowOnlyFavoriteDub(e.target.checked)}
               />
-              Mostrar somente com minha dublagem favorita
+              {t('recommendationGrid.onlyFavoriteDub')}
             </label>
           </>
         )}
@@ -169,4 +171,3 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
     </section>
   )
 }
-

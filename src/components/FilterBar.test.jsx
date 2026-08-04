@@ -25,7 +25,7 @@ describe('FilterBar', () => {
     )
 
     expect(screen.getByPlaceholderText('🔍 Buscar por nome...')).toBeInTheDocument()
-    expect(screen.getByText('📥 Exportar CSV')).toBeInTheDocument()
+    expect(screen.getByText('📥 Exportar recomendações em CSV')).toBeInTheDocument()
 
     // Test search change
     fireEvent.change(screen.getByPlaceholderText('🔍 Buscar por nome...'), {
@@ -38,7 +38,7 @@ describe('FilterBar', () => {
     expect(onSelectGenre).toHaveBeenCalledWith('Action')
 
     // Test export click
-    fireEvent.click(screen.getByText('📥 Exportar CSV'))
+    fireEvent.click(screen.getByText('📥 Exportar recomendações em CSV'))
     expect(onExportCSV).toHaveBeenCalled()
   })
 
@@ -89,10 +89,10 @@ describe('FilterBar', () => {
       />
     )
 
-    expect(screen.getByText('Ordenar: Ano (Mais Recente)')).toBeInTheDocument()
-    expect(screen.getByText('Ordenar: Ano (Mais Antigo)')).toBeInTheDocument()
+    expect(screen.getByText('Ano (Mais Recente)')).toBeInTheDocument()
+    expect(screen.getByText('Ano (Mais Antigo)')).toBeInTheDocument()
 
-    const sortSelect = screen.getByDisplayValue('Ordenar: Predicted Score')
+    const sortSelect = screen.getByDisplayValue('Predicted Score')
     fireEvent.change(sortSelect, { target: { value: 'year_desc' } })
     expect(onSortChange).toHaveBeenCalledWith('year_desc')
   })

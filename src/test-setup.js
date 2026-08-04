@@ -1,5 +1,36 @@
 import '@testing-library/jest-dom'
-import { beforeEach } from 'vitest'
+import { beforeEach, vi } from 'vitest'
+import ptBR from './locales/pt-BR.json'
+
+// Mock react-i18next globally for tests to return Portuguese strings
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key, opts) => {
+      try {
+        const parts = key.split('.')
+        let v = parts.reduce((obj, k) => (obj && obj[k] !== undefined ? obj[k] : undefined), ptBR)
+        if (v === undefined) v = key
+        if (typeof v === 'string' && opts) {
+          Object.keys(opts).forEach((k) => {
+            v = v.replace(new RegExp(`{{\\s*${k}\\s*}}`, 'g'), String(opts[k]))
+          })
+        }
+        return v
+      } catch (e) {
+        return key
+      }
+    },
+    i18n: {
+      language: 'pt-BR',
+      changeLanguage: (lng) => {
+        // noop for tests; if needed, tests can mock localStorage separately
+        return Promise.resolve()
+      }
+    }
+  }),
+  Trans: ({ children }) => children,
+  initReactI18next: { type: '3rdParty' }
+}))
 
 const createLocalStorageMock = () => {
   let store = {}
