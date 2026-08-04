@@ -63,7 +63,10 @@ export function computeYearDistribution(entries = []) {
   return sortedYears
 }
 
-export function computeBayesianGenreStats(completedEntries = [], confidenceC = 15) {
+export function computeBayesianGenreStats(entries = [], confidenceC = 15) {
+  const completedEntries = entries.filter((e) => e?.status === 'COMPLETED')
+  const planningEntries = entries.filter((e) => e?.status === 'PLANNING')
+
   const genreStats = new Map()
   let globalTotal = 0
   let globalScoredCount = 0
@@ -80,7 +83,7 @@ export function computeBayesianGenreStats(completedEntries = [], confidenceC = 1
 
     for (const genre of genres) {
       if (!genreStats.has(genre)) {
-        genreStats.set(genre, { total: 0, count: 0, scoredCount: 0 })
+        genreStats.set(genre, { total: 0, count: 0, scoredCount: 0, plannedCount: 0 })
       }
       const stats = genreStats.get(genre)
       stats.count += 1
@@ -88,6 +91,17 @@ export function computeBayesianGenreStats(completedEntries = [], confidenceC = 1
       if (score > 0) {
         stats.total += score
         stats.scoredCount += 1
+      }
+    }
+  }
+
+  for (const entry of planningEntries) {
+    if (!entry?.media) continue
+    const genres = entry.media.genres ?? []
+    for (const genre of genres) {
+      if (genreStats.has(genre)) {
+        const stats = genreStats.get(genre)
+        stats.plannedCount += 1
       }
     }
   }
@@ -105,6 +119,7 @@ export function computeBayesianGenreStats(completedEntries = [], confidenceC = 1
         genre,
         count: stats.count,
         scoredCount: stats.scoredCount,
+        plannedCount: stats.plannedCount,
         realAverage: Math.round(realAverage * 100) / 100,
         bayesianAverage: Math.round(bayesianAverage * 100) / 100,
       })

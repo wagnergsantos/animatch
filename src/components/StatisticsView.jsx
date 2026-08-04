@@ -15,8 +15,7 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
   const yearDistribution = useMemo(() => computeYearDistribution(entries), [entries])
 
   const genreStats = useMemo(() => {
-    const completedEntries = entries.filter((e) => e.status === 'COMPLETED')
-    return computeBayesianGenreStats(completedEntries, confidenceC)
+    return computeBayesianGenreStats(entries, confidenceC)
   }, [entries, confidenceC])
 
   const maxYearCount = Math.max(...yearDistribution.map((y) => y.count), 1)
@@ -108,6 +107,7 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
                 <th>Gênero</th>
                 <th>Assistidos</th>
                 <th>Avaliados</th>
+                <th>Planejado</th>
                 <th>Média Real</th>
                 <th>Média Bayesiana</th>
               </tr>
@@ -131,6 +131,7 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
                   <td className="genre-table__genre">{item.genre} 🔍</td>
                   <td>{item.count}</td>
                   <td>{item.scoredCount}</td>
+                  <td>{item.plannedCount}</td>
                   <td>{item.realAverage.toFixed(2)}</td>
                   <td className="genre-table__bayesian">{item.bayesianAverage.toFixed(2)}</td>
                 </tr>

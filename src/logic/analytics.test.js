@@ -57,13 +57,14 @@ describe('analytics logic', () => {
     ])
   })
 
-  it('computes bayesian genre stats filtered by min 2 scored entries', () => {
-    const completed = sampleEntries.filter(e => e.status === 'COMPLETED')
-    const genreStats = computeBayesianGenreStats(completed, 15)
+  it('computes bayesian genre stats filtered by min 2 scored entries including plannedCount', () => {
+    const genreStats = computeBayesianGenreStats(sampleEntries, 15)
     // Only Action has 2 scored entries in sample
     expect(genreStats).toHaveLength(1)
     expect(genreStats[0].genre).toBe('Action')
+    expect(genreStats[0].count).toBe(2)
     expect(genreStats[0].scoredCount).toBe(2)
+    expect(genreStats[0].plannedCount).toBe(0)
     expect(genreStats[0].realAverage).toBe(9.0)
   })
 })
