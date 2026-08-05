@@ -9,6 +9,17 @@ import {
 import './StatisticsView.css'
 
 export default function StatisticsView({ entries = [], onSelectGenre }) {
+  const [sortBy, setSortBy] = useState('bayesian')
+  const [sortDir, setSortDir] = useState('desc')
+
+  const toggleSort = (key) => {
+    if (sortBy === key) {
+      setSortDir((d) => (d === 'desc' ? 'asc' : 'desc'))
+    } else {
+      setSortBy(key)
+      setSortDir('desc')
+    }
+  }
   const [confidenceC, setConfidenceC] = useState(15)
   const { t } = useTranslation()
 
@@ -19,6 +30,29 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
   const genreStats = useMemo(() => {
     return computeBayesianGenreStats(entries, confidenceC)
   }, [entries, confidenceC])
+
+  const sortedGenreStats = useMemo(() => {
+    const arr = [...genreStats]
+    const dir = sortDir === 'desc' ? -1 : 1
+    arr.sort((a, b) => {
+      switch (sortBy) {
+        case 'genre':
+          return dir * (a.genre.localeCompare(b.genre))
+        case 'watched':
+          return dir * ((a.count || 0) - (b.count || 0))
+        case 'scored':
+          return dir * ((a.scoredCount || 0) - (b.scoredCount || 0))
+        case 'planned':
+          return dir * ((a.plannedCount || 0) - (b.plannedCount || 0))
+        case 'realAverage':
+          return dir * ((a.realAverage || 0) - (b.realAverage || 0))
+        case 'bayesian':
+        default:
+          return dir * ((a.bayesianAverage || 0) - (b.bayesianAverage || 0))
+      }
+    })
+    return arr
+  }, [genreStats, sortBy, sortDir])
 
   const maxYearCount = Math.max(...yearDistribution.map((y) => y.count), 1)
 
@@ -106,16 +140,16 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
           <table className="genre-table">
             <thead>
               <tr>
-                <th>{t('stats.genre')}</th>
-                <th>{t('stats.watched')}</th>
-                <th>{t('stats.scored')}</th>
-                <th>{t('stats.planned')}</th>
-                <th>{t('stats.realAverage')}</th>
-                <th>{t('stats.bayesianAverage')}</th>
+                <th onClick={() => toggleSort('genre')} role="button">{t('stats.genre')} {sortBy === 'genre' ? (sortDir === 'desc' ? '▼' : '▲') : ''}</th>
+                <th onClick={() => toggleSort('watched')} role="button">{t('stats.watched')} {sortBy === 'watched' ? (sortDir === 'desc' ? '▼' : '▲') : ''}</th>
+                <th onClick={() => toggleSort('scored')} role="button">{t('stats.scored')} {sortBy === 'scored' ? (sortDir === 'desc' ? '▼' : '▲') : ''}</th>
+                <th onClick={() => toggleSort('planned')} role="button">{t('stats.planned')} {sortBy === 'planned' ? (sortDir === 'desc' ? '▼' : '▲') : ''}</th>
+                <th onClick={() => toggleSort('realAverage')} role="button">{t('stats.realAverage')} {sortBy === 'realAverage' ? (sortDir === 'desc' ? '▼' : '▲') : ''}</th>
+                <th onClick={() => toggleSort('bayesian')} role="button">{t('stats.bayesianAverage')} {sortBy === 'bayesian' ? (sortDir === 'desc' ? '▼' : '▲') : ''}</th>
               </tr>
             </thead>
             <tbody>
-              {genreStats.map((item) => (
+                {sortedGenreStats.map((item) => (
                 <tr
                   key={item.genre}
                   className="genre-table__row"
@@ -134,8 +168,8 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
                   <td>{item.count}</td>
                   <td>{item.scoredCount}</td>
                   <td>{item.plannedCount}</td>
-                  <td>{item.realAverage.toFixed(2)}</td>
-                  <td className="genre-table__bayesian">{item.bayesianAverage.toFixed(2)}</td>
+                  <td>{typeof item.realAverage === 'number' ? item.realAverage.toFixed(2) : '—'}</td>
+                  <td className="genre-table__bayesian">{typeof item.bayesianAverage === 'number' ? item.bayesianAverage.toFixed(2) : '—'}</td>
                 </tr>
               ))}
             </tbody>

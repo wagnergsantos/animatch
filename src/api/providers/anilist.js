@@ -1,4 +1,5 @@
-const ANILIST_API = import.meta.env.DEV ? '/anilist-api' : 'https://graphql.anilist.co'
+const _DEV = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.DEV) || false
+const ANILIST_API = _DEV ? '/anilist-api' : 'https://graphql.anilist.co'
 const CACHE_KEY_PREFIX = 'animatch_cache_'
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutos em ms
 export const CACHE_KEY_DUB = 'animatch_dub_cache_v2'

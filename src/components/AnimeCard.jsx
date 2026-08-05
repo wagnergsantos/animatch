@@ -98,12 +98,12 @@ export default function AnimeCard({ anime, hasDub, dubLanguage = 'pt-br', onCard
             if (parts.length === 0) return null
             return <div className="anime-card__meta">{parts.join(' • ')}</div>
           })()}
-          {typeof anime?.predictedScore === 'number' && !isNaN(anime.predictedScore) && (
+          {typeof anime?.predictedScore === 'number' && anime.predictedScore != null && !isNaN(anime.predictedScore) && (
             <p className="anime-card__predicted">
               {t('labels.match')}: {(anime.predictedScore).toFixed(2)}/10
             </p>
           )}
-          {typeof anime?.communityScore === 'number' && !isNaN(anime.communityScore) && (
+          {typeof anime?.communityScore === 'number' && anime.communityScore != null && !isNaN(anime.communityScore) && (
             <p className="anime-card__community">
               {t('labels.community')}: {(anime.communityScore).toFixed(2)}/10
             </p>
