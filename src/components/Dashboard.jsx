@@ -4,7 +4,7 @@ import { buildTasteProfile, scoreRecommendations, resolveYear } from '../logic/r
 import TasteProfile from './TasteProfile.jsx'
 import RecommendationGrid from './RecommendationGrid.jsx'
 import FilterBar from './FilterBar.jsx'
-import StatisticsView from './StatisticsView.jsx'
+import StatisticsPage from './StatisticsPage.jsx'
 import GenreRecommendationModal from './GenreRecommendationModal.jsx'
 import ThemeToggle from './ThemeToggle.jsx'
 import SettingsMenu from './SettingsMenu.jsx'
@@ -222,7 +222,11 @@ export default function Dashboard({ allEntries = [], username, provider = 'anili
             )}
             <FilterBar
               selectedGenre={selectedFilterGenre}
-              onSelectGenre={setSelectedFilterGenre}
+              onSelectGenre={(genre) => {
+                setSelectedFilterGenre(genre)
+                setActiveTab('recommendations')
+                gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              }}
               availableGenres={availableGenres}
               totalPlanningCount={planningEntries.length}
               searchQuery={searchQuery}
@@ -249,8 +253,9 @@ export default function Dashboard({ allEntries = [], username, provider = 'anili
             </div>
           </>
         ) : (
-          <StatisticsView
+          <StatisticsPage
             entries={allEntries}
+            user={username}
             onSelectGenre={setModalGenre}
           />
         )}
