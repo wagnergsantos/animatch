@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import ThemeToggle from './ThemeToggle.jsx'
 import { useTranslation } from 'react-i18next'
 import './LoginScreen.css'
@@ -7,6 +7,14 @@ export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = 
   const { t } = useTranslation()
   const [username, setUsername] = useState(initialUsername)
   const [provider, setProvider] = useState(() => localStorage.getItem('animatch_provider') || 'anilist')
+  const inputRef = useRef(null)
+
+  const handleProviderChange = (newProvider) => {
+    setProvider(newProvider)
+    if (inputRef.current) {
+      inputRef.current.focus()
+    }
+  }
 
   useEffect(() => {
     localStorage.setItem('animatch_provider', provider)
@@ -41,7 +49,7 @@ export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = 
             <button
               type="button"
               className={`provider-pill ${provider === 'anilist' ? 'provider-pill--active' : ''}`}
-              onClick={() => setProvider('anilist')}
+              onClick={() => handleProviderChange('anilist')}
               disabled={isLoading}
             >
               {t('providers.anilist')}
@@ -49,7 +57,7 @@ export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = 
             <button
               type="button"
               className={`provider-pill ${provider === 'kitsu' ? 'provider-pill--active' : ''}`}
-              onClick={() => setProvider('kitsu')}
+              onClick={() => handleProviderChange('kitsu')}
               disabled={isLoading}
             >
               {t('providers.kitsu')}
@@ -57,7 +65,7 @@ export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = 
             <button
               type="button"
               className={`provider-pill ${provider === 'mal' ? 'provider-pill--active' : ''}`}
-              onClick={() => setProvider('mal')}
+              onClick={() => handleProviderChange('mal')}
               disabled={isLoading}
             >
               {t('providers.mal')}
@@ -67,6 +75,7 @@ export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = 
             {t('login.usernameLabel', { provider: providerLabel })}
           </label>
           <input
+            ref={inputRef}
             id="username-input"
             className={`login-input ${error ? 'login-input--error' : ''}`}
             type="text"
