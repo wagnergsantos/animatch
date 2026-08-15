@@ -40,7 +40,8 @@
   },
   "providers": {
     "anilist": "AniList",
-    "kitsu": "Kitsu"
+    "kitsu": "Kitsu",
+    "mal": "MyAnimeList"
   },
   "dub": {
     "nenhuma": "Nenhuma",

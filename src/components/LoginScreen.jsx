@@ -26,7 +26,7 @@ export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = 
     }
   }
 
-  const providerLabel = provider === 'anilist' ? t('providers.anilist') : t('providers.kitsu')
+  const providerLabel = t(`providers.${provider}`, provider)
 
   return (
     <div className="login-screen">
@@ -53,6 +53,14 @@ export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = 
               disabled={isLoading}
             >
               {t('providers.kitsu')}
+            </button>
+            <button
+              type="button"
+              className={`provider-pill ${provider === 'mal' ? 'provider-pill--active' : ''}`}
+              onClick={() => setProvider('mal')}
+              disabled={isLoading}
+            >
+              {t('providers.mal')}
             </button>
           </div>
           <label htmlFor="username-input" className="login-label">
@@ -100,7 +108,7 @@ export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = 
               {recentUsers.map((item) => {
                 const uName = typeof item === 'string' ? item : item.username
                 const uProv = typeof item === 'string' ? 'anilist' : item.provider
-                const provLabel = uProv === 'kitsu' ? t('providers.kitsu') : t('providers.anilist')
+                const provLabel = t(`providers.${uProv}`, uProv)
                 return (
                   <button
                     key={`${uName}-${uProv}`}

@@ -104,7 +104,7 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: /gerar recomendações/i }))
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent("Adicione animes à sua lista 'Planning' no AniList")
+      expect(screen.getByRole('alert')).toHaveTextContent("Adicione animes à sua lista 'Plan to Watch' no AniList")
     })
   })
   it('calls fetchAllLists with forceRefresh: true when handleRefresh is triggered', async () => {

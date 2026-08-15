@@ -36,7 +36,7 @@ export default function App() {
     const params = new URLSearchParams(window.location.search)
     const urlUser = params.get('user')
     const urlProvider = params.get('provider')
-    const validProviders = ['anilist', 'kitsu']
+    const validProviders = ['anilist', 'kitsu', 'mal']
 
     if (urlUser) {
       if (urlProvider && validProviders.includes(urlProvider.toLowerCase())) {
@@ -79,8 +79,9 @@ export default function App() {
 
       const planning = entries.filter((e) => e.status === 'PLANNING')
       if (planning.length === 0) {
-        const providerName = inputProvider === 'kitsu' ? 'Kitsu' : 'AniList';
-        setError(`Adicione animes à sua lista 'Planning' no ${providerName}.`)
+        const providerNames = { anilist: 'AniList', kitsu: 'Kitsu', mal: 'MyAnimeList' }
+        const providerName = providerNames[inputProvider] ?? inputProvider
+        setError(`Adicione animes à sua lista 'Plan to Watch' no ${providerName}.`)
         setIsLoading(false)
         return
       }
