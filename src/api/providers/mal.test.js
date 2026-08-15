@@ -48,12 +48,15 @@ describe('malFetchAll', () => {
     supabaseClient.functions.invoke
       .mockResolvedValueOnce({ data: { data: mockEntries.filter(e => e.status === 'COMPLETED') }, error: null })
       .mockResolvedValueOnce({ data: { data: mockEntries.filter(e => e.status === 'PLANNING') }, error: null })
+      .mockResolvedValueOnce({ data: { data: [] }, error: null })
+      .mockResolvedValueOnce({ data: { data: [] }, error: null })
+      .mockResolvedValueOnce({ data: { data: [] }, error: null })
 
     const result = await malFetchAll('testuser')
 
     expect(result).toHaveLength(2)
     expect(result[0].media.provider).toBe('mal')
-    expect(supabaseClient.functions.invoke).toHaveBeenCalledTimes(2)
+    expect(supabaseClient.functions.invoke).toHaveBeenCalledTimes(5)
   })
 
   it('retorna cache quando TTL não expirou', async () => {
@@ -80,6 +83,9 @@ describe('malFetchAll', () => {
     supabaseClient.functions.invoke
       .mockResolvedValueOnce({ data: { data: fresh.slice(0, 1) }, error: null })
       .mockResolvedValueOnce({ data: { data: [] }, error: null })
+      .mockResolvedValueOnce({ data: { data: [] }, error: null })
+      .mockResolvedValueOnce({ data: { data: [] }, error: null })
+      .mockResolvedValueOnce({ data: { data: [] }, error: null })
 
     const result = await malFetchAll('testuser')
     expect(result).toHaveLength(1)
@@ -94,6 +100,9 @@ describe('malFetchAll', () => {
     )
 
     supabaseClient.functions.invoke
+      .mockResolvedValueOnce({ data: { data: [] }, error: null })
+      .mockResolvedValueOnce({ data: { data: [] }, error: null })
+      .mockResolvedValueOnce({ data: { data: [] }, error: null })
       .mockResolvedValueOnce({ data: { data: [] }, error: null })
       .mockResolvedValueOnce({ data: { data: [] }, error: null })
 
@@ -123,6 +132,9 @@ describe('malFetchAll', () => {
     const dup = [makeEntry(), makeEntry()] // mesmo id=1
     supabaseClient.functions.invoke
       .mockResolvedValueOnce({ data: { data: dup }, error: null })
+      .mockResolvedValueOnce({ data: { data: [] }, error: null })
+      .mockResolvedValueOnce({ data: { data: [] }, error: null })
+      .mockResolvedValueOnce({ data: { data: [] }, error: null })
       .mockResolvedValueOnce({ data: { data: [] }, error: null })
 
     const result = await malFetchAll('testuser')

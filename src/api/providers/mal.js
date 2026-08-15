@@ -40,13 +40,16 @@ export async function malFetchAll(username, options = {}) {
     }
   }
 
-  // Busca completed e plan_to_watch em paralelo
-  const [completedEntries, planningEntries] = await Promise.all([
+  // Busca todos os status em paralelo
+  const [completedEntries, planningEntries, watchingEntries, onHoldEntries, droppedEntries] = await Promise.all([
     invokeProxy(username, 'completed'),
     invokeProxy(username, 'plan_to_watch'),
+    invokeProxy(username, 'watching'),
+    invokeProxy(username, 'on_hold'),
+    invokeProxy(username, 'dropped'),
   ])
 
-  const all = [...completedEntries, ...planningEntries]
+  const all = [...completedEntries, ...planningEntries, ...watchingEntries, ...onHoldEntries, ...droppedEntries]
 
   // Deduplicar por media.id
   const seen = new Set()
