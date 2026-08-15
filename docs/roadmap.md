@@ -28,6 +28,14 @@
 - Include de categorias/gêneros em única paginação
 - Normalização para formato padrão AniList
 
+### MAL — MyAnimeList como 3º provider (2026-08-14)
+- Provedor MAL integrado via MAL API v2 oficial
+- Supabase Edge Function (`mal-proxy`) atuando como proxy seguro do `client_id` (sem expor no bundle)
+- Suporte a todos os status (`completed`, `plan_to_watch`, `watching`, `on_hold`, `dropped`) buscados em paralelo com cache no cliente (5 min)
+- Suporte a títulos em Inglês e Romaji (via `alternative_titles`)
+- Pill seletor no `LoginScreen`, suporte no `App.jsx` e URLs compartilháveis (`?user=x&provider=mal`)
+- Suíte de testes unitários dedicada (`mal.test.js`)
+
 ### Estatísticas (parcial)
 - `logic/analytics.js`: `computeBayesianGenreStats`, `computeOverviewStats`
 - `StatisticsView`, `GenreBarChart`, `MetricsSummary`
@@ -37,21 +45,10 @@
 
 ## 🚧 Em andamento / Próximas features
 
-### [ATUAL] MAL — MyAnimeList como 3º provider
-Spec detalhada em: `docs/superpowers/specs/` (a criar)
-
-**Abordagem:** MAL API v2 oficial com `X-MAL-CLIENT-ID` (client_id próprio, sem OAuth do usuário)
-**Vantagem vs Jikan:** `?fields=list_status,genres` retorna gêneros na mesma call — zero requests extras, igual a AniList
-
-**Por que Supabase aqui:** `VITE_` vars ficam expostas no bundle Vite (visíveis no source do browser). O `client_id` do MAL fica guardado como secret no Supabase; uma **Edge Function** faz proxy das chamadas MAL — o app nunca vê o client_id. Essa é a única configuração Supabase nesta fase — **sem auth, sem tabelas, sem login**.
-
-**Infra desta fase:**
-- Criar projeto Supabase (free tier)
-- Supabase secret: `MAL_CLIENT_ID` (registrar app em myanimelist.net/apiconfig)
-- Edge Function: `mal-proxy` — recebe `(username, status)`, chama MAL API, devolve JSON normalizado
-- `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` no `.env.local` e GitHub Secrets (anon key é pública por design)
-
-**Status:** Design aprovado, aguardando spec + plano de implementação
+### Fix de Bugs Emergenciais (B1, B2, B3)
+- B1: Mover `useMemo` antes de retornos condicionais (`RecommendationGrid.jsx`)
+- B2: Checagem `!= null` para notas 0 nos cards (`AnimeCard.jsx`)
+- B3: Ajustar parâmetro `forceRefresh` na UI e APIs
 
 ---
 
@@ -147,8 +144,8 @@ src/
 ## Checklist geral
 - [x] i18n (pt-BR / en / ja)
 - [x] Provider Kitsu
+- [x] **MAL como provider (MAL API v2 + Supabase Edge Function)**
 - [x] Estatísticas básicas
-- [ ] **MAL como provider (MAL API v2)**
 - [x] ⚠️ **Remover feature de Dublagem**
 - [ ] Fix B1/B2/B3
 - [ ] Login Supabase + sync de settings
