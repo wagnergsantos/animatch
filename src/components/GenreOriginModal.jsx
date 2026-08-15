@@ -80,7 +80,8 @@ export default function GenreOriginModal({ genre, stats, onClose, onFilterGenre 
         <div className="genre-origin-modal__list">
           {sourceAnimes.map((anime) => {
             const siteUrl = anime.siteUrl || (anime.id ? `https://anilist.co/anime/${anime.id}` : '#')
-            const providerLabel = anime.provider === 'kitsu' ? 'Kitsu' : 'AniList'
+            const animeProvider = anime.provider || 'anilist'
+            const providerLabel = t(`providers.${animeProvider}`, animeProvider === 'mal' ? 'MyAnimeList' : animeProvider === 'kitsu' ? 'Kitsu' : 'AniList')
 
             return (
               <a

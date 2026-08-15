@@ -137,7 +137,7 @@
   "recommendationGrid": {
     "calculating": "おすすめを計算中...",
     "none": "現在おすすめはありません",
-    "planToWatchPrompt": "AniList の「Plan to Watch」リストにアニメを追加してください！",
+    "planToWatchPrompt": "{{provider}} の「Plan to Watch」リストにアニメを追加してください！",
     "header": "おすすめ — 今見るべき作品 ({{count}})",
     "ignoreDub": "吹替ボーナスを無視",
     "onlyFavoriteDub": "お気に入りの吹替のみ表示"
@@ -154,7 +154,7 @@
     "genreRecommendation": {
       "title": "{{genre}} のおすすめ",
       "none": "あなたの 'Planning' リストに {{genre}} ジャンルのアニメはありません。",
-      "prompt": "AniList にアニメを追加するとここにおすすめが表示されます。"
+      "prompt": "{{provider}} にアニメを追加するとここにおすすめが表示されます。"
     }
   },
   "tasteProfile": {

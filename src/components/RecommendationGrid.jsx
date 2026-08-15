@@ -122,11 +122,13 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
     )
   }
 
+  const providerLabel = t(`providers.${provider}`, provider === 'mal' ? 'MyAnimeList' : provider === 'kitsu' ? 'Kitsu' : 'AniList')
+
   if (!recommendations || recommendations.length === 0) {
     return (
       <section className="recommendation-grid">
         <h2 className="recommendation-grid__title">{t('recommendationGrid.none')}</h2>
-        <p>{t('recommendationGrid.planToWatchPrompt')}</p>
+        <p>{t('recommendationGrid.planToWatchPrompt', { provider: providerLabel })}</p>
       </section>
     )
   }

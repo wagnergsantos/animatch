@@ -150,7 +150,7 @@ export default function Dashboard({ allEntries = [], username, provider = 'anili
     gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
-  const providerLabel = provider === 'kitsu' ? t('providers.kitsu') : t('providers.anilist')
+  const providerLabel = t(`providers.${provider}`, provider === 'mal' ? 'MyAnimeList' : provider === 'kitsu' ? 'Kitsu' : 'AniList')
 
   const handleShare = () => {
     if (typeof window !== 'undefined' && navigator.clipboard) {
@@ -265,6 +265,7 @@ export default function Dashboard({ allEntries = [], username, provider = 'anili
         genre={modalGenre}
         planningEntries={planningEntries}
         tasteProfile={tasteProfile}
+        provider={provider}
         onClose={() => setModalGenre(null)}
       />
     </div>

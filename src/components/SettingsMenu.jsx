@@ -99,7 +99,7 @@ export default function SettingsMenu({
     }
   }, [isOpen])
 
-  const providerLabel = provider === 'kitsu' ? t('providers.kitsu') : t('providers.anilist')
+  const providerLabel = t(`providers.${provider}`, provider === 'mal' ? 'MyAnimeList' : provider === 'kitsu' ? 'Kitsu' : 'AniList')
 
   return (
     <div className="settings-menu" ref={containerRef}>

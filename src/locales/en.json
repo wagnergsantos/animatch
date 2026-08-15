@@ -140,7 +140,7 @@
   "recommendationGrid": {
     "calculating": "Calculating your recommendations...",
     "none": "No recommendations at the moment",
-    "planToWatchPrompt": "Add more anime to your \"Plan to Watch\" list on AniList!",
+    "planToWatchPrompt": "Add more anime to your \"Plan to Watch\" list on {{provider}}!",
     "header": "Recommendations — What to watch now ({{count}})",
     "ignoreDub": "Ignore dub bonus",
     "onlyFavoriteDub": "Show only with my favorite dub"
@@ -157,7 +157,7 @@
     "genreRecommendation": {
       "title": "Genre Recommendations: {{genre}}",
       "none": "No anime in your 'Planning' list with the genre {{genre}}.",
-      "prompt": "Add more anime to your AniList to see recommendations here."
+      "prompt": "Add more anime to your {{provider}} to see recommendations here."
     }
   }
 }

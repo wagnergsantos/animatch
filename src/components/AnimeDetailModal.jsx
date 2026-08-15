@@ -20,7 +20,8 @@ export default function AnimeDetailModal({ anime, hasDub, dubLanguage = 'pt-br',
   const title = anime?.title || t('labels.untitled')
   const siteUrl = anime?.siteUrl || (anime?.id ? `https://anilist.co/anime/${anime.id}` : '#')
   const genres = anime?.genres ?? []
-  const providerLabel = anime?.provider === 'kitsu' ? t('providers.kitsu') : t('providers.anilist')
+  const providerKey = anime?.provider || 'anilist'
+  const providerLabel = t(`providers.${providerKey}`, providerKey === 'mal' ? 'MyAnimeList' : providerKey === 'kitsu' ? 'Kitsu' : 'AniList')
   
   const streamingLinks = []
   const seenSites = new Set()

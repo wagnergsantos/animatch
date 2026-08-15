@@ -140,7 +140,7 @@
   "recommendationGrid": {
     "calculating": "Calculando suas Recomendações...",
     "none": "Sem recomendações no momento",
-    "planToWatchPrompt": "Adicione mais animes na sua lista \"Plan to Watch\" no AniList!",
+    "planToWatchPrompt": "Adicione mais animes na sua lista \"Plan to Watch\" no {{provider}}!",
     "header": "Recomendações — O Que Assistir Agora ({{count}})",
     "ignoreDub": "Ignorar bônus de dublagem",
     "onlyFavoriteDub": "Mostrar somente com minha dublagem favorita"
@@ -157,7 +157,7 @@
     "genreRecommendation": {
       "title": "Recomendações do Gênero: {{genre}}",
       "none": "Nenhum anime na sua lista 'Planning' possui o gênero {{genre}}.",
-      "prompt": "Adicione mais animes à sua lista no AniList para ver recomendações aqui."
+      "prompt": "Adicione mais animes à sua lista no {{provider}} para ver recomendações aqui."
     }
   }
 }
