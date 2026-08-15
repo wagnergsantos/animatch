@@ -81,6 +81,7 @@ describe('RecommendationGrid', () => {
       expect(titles).toEqual(['HasYear', 'NoYear'])
     })
   })
+})
 
 
 
