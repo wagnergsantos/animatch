@@ -33,8 +33,9 @@ describe('FilterBar', () => {
     })
     expect(onSearchChange).toHaveBeenCalledWith('Frieren')
 
-    // Test genre button click
-    fireEvent.click(screen.getByText('Ação'))
+    // Test genre select change
+    const genreSelect = screen.getByDisplayValue('Todos os Gêneros')
+    fireEvent.change(genreSelect, { target: { value: 'Action' } })
     expect(onSelectGenre).toHaveBeenCalledWith('Action')
 
     // Test export click
@@ -56,7 +57,8 @@ describe('FilterBar', () => {
     expect(screen.getByText('Psychological')).toBeInTheDocument()
     expect(screen.queryByText('Ação')).not.toBeInTheDocument()
 
-    fireEvent.click(screen.getByText('Mecha'))
+    const genreSelect = screen.getByDisplayValue('Todos os Gêneros')
+    fireEvent.change(genreSelect, { target: { value: 'Mecha' } })
     expect(onSelectGenre).toHaveBeenCalledWith('Mecha')
   })
 
@@ -113,7 +115,7 @@ describe('FilterBar', () => {
     expect(handleSeasonChange).toHaveBeenCalledWith(true)
   })
 
-  it('renders genre buttons with counts when provided as objects', () => {
+  it('renders genre select options with counts when provided as objects', () => {
     const genres = [
       { name: 'Action', count: 5 },
       { name: 'Comedy', count: 3 },
@@ -128,9 +130,8 @@ describe('FilterBar', () => {
       />
     )
 
-    expect(screen.getByRole('button', { name: 'Todos os Gêneros (8)' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Action (5)' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Comedy (3)' })).toBeInTheDocument()
+    expect(screen.getByText('Todos os Gêneros (8)')).toBeInTheDocument()
+    expect(screen.getByText('Action (5)')).toBeInTheDocument()
+    expect(screen.getByText('Comedy (3)')).toBeInTheDocument()
   })
 })
-

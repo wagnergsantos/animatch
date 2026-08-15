@@ -172,8 +172,8 @@ describe('Dashboard', () => {
       />
     )
 
-    expect(screen.getByRole('button', { name: /Cyberpunk/ })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Mecha/ })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: /Cyberpunk/ })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: /Mecha/ })).toBeInTheDocument()
   })
 
   it('renders filter bar genres with planning counts', () => {
@@ -185,10 +185,10 @@ describe('Dashboard', () => {
 
     render(<Dashboard allEntries={mockEntries} username="testuser" />)
 
-    expect(screen.getByRole('button', { name: /Todos os Gêneros \(2\)/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Action \(2\)/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Comedy \(1\)/i })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /Drama/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('option', { name: /Todos os Gêneros \(2\)/i })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: /Action \(2\)/i })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: /Comedy \(1\)/i })).toBeInTheDocument()
+    expect(screen.queryByRole('option', { name: /Drama/i })).not.toBeInTheDocument()
   })
 
   it('filters recommendations by selected year including NONE', async () => {

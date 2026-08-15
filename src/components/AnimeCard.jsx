@@ -129,35 +129,23 @@ export default function AnimeCard({ anime, titlePref = 'english', onCardClick })
             </p>
           )}
 
-          {streamingLinks.length > 0 && (
-            <div className="anime-card__streaming">
-              <span className="anime-card__streaming-label">{t('labels.whereToWatch')}</span>
-              <div className="anime-card__streaming-links">
-                {streamingLinks.map(link => (
-                  <a
-                    key={link.site}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="anime-card__streaming-link"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {link.site}
-                  </a>
-                ))}
-              </div>
+          {genres.length > 0 && (
+            <div className="anime-card__genres">
+              {genres.slice(0, 3).map((genre) => (
+                <span
+                  key={genre}
+                  className="anime-card__genre-pill"
+                >
+                  {genre}
+                </span>
+              ))}
+              {genres.length > 3 && (
+                <span className="anime-card__genre-pill anime-card__genre-pill--more">
+                  +{genres.length - 3}
+                </span>
+              )}
             </div>
           )}
-          <div className="anime-card__genres">
-            {genres.map((genre) => (
-              <span
-                key={genre}
-                className="anime-card__genre-pill"
-              >
-                {genre}
-              </span>
-            ))}
-          </div>
         </div>
       </article>
 

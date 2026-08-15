@@ -1,21 +1,26 @@
 # Roadmap & Avaliação — AniMatch
 
 > **Projeto:** AniMatch ([wagnergsantos/animatch](https://github.com/wagnergsantos/animatch/))
-> **Última atualização:** 14/08/2026
+> **Última atualização:** 15/08/2026
 
 ---
 
 ## 🛑 Bugs identificados
 
-| # | Bug | Impacto | Local | Solução |
-|---|---|---|---|---|
-| **B1** | Hook condicional (`useMemo` após return condicional) | Alto | `RecommendationGrid.jsx` | Mover `useMemo` antes de retornos condicionais |
-| **B2** | Nota 0 invisível nos cards | Médio | `AnimeCard.jsx` | Usar checagem `!= null` para scores |
-| **B3** | `forceRefresh` parâmetro órfão | Médio | `anilist.js` / UI | Botão "Atualizar Lista" que chama com `{ forceRefresh: true }` |
+*Nenhum bug crítico pendente no momento.*
 
 ---
 
 ## ✅ Concluído
+
+### Destilação da Interface — /impeccable distill (2026-08-15)
+- **Cards de Anime (`AnimeCard.jsx`)**: Removida poluição visual de links repetitivos de streaming da capa (disponíveis no modal de detalhes) e limitação de exibição a no máximo 3 gêneros principais com indicador visual (`+N`).
+- **FilterBar (`FilterBar.jsx`)**: Substituída a grande quantidade de pílulas/botões empilhadas por um seletor `<select>` unificado na barra de controle superior, aumentando a área útil visível das recomendações.
+
+### Fix de Bugs Emergenciais (2026-08-15)
+- **B1**: `useMemo` reposicionado antes de retornos condicionais em `RecommendationGrid.jsx`
+- **B2**: Exibição de nota 0 corrigida nos cards (`AnimeCard.jsx`) e export CSV (`Dashboard.jsx`) com validação `!= null`
+- **B3**: Suporte total e integração do parâmetro `forceRefresh` via botão "Atualizar Lista" (`SettingsMenu.jsx`, `App.jsx`, `anilist.js`, `kitsu.js`, `mal.js`)
 
 ### i18n — Fase 1 (2026-08-04)
 - Scaffold `src/i18n.js` com react-i18next
@@ -44,15 +49,6 @@
 ---
 
 ## 🚧 Em andamento / Próximas features
-
-### Fix de Bugs Emergenciais (B1, B2, B3)
-- B1: Mover `useMemo` antes de retornos condicionais (`RecommendationGrid.jsx`)
-- B2: Checagem `!= null` para notas 0 nos cards (`AnimeCard.jsx`)
-- B3: Ajustar parâmetro `forceRefresh` na UI e APIs
-
----
-
-## 📋 Backlog
 
 ### Login Animatch + Sync de Configurações (Supabase — Fase 2)
 
@@ -147,7 +143,8 @@ src/
 - [x] **MAL como provider (MAL API v2 + Supabase Edge Function)**
 - [x] Estatísticas básicas
 - [x] ⚠️ **Remover feature de Dublagem**
-- [ ] Fix B1/B2/B3
+- [x] Fix B1/B2/B3
+- [x] **Destilação da Interface (Cards & FilterBar)**
 - [ ] Login Supabase + sync de settings
 - [ ] OpenTelemetry browser
 - [ ] GitHub Actions CI

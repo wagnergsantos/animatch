@@ -93,6 +93,19 @@ export default function FilterBar({
             onChange={(e) => onSearchChange && onSearchChange(e.target.value)}
           />
 
+          <select
+            className="filter-select filter-select--genre"
+            value={selectedGenre}
+            onChange={(e) => onSelectGenre && onSelectGenre(e.target.value)}
+            aria-label={t('filter.allGenres')}
+          >
+            {genresToRender.map((genre) => (
+              <option key={genre.id} value={genre.id}>
+                {genre.label}
+              </option>
+            ))}
+          </select>
+
           {onSelectFormat && (
             <select
               className="filter-select"
@@ -165,18 +178,6 @@ export default function FilterBar({
             📥 {t('filter.exportCSV')}
           </button>
         )}
-      </div>
-
-      <div className="filter-bar">
-        {genresToRender.map((genre) => (
-          <button
-            key={genre.id}
-            className={`filter-bar__btn ${selectedGenre === genre.id ? 'filter-bar__btn--active' : ''}`}
-            onClick={() => onSelectGenre && onSelectGenre(genre.id)}
-          >
-            {genre.label}
-          </button>
-        ))}
       </div>
     </div>
   )

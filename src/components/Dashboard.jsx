@@ -15,9 +15,9 @@ function exportRecommendationsToCSV(recommendations, t, prefix) {
 
   const headers = [t('labels.title'), t('labels.predictedScore'), t('labels.community'), t('labels.format'), t('labels.year'), t('labels.genres')]
   const rows = recommendations.map((r) => [
-    `"${(r.title || '').replace(/"/g, '""')}")`,
-    r.predictedScore ? r.predictedScore.toFixed(1) : 'N/A',
-    r.communityScore || 'N/A',
+    `"${(r.title || '').replace(/"/g, '""')}"`,
+    r.predictedScore != null ? r.predictedScore.toFixed(1) : 'N/A',
+    r.communityScore != null ? r.communityScore : 'N/A',
     r.format || 'N/A',
     r.year || 'N/A',
     `"${(r.genres || []).join(' | ')}"`,
