@@ -15,12 +15,19 @@ const mockEntries = [
 
 describe('Dashboard', () => {
 
-  it('renders the provider badge correctly', () => {
+  it('renders the provider badge and profile link correctly', () => {
     render(<Dashboard username="testuser" provider="kitsu" />)
-    expect(screen.getByText('(Kitsu)')).toBeInTheDocument()
-    
+    const kitsuLink = screen.getByRole('link', { name: /testuser \(Kitsu\)/i })
+    expect(kitsuLink).toHaveAttribute('href', 'https://kitsu.app/users/testuser')
+    expect(kitsuLink).toHaveAttribute('target', '_blank')
+
     render(<Dashboard username="testuser2" provider="anilist" />)
-    expect(screen.getByText('(AniList)')).toBeInTheDocument()
+    const anilistLink = screen.getByRole('link', { name: /testuser2 \(AniList\)/i })
+    expect(anilistLink).toHaveAttribute('href', 'https://anilist.co/user/testuser2')
+
+    render(<Dashboard username="testuser3" provider="mal" />)
+    const malLink = screen.getByRole('link', { name: /testuser3 \(MyAnimeList\)/i })
+    expect(malLink).toHaveAttribute('href', 'https://myanimelist.net/profile/testuser3')
   })
 
 

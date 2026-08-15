@@ -39,6 +39,17 @@
   gap: 2rem;
 }
 
+.dashboard__username-link {
+  text-decoration: none;
+  color: inherit;
+  transition: opacity 0.2s;
+}
+
+.dashboard__username-link:hover {
+  text-decoration: underline;
+  opacity: 0.85;
+}
+
 .dashboard__username {
   font-size: var(--text-md);
   font-weight: 600;

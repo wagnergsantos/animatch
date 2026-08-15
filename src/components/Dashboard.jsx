@@ -151,6 +151,11 @@ export default function Dashboard({
   }
 
   const providerLabel = t(`providers.${provider}`, provider === 'mal' ? 'MyAnimeList' : provider === 'kitsu' ? 'Kitsu' : 'AniList')
+  const providerProfileUrl = provider === 'kitsu'
+    ? `https://kitsu.app/users/${username}`
+    : provider === 'mal'
+    ? `https://myanimelist.net/profile/${username}`
+    : `https://anilist.co/user/${username}`
 
   const handleShare = () => {
     if (typeof window !== 'undefined' && navigator.clipboard) {
@@ -167,7 +172,15 @@ export default function Dashboard({
     <div className="dashboard">
       <header className="dashboard__header">
         <div className="dashboard__header-left">
-          <span className="dashboard__username">{username} <span className="dashboard__provider-badge">({providerLabel})</span></span>
+          <a
+            href={providerProfileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="dashboard__username-link"
+            title={`Abrir perfil no ${providerLabel}`}
+          >
+            <span className="dashboard__username">{username} <span className="dashboard__provider-badge">({providerLabel})</span></span>
+          </a>
           <nav className="dashboard__nav">
             <button
               className={activeTab === 'recommendations' ? 'active' : ''}
