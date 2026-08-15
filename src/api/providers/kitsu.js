@@ -1,8 +1,6 @@
 const KITSU_API = 'https://kitsu.io/api/edge'
 const KITSU_CACHE_PREFIX = 'animatch_kitsu_cache_'
 const KITSU_CACHE_TTL = 5 * 60 * 1000 // 5 minutes
-export const KITSU_CACHE_KEY_DUB = 'animatch_kitsu_dub_cache_v1'
-const KITSU_CACHE_DUB_TTL = 24 * 60 * 60 * 1000 // 24 hours
 
 const KITSU_HEADERS = {
   'Accept': 'application/vnd.api+json',
@@ -36,12 +34,6 @@ const FORMAT_MAP = {
   special: 'SPECIAL',
   music: 'OTHER',
 }
-
-export const DUB_LANGUAGE_MAP = {
-  'pt-br': 'Portuguese',
-  'en': 'English'
-}
-
 const CANONICAL_GENRES = new Set([
   'Action', 'Adventure', 'Comedy', 'Drama', 'Ecchi', 'Fantasy', 'Horror', 'Mahou Shoujo', 'Mecha', 'Music', 'Mystery', 'Psychological', 'Romance', 'Sci-Fi', 'Slice of Life', 'Sports', 'Supernatural', 'Thriller'
 ])
@@ -205,76 +197,3 @@ export async function kitsuFetchAll(username, options = {}) {
   }
 }
 
-export async function kitsuFetchDubInfo(mediaIds, language = 'pt-br') {
-  let cache = {}
-  try {
-    const cachedStr = localStorage.getItem(KITSU_CACHE_KEY_DUB)
-    if (cachedStr) {
-      const parsed = JSON.parse(cachedStr)
-      if (Date.now() - parsed.timestamp < KITSU_CACHE_DUB_TTL) {
-        cache = parsed.data || {}
-      }
-    }
-  } catch(e) {}
-
-  const result = new Map()
-  const toFetch = []
-  
-  for (const id of mediaIds) {
-    const langCache = cache[language] || {}
-    if (langCache[id] !== undefined) {
-      result.set(id, langCache[id])
-    } else {
-      toFetch.push(id)
-    }
-  }
-  
-  if (toFetch.length === 0) return result
-
-  const languageValue = DUB_LANGUAGE_MAP[language] || 'Portuguese'
-
-  await Promise.all(toFetch.map(async (id) => {
-    try {
-      // Busca castings do anime com limite 20 para checar vozes/dublagens registradas
-      const res = await fetch(`${KITSU_API}/castings?filter[media_id]=${id}&filter[media_type]=Anime&include=person&page[limit]=20`, {
-        headers: KITSU_HEADERS
-      })
-      if (!res.ok) return
-      
-      const data = await res.json()
-      const langLower = language.toLowerCase()
-      
-      // Checa se algum casting bate com o idioma pesquisado (ex: Portuguese, pt-br, English, etc.)
-      const hasDub = Boolean(
-        data.data && data.data.some(casting => {
-          const castLang = (casting.attributes?.language || '').toLowerCase()
-          const role = (casting.attributes?.role || '').toLowerCase()
-          if (langLower === 'pt-br') {
-            return castLang.includes('portuguese') || castLang.includes('pt') || castLang.includes('brazil')
-          }
-          if (langLower === 'en') {
-            return castLang.includes('english') || castLang.includes('en')
-          }
-          return castLang.includes(langLower) || role.includes(langLower)
-        })
-      )
-
-      result.set(id, hasDub)
-      
-      if (!cache[language]) cache[language] = {}
-      cache[language][id] = hasDub
-      
-    } catch (e) {
-      // Ignora falhas de dublagem individuais
-    }
-  }))
-  
-  try {
-    localStorage.setItem(KITSU_CACHE_KEY_DUB, JSON.stringify({
-      timestamp: Date.now(),
-      data: cache
-    }))
-  } catch(e) {}
-
-  return result
-}

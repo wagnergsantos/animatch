@@ -1,5 +1,5 @@
-import { fetchAllLists as anilistFetchAll, fetchDubInfo as anilistFetchDub, clearUserCache as anilistClearCache } from "./providers/anilist.js"
-import { kitsuFetchAll, kitsuFetchDubInfo, clearKitsuCache } from './providers/kitsu.js'
+import { fetchAllLists as anilistFetchAll, clearUserCache as anilistClearCache } from "./providers/anilist.js"
+import { kitsuFetchAll, clearKitsuCache } from './providers/kitsu.js'
 import { malFetchAll, clearMalCache } from './providers/mal.js'
 
 const SUPPORTED_PROVIDERS = ["anilist", "kitsu", "mal"]
@@ -22,17 +22,6 @@ export async function fetchUserEntries(username, provider = "anilist", options =
   throw new Error(`Provedor "${provider}" ainda não foi implementado.`)
 }
 
-export async function fetchDubInfo(mediaIds, language = "pt-br", provider = "anilist") {
-  if (provider === "anilist") {
-    return anilistFetchDub(mediaIds, language)
-  }
-  if (provider === 'kitsu') {
-    return kitsuFetchDubInfo(mediaIds, language)
-  }
-
-  return new Map()
-}
-
 export function clearProviderCache(username, provider = "anilist") {
   if (provider === "anilist") {
     anilistClearCache(username)
@@ -45,4 +34,3 @@ export function clearProviderCache(username, provider = "anilist") {
   }
 }
 
-export { DUB_LANGUAGE_MAP } from "./providers/anilist.js"

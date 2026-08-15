@@ -9,7 +9,7 @@ beforeEach(() => {
 })
 
 // Importar após setup do mock
-import { kitsuFetchAll, kitsuFetchDubInfo, clearKitsuCache, KITSU_CACHE_KEY_DUB } from './kitsu.js'
+import { kitsuFetchAll, clearKitsuCache } from './kitsu.js'
 
 describe('kitsuFetchAll', () => {
   it('throws when user is not found on Kitsu', async () => {
@@ -256,34 +256,3 @@ describe('clearKitsuCache', () => {
   })
 })
 
-describe('kitsuFetchDubInfo', () => {
-    it('returns dub info and caches it', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve({ data: [{ id: '1', attributes: { language: 'Portuguese' } }] })
-    })
-
-    const result = await kitsuFetchDubInfo([999], 'pt-br')
-    
-    // VERIFY EXACT URL
-    expect(mockFetch).toHaveBeenCalledWith(
-      'https://kitsu.io/api/edge/castings?filter[media_id]=999&filter[media_type]=Anime&include=person&page[limit]=20',
-      expect.anything()
-    )
-    
-    expect(result.get(999)).toBe(true)
-    
-    const cached = JSON.parse(localStorage.getItem(KITSU_CACHE_KEY_DUB))
-    expect(cached.data['pt-br']['999']).toBe(true)
-  })
-
-  it('handles missing dubs', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve({ data: [] })
-    })
-
-    const result = await kitsuFetchDubInfo([888], 'en')
-    expect(result.get(888)).toBe(false)
-  })
-})

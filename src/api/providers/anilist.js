@@ -2,19 +2,6 @@ const _DEV = (typeof import.meta !== 'undefined' && import.meta.env && import.me
 const ANILIST_API = _DEV ? '/anilist-api' : 'https://graphql.anilist.co'
 const CACHE_KEY_PREFIX = 'animatch_cache_'
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutos em ms
-export const CACHE_KEY_DUB = 'animatch_dub_cache_v2'
-export const CACHE_DUB_TTL = 24 * 60 * 60 * 1000 // 24 horas em ms
-
-export const DUB_LANGUAGE_MAP = {
-  'pt-br': 'Portuguese',
-  'en': 'English',
-  'ja': 'Japanese',
-  'es': 'Spanish',
-  'de': 'German',
-  'ko': 'Korean',
-  'fr': 'French',
-  'it': 'Italian',
-}
 
 const COMPLETED_QUERY = `
 query ($userName: String) {
@@ -237,89 +224,3 @@ export function clearUserCache(userName) {
   }
 }
 
-const DUB_QUERY = `
-query ($idIn: [Int]) {
-  Page(page: 1, perPage: 50) {
-    media(id_in: $idIn) {
-      id
-      characters(sort: ROLE, perPage: 15) {
-        edges {
-          node { id }
-          voiceActors {
-            languageV2
-          }
-        }
-      }
-    }
-  }
-}
-`
-
-export async function fetchDubInfo(mediaIds, language = 'pt-br') {
-  if (!mediaIds || mediaIds.length === 0) return new Map()
-
-  const languageV2Value = DUB_LANGUAGE_MAP[language]
-  if (!languageV2Value) return new Map()
-
-  const dubMap = new Map()
-  let cacheByLanguage = {}
-  let cachedDubs = {}
-
-  if (typeof window !== 'undefined' && window.localStorage) {
-    try {
-      const cached = window.localStorage.getItem(CACHE_KEY_DUB)
-      if (cached) {
-        cacheByLanguage = JSON.parse(cached) || {}
-        const entry = cacheByLanguage[language]
-        if (entry && Date.now() - entry.timestamp < CACHE_DUB_TTL && entry.dubs) {
-          cachedDubs = entry.dubs
-        }
-      }
-    } catch (e) {
-      // Ignore cache read error
-    }
-  }
-
-  const missingIds = []
-  for (const id of mediaIds) {
-    if (id in cachedDubs) {
-      dubMap.set(id, cachedDubs[id])
-    } else {
-      missingIds.push(id)
-    }
-  }
-
-  if (missingIds.length === 0) {
-    return dubMap
-  }
-
-  try {
-    const data = await queryAniList(DUB_QUERY, { idIn: missingIds })
-    const mediaList = data?.Page?.media ?? []
-
-    for (const media of mediaList) {
-      const chars = media?.characters?.edges ?? []
-      const hasDub = chars.some(
-        (char) => char?.voiceActors && char.voiceActors.some((va) => va?.languageV2 === languageV2Value)
-      )
-      dubMap.set(media.id, hasDub)
-      cachedDubs[media.id] = hasDub
-    }
-
-    if (typeof window !== 'undefined' && window.localStorage) {
-      try {
-        cacheByLanguage[language] = {
-          timestamp: Date.now(),
-          dubs: cachedDubs,
-        }
-        window.localStorage.setItem(CACHE_KEY_DUB, JSON.stringify(cacheByLanguage))
-      } catch (e) {
-        // Ignore cache write error
-      }
-    }
-  } catch (err) {
-    console.error('Failed to fetch dub info', err)
-  }
-
-  return dubMap
-}

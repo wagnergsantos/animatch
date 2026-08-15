@@ -3,25 +3,15 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 // Mock do adaptador AniList
 vi.mock("./providers/anilist.js", () => ({
   fetchAllLists: vi.fn(),
-  fetchDubInfo: vi.fn(),
   clearUserCache: vi.fn(),
-  DUB_LANGUAGE_MAP: {
-    "pt-br": "Portuguese",
-    "en": "English",
-  },
 }))
 
 vi.mock("./providers/kitsu.js", () => ({
   kitsuFetchAll: vi.fn(),
-  kitsuFetchDubInfo: vi.fn(),
   clearKitsuCache: vi.fn(),
-  DUB_LANGUAGE_MAP: {
-    "pt-br": "Portuguese",
-    "en": "English",
-  },
 }))
 
-import { fetchUserEntries, fetchDubInfo, clearProviderCache } from "./index.js"
+import { fetchUserEntries, clearProviderCache } from "./index.js"
 import { fetchAllLists as anilistFetchAll } from "./providers/anilist.js"
 import { kitsuFetchAll } from "./providers/kitsu.js"
 
