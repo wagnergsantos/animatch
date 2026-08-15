@@ -46,6 +46,11 @@
 - `StatisticsView`, `GenreBarChart`, `MetricsSummary`
 - Plano completo em `docs/plano_implementacao_estatisticas.md`
 
+### GitHub Actions CI/CD (2026-08-15)
+- Pipeline automatizada em `.github/workflows/ci.yml`
+- Etapas: Lint (`oxlint`), Unit Tests (`vitest`), Build (`vite build`)
+- Deploy automático no GitHub Pages (`peaceiris/actions-gh-pages`) em pushes na `main`/`master`
+
 ---
 
 ## 🚧 Em andamento / Próximas features
@@ -147,5 +152,5 @@ src/
 - [x] **Destilação da Interface (Cards & FilterBar)**
 - [ ] Login Supabase + sync de settings
 - [ ] OpenTelemetry browser
-- [ ] GitHub Actions CI
+- [x] GitHub Actions CI
 - [ ] Web Worker para compute pesado
