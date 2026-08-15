@@ -120,7 +120,7 @@ src/
 - Locales: remover keys relacionadas a dub
 - Testes: atualizar/remover testes de dub
 
-**Status:** Aprovado, aguardando priorização
+**Status:** Concluído (2026-08-14)
 
 ---
 
