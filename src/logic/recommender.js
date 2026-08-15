@@ -32,6 +32,10 @@ export function buildTasteProfile(completedEntries = []) {
     const animeInfo = {
       id: entry.media.id,
       title: entry.media.title?.english || entry.media.title?.romaji || 'Untitled',
+      titleObj: {
+        english: entry.media.title?.english || '',
+        romaji: entry.media.title?.romaji || '',
+      },
       score: score,
       coverImage: entry.media.coverImage?.large ?? '',
       status: entry.status || 'COMPLETED',
@@ -110,6 +114,10 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
     return {
       id: media.id,
       title: media.title?.english || media.title?.romaji || 'Untitled',
+      titleObj: {
+        english: media.title?.english || '',
+        romaji: media.title?.romaji || '',
+      },
       description: media.description,
       coverImage: media.coverImage?.large ?? '',
       genres,

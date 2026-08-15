@@ -3,12 +3,30 @@ import { useTranslation } from 'react-i18next'
 import AnimeDetailModal from './AnimeDetailModal.jsx'
 import './AnimeCard.css'
 
-export default function AnimeCard({ anime, onCardClick }) {
+export default function AnimeCard({ anime, titlePref = 'english', onCardClick }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const { t } = useTranslation()
 
   const genres = anime?.genres ?? []
-  const title = anime?.title || t('labels.untitled')
+
+  // Extrai titulo principal e secundario
+  const rawTitleObj = anime?.titleObj || (typeof anime?.title === 'object' ? anime?.title : null) || anime?.media?.title || {}
+  const englishTitle = rawTitleObj.english && typeof rawTitleObj.english === 'string' ? rawTitleObj.english : ''
+  const romajiTitle = rawTitleObj.romaji && typeof rawTitleObj.romaji === 'string' ? rawTitleObj.romaji : (typeof anime?.title === 'string' ? anime.title : '')
+
+  let mainTitle = ''
+  let subTitle = ''
+
+  if (titlePref === 'romaji') {
+    mainTitle = romajiTitle || englishTitle || (typeof anime?.title === 'string' ? anime.title : '') || t('labels.untitled')
+    subTitle = englishTitle && englishTitle !== mainTitle ? englishTitle : ''
+  } else {
+    // default: english
+    mainTitle = englishTitle || romajiTitle || (typeof anime?.title === 'string' ? anime.title : '') || t('labels.untitled')
+    subTitle = romajiTitle && romajiTitle !== mainTitle ? romajiTitle : ''
+  }
+
+  const title = mainTitle
   const siteUrl = anime?.siteUrl || (anime?.id ? `https://anilist.co/anime/${anime.id}` : '#')
   const providerKey = anime?.provider || 'anilist'
   const providerLabel = t(`providers.${providerKey}`, providerKey === 'mal' ? 'MyAnimeList' : providerKey === 'kitsu' ? 'Kitsu' : 'AniList')
@@ -75,7 +93,8 @@ export default function AnimeCard({ anime, onCardClick }) {
           </button>
         </div>
         <div className="anime-card__body">
-          <h3 className="anime-card__title">{title}</h3>
+          <h3 className="anime-card__title">{mainTitle}</h3>
+          {subTitle && <div className="anime-card__subtitle">{subTitle}</div>}
           {(() => {
             const parts = []
             const year = anime?.year ?? anime?.seasonYear ?? anime?.startDate?.year
@@ -145,6 +164,7 @@ export default function AnimeCard({ anime, onCardClick }) {
       {isModalOpen && (
         <AnimeDetailModal
           anime={anime}
+          titlePref={titlePref}
           onClose={() => setIsModalOpen(false)}
         />
       )}

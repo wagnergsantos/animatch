@@ -10,6 +10,8 @@ export const LANG_OPTIONS = [
 
 export default function SettingsMenu({
   provider = 'anilist',
+  titlePref = 'english',
+  onTitlePrefChange,
   onRefresh,
   isLoading,
   onLogout,
@@ -118,6 +120,23 @@ export default function SettingsMenu({
                   {t(`settings.lang.${opt.id}`) || opt.id}
                 </option>
               ))}
+            </select>
+          </div>
+
+          <div className="settings-menu__divider" />
+
+          <div className="settings-menu__section">
+            <label className="settings-menu__label" htmlFor="title-pref-select">
+              {t('settings.titleLanguage')}
+            </label>
+            <select
+              id="title-pref-select"
+              className="settings-menu__select"
+              value={titlePref}
+              onChange={(e) => onTitlePrefChange && onTitlePrefChange(e.target.value)}
+            >
+              <option value="english">{t('settings.titleLanguage_english')}</option>
+              <option value="romaji">{t('settings.titleLanguage_romaji')}</option>
             </select>
           </div>
 

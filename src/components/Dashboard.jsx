@@ -34,7 +34,16 @@ function exportRecommendationsToCSV(recommendations, t, prefix) {
   document.body.removeChild(link)
 }
 
-export default function Dashboard({ allEntries = [], username, provider = 'anilist', onLogout, onRefresh, isLoading }) {
+export default function Dashboard({
+  allEntries = [],
+  username,
+  provider = 'anilist',
+  titlePref = 'english',
+  onTitlePrefChange,
+  onLogout,
+  onRefresh,
+  isLoading,
+}) {
   const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState('recommendations')
   const [selectedFilterGenre, setSelectedFilterGenre] = useState('ALL')
@@ -93,7 +102,9 @@ export default function Dashboard({ allEntries = [], username, provider = 'anili
       const startDate = r.startDate ?? match?.startDate ?? match?.media?.startDate
       const year = resolveYear(r) ?? resolveYear(match)
       const status = r.status ?? match?.status ?? match?.media?.status
-      return { ...r, seasonYear, startDate, year, status }
+      const titleObj = r.titleObj ?? match?.media?.title ?? match?.titleObj
+      const title = r.title ?? match?.media?.title?.english ?? match?.media?.title?.romaji
+      return { ...r, seasonYear, startDate, year, status, titleObj, title }
     })
 
     // Filter by search query
@@ -191,6 +202,8 @@ export default function Dashboard({ allEntries = [], username, provider = 'anili
           </button>
           <SettingsMenu
             provider={provider}
+            titlePref={titlePref}
+            onTitlePrefChange={onTitlePrefChange}
             onRefresh={onRefresh}
             isLoading={isLoading}
             onLogout={onLogout}
@@ -235,6 +248,7 @@ export default function Dashboard({ allEntries = [], username, provider = 'anili
                 isLoading={false}
                 sortBy={sortBy}
                 provider={provider}
+                titlePref={titlePref}
               />
             </div>
           </>
@@ -252,6 +266,7 @@ export default function Dashboard({ allEntries = [], username, provider = 'anili
         planningEntries={planningEntries}
         tasteProfile={tasteProfile}
         provider={provider}
+        titlePref={titlePref}
         onClose={() => setModalGenre(null)}
       />
     </div>

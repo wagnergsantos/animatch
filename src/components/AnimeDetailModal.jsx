@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import './AnimeDetailModal.css'
 
-export default function AnimeDetailModal({ anime, onClose }) {
+export default function AnimeDetailModal({ anime, titlePref = 'english', onClose }) {
   const { t } = useTranslation()
 
   useEffect(() => {
@@ -17,7 +17,22 @@ export default function AnimeDetailModal({ anime, onClose }) {
 
   if (!anime) return null
 
-  const title = anime?.title || t('labels.untitled')
+  const rawTitleObj = anime?.titleObj || (typeof anime?.title === 'object' ? anime?.title : null) || anime?.media?.title || {}
+  const englishTitle = rawTitleObj.english && typeof rawTitleObj.english === 'string' ? rawTitleObj.english : ''
+  const romajiTitle = rawTitleObj.romaji && typeof rawTitleObj.romaji === 'string' ? rawTitleObj.romaji : (typeof anime?.title === 'string' ? anime.title : '')
+
+  let mainTitle = ''
+  let subTitle = ''
+
+  if (titlePref === 'romaji') {
+    mainTitle = romajiTitle || englishTitle || (typeof anime?.title === 'string' ? anime.title : '') || t('labels.untitled')
+    subTitle = englishTitle && englishTitle !== mainTitle ? englishTitle : ''
+  } else {
+    mainTitle = englishTitle || romajiTitle || (typeof anime?.title === 'string' ? anime.title : '') || t('labels.untitled')
+    subTitle = romajiTitle && romajiTitle !== mainTitle ? romajiTitle : ''
+  }
+
+  const title = mainTitle
   const siteUrl = anime?.siteUrl || (anime?.id ? `https://anilist.co/anime/${anime.id}` : '#')
   const genres = anime?.genres ?? []
   const providerKey = anime?.provider || 'anilist'
@@ -59,6 +74,7 @@ export default function AnimeDetailModal({ anime, onClose }) {
           )}
           <div className="anime-modal__header-info">
             <h2 id="modal-title" className="anime-modal__title">{title}</h2>
+            {subTitle && <div className="anime-modal__subtitle" style={{ fontSize: 'var(--text-sm)', color: 'var(--color-muted)', marginBottom: 'var(--space-2)' }}>{subTitle}</div>}
             
             <div className="anime-modal__meta-pills">
               {year && <span className="anime-modal__pill">{year}</span>}

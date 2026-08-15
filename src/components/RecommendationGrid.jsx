@@ -17,7 +17,7 @@ function SkeletonCard() {
   )
 }
 
-export default function RecommendationGrid({ recommendations = [], isLoading = false, sortBy = 'predicted', provider = 'anilist' }) {
+export default function RecommendationGrid({ recommendations = [], isLoading = false, sortBy = 'predicted', provider = 'anilist', titlePref = 'english' }) {
   const { t } = useTranslation()
 
   const displayRecommendations = useMemo(() => {
@@ -101,6 +101,7 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
           <AnimeCard
             key={rec.id}
             anime={rec}
+            titlePref={titlePref}
           />
         ))}
       </div>

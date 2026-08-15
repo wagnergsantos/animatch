@@ -4,7 +4,7 @@ import { scoreRecommendations } from '../logic/recommender.js'
 import RecommendationGrid from './RecommendationGrid.jsx'
 import './GenreRecommendationModal.css'
 
-export default function GenreRecommendationModal({ genre, planningEntries, tasteProfile, provider = 'anilist', onClose }) {
+export default function GenreRecommendationModal({ genre, planningEntries, tasteProfile, provider = 'anilist', titlePref = 'english', onClose }) {
   const { t } = useTranslation()
   const modalRef = useRef(null)
   const providerLabel = t(`providers.${provider}`, provider === 'mal' ? 'MyAnimeList' : provider === 'kitsu' ? 'Kitsu' : 'AniList')
@@ -80,7 +80,7 @@ export default function GenreRecommendationModal({ genre, planningEntries, taste
         </header>
         <main className="modal-body">
           {genreRecommendations.length > 0 ? (
-            <RecommendationGrid recommendations={genreRecommendations} provider={provider} />
+            <RecommendationGrid recommendations={genreRecommendations} provider={provider} titlePref={titlePref} />
           ) : (
             <div className="modal-empty-msg">
               <p>{t('modals.genreRecommendation.none', { genre })}</p>

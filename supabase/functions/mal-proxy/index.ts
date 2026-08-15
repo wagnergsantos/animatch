@@ -63,6 +63,12 @@ function normalizeEntry(entry: MALListEntry) {
       })()
     : null
 
+  // node.title é o titulo padrao do MAL (geralmente Romaji)
+  // alternative_titles contem en (ingles) e ja (japones)
+  const malNode = node as MALNode & { alternative_titles?: { en?: string; ja?: string } }
+  const englishTitle = malNode.alternative_titles?.en?.trim() || node.title
+  const romajiTitle = node.title || malNode.alternative_titles?.en?.trim() || ''
+
   return {
     status: STATUS_MAP[list_status.status] ?? 'PLANNING',
     score: list_status.score ?? 0,
@@ -70,8 +76,8 @@ function normalizeEntry(entry: MALListEntry) {
       id: node.id,
       provider: 'mal',
       title: {
-        romaji: node.title,
-        english: node.title,
+        romaji: romajiTitle,
+        english: englishTitle,
       },
       genres: (node.genres ?? []).map((g) => g.name),
       averageScore: node.mean != null ? Math.round(node.mean * 10) : 0,
@@ -89,7 +95,7 @@ function normalizeEntry(entry: MALListEntry) {
 }
 
 async function fetchAllPages(username: string, status: string): Promise<MALListEntry[]> {
-  const fields = 'list_status,genres,main_picture,num_episodes,start_date,status,media_type,synopsis,mean,num_list_users'
+  const fields = 'list_status,genres,main_picture,num_episodes,start_date,status,media_type,synopsis,mean,num_list_users,alternative_titles'
   const limit = 1000
   let url: string | null =
     `${MAL_API}/users/${encodeURIComponent(username)}/animelist?status=${status}&fields=${fields}&limit=${limit}&nsfw=true`

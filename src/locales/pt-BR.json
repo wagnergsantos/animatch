@@ -33,6 +33,9 @@
     "theme": "Tema",
     "theme_light": "Modo Claro",
     "theme_dark": "Modo Escuro",
+    "titleLanguage": "Título dos Animes",
+    "titleLanguage_english": "Inglês (Romaji secundário)",
+    "titleLanguage_romaji": "Romaji (Inglês secundário)",
     "syncing": "⏳ Sincronizando com {{provider}}...",
     "sync": "🔄 Sincronizar {{provider}}",
     "logout": "🚪 Trocar de conta"

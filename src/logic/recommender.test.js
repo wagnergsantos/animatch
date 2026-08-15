@@ -158,6 +158,10 @@ describe('buildTasteProfile', () => {
     expect(actionStats.sourceAnimes[0]).toEqual({
       id: 101,
       title: "Anime A",
+      titleObj: {
+        english: "Anime A",
+        romaji: "Anime A",
+      },
       score: 9,
       coverImage: "http://img.com/a.jpg",
       status: "COMPLETED"
@@ -222,6 +226,10 @@ describe('scoreRecommendations', () => {
     expect(entry10Result).toEqual({
       id: 10,
       title: 'Untitled',
+      titleObj: {
+        english: '',
+        romaji: '',
+      },
       description: undefined,
       coverImage: '',
       genres: [],
@@ -240,6 +248,10 @@ describe('scoreRecommendations', () => {
     expect(entry11Result).toEqual({
       id: 11,
       title: 'Untitled',
+      titleObj: {
+        english: '',
+        romaji: '',
+      },
       description: undefined,
       coverImage: '',
       genres: [],

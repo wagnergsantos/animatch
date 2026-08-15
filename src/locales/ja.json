@@ -33,6 +33,9 @@
     "theme": "テーマ",
     "theme_light": "ライトモード",
     "theme_dark": "ダークモード",
+    "titleLanguage": "アニメタイトル表示",
+    "titleLanguage_english": "英語（サブ：ローマ字）",
+    "titleLanguage_romaji": "ローマ字（サブ：英語）",
     "syncing": "⏳ {{provider}} と同期中...",
     "sync": "🔄 {{provider}} と同期",
     "logout": "🚪 アカウント切替"

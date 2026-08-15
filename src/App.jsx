@@ -14,6 +14,12 @@ export default function App() {
     }
     return 'anilist'
   })
+  const [titlePref, setTitlePref] = useState(() => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      return localStorage.getItem('animatch_title_pref') || 'english'
+    }
+    return 'english'
+  })
   const [allEntries, setAllEntries] = useState([])
   const [recentUsers, setRecentUsers] = useState(() => {
     if (typeof window !== 'undefined' && window.localStorage) {
@@ -136,6 +142,13 @@ export default function App() {
     }
   }
 
+  const handleTitlePrefChange = (newPref) => {
+    setTitlePref(newPref)
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem('animatch_title_pref', newPref)
+    }
+  }
+
   if (screen === 'login') {
     return (
       <LoginScreen
@@ -153,6 +166,8 @@ export default function App() {
       allEntries={allEntries}
       username={username}
       provider={provider}
+      titlePref={titlePref}
+      onTitlePrefChange={handleTitlePrefChange}
       onLogout={handleLogout}
       onRefresh={handleRefresh}
       isLoading={isLoading}
