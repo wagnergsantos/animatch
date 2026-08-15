@@ -30,7 +30,6 @@
       "en": "English",
       "ja": "日本語"
     },
-    "favoriteDub": "Dublagem favorita",
     "theme": "Tema",
     "theme_light": "Modo Claro",
     "theme_dark": "Modo Escuro",
@@ -43,17 +42,6 @@
     "kitsu": "Kitsu",
     "mal": "MyAnimeList"
   },
-  "dub": {
-    "nenhuma": "Nenhuma",
-    "pt-br": "PT-BR",
-    "en": "Inglês",
-    "ja": "Japonês",
-    "es": "Espanhol",
-    "de": "Alemão",
-    "ko": "Coreano",
-    "fr": "Francês",
-    "it": "Italiano"
-  },
   "labels": {
     "untitled": "Sem título",
     "coverAlt": "Capa de {{title}}",
@@ -63,7 +51,6 @@
     "community": "Comunidade",
     "ep": "ep",
     "eps": "eps",
-    "dubbed": "Dublado {{lang}}",
     "synopsis": "Sinopse",
     "genres": "Gêneros",
     "noDescription": "Sem descrição disponível.",
@@ -141,9 +128,7 @@
     "calculating": "Calculando suas Recomendações...",
     "none": "Sem recomendações no momento",
     "planToWatchPrompt": "Adicione mais animes na sua lista \"Plan to Watch\" no {{provider}}!",
-    "header": "Recomendações — O Que Assistir Agora ({{count}})",
-    "ignoreDub": "Ignorar bônus de dublagem",
-    "onlyFavoriteDub": "Mostrar somente com minha dublagem favorita"
+    "header": "Recomendações — O Que Assistir Agora ({{count}})"
   },
   "modals": {
     "genreOrigin": {

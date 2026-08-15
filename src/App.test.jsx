@@ -5,7 +5,6 @@ import App from './App.jsx'
 // Mock the API module
 vi.mock('./api/index.js', () => ({
   fetchUserEntries: vi.fn(),
-  fetchDubInfo: vi.fn().mockResolvedValue(new Map()),
 }))
 
 import { fetchUserEntries } from './api/index.js'

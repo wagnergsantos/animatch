@@ -48,18 +48,7 @@ export default function Dashboard({ allEntries = [], username, provider = 'anili
   const currentYear = new Date().getFullYear()
   const gridRef = useRef(null)
 
-  const [favoriteDub, setFavoriteDub] = useState(() => {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      return localStorage.getItem('animatch_favorite_dub') || 'nenhuma'
-    }
-    return 'nenhuma'
-  })
 
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.setItem('animatch_favorite_dub', favoriteDub)
-    }
-  }, [favoriteDub])
 
   const tasteProfile = useMemo(() => {
     const completed = allEntries.filter((e) => e.status === 'COMPLETED')
@@ -202,8 +191,6 @@ export default function Dashboard({ allEntries = [], username, provider = 'anili
           </button>
           <SettingsMenu
             provider={provider}
-            favoriteDub={favoriteDub}
-            onChangeFavoriteDub={setFavoriteDub}
             onRefresh={onRefresh}
             isLoading={isLoading}
             onLogout={onLogout}
@@ -247,7 +234,6 @@ export default function Dashboard({ allEntries = [], username, provider = 'anili
                 recommendations={recommendations}
                 isLoading={false}
                 sortBy={sortBy}
-                favoriteDub={favoriteDub}
                 provider={provider}
               />
             </div>

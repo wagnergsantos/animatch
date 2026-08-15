@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import './AnimeDetailModal.css'
 
-export default function AnimeDetailModal({ anime, hasDub, dubLanguage = 'pt-br', onClose }) {
+export default function AnimeDetailModal({ anime, onClose }) {
   const { t } = useTranslation()
 
   useEffect(() => {
@@ -79,12 +79,6 @@ export default function AnimeDetailModal({ anime, hasDub, dubLanguage = 'pt-br',
                 </span>
               )}
             </div>
-
-            {hasDub && (
-              <div className="anime-modal__dub">
-                🎙️ {t('labels.dubbed', { lang: t(`dub.${dubLanguage}`) })}
-              </div>
-            )}
           </div>
         </div>
 

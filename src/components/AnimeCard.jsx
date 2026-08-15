@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import AnimeDetailModal from './AnimeDetailModal.jsx'
 import './AnimeCard.css'
 
-export default function AnimeCard({ anime, hasDub, dubLanguage = 'pt-br', onCardClick }) {
+export default function AnimeCard({ anime, onCardClick }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const { t } = useTranslation()
 
@@ -110,12 +110,6 @@ export default function AnimeCard({ anime, hasDub, dubLanguage = 'pt-br', onCard
             </p>
           )}
 
-          {hasDub && (
-            <div className="anime-card__dub-badge">
-              🎙️ {t('labels.dubbed', { lang: t(`dub.${dubLanguage}`) })}
-            </div>
-          )}
-
           {streamingLinks.length > 0 && (
             <div className="anime-card__streaming">
               <span className="anime-card__streaming-label">{t('labels.whereToWatch')}</span>
@@ -151,8 +145,6 @@ export default function AnimeCard({ anime, hasDub, dubLanguage = 'pt-br', onCard
       {isModalOpen && (
         <AnimeDetailModal
           anime={anime}
-          hasDub={hasDub}
-          dubLanguage={dubLanguage}
           onClose={() => setIsModalOpen(false)}
         />
       )}

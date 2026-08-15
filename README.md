@@ -8,7 +8,7 @@ Uma aplicação web inteligente que analisa a sua lista do AniList para gerar re
 - **Perfil de Gosto (Taste Profile)**: O sistema analisa suas notas dadas aos animes concluídos e calcula o quão bem você avalia cada gênero.
 - **Média Bayesiana**: Utiliza um cálculo Bayesiano para nivelar gêneros que você assistiu pouco em relação aos que você assiste muito.
 - **Recomendações Inteligentes**: Compara a sua lista de "Plan to Watch" (Planejando Assistir) com o seu Perfil de Gosto para prever a nota que você daria a cada obra.
-- **Onde Assistir & Dublagem**: Mostra diretamente nos cards em quais plataformas de streaming (Crunchyroll, Netflix, etc.) o anime está disponível e verifica se ele possui dubladores brasileiros listados no AniList (Dublagem PT-BR).
+- **Onde Assistir**: Mostra diretamente nos cards em quais plataformas de streaming (Crunchyroll, Netflix, etc.) o anime está disponível.
 - **Dashboard Estatístico**: Acompanhe o total de animes assistidos, dias de sua vida gastos vendo anime, distribuição de notas, formatos e status da sua coleção.
 
 ## Como o Algoritmo Funciona

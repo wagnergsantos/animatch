@@ -30,7 +30,6 @@
       "en": "English",
       "ja": "日本語"
     },
-    "favoriteDub": "お気に入り吹替",
     "theme": "テーマ",
     "theme_light": "ライトモード",
     "theme_dark": "ダークモード",
@@ -43,17 +42,6 @@
     "kitsu": "Kitsu",
     "mal": "MyAnimeList"
   },
-  "dub": {
-    "nenhuma": "無し",
-    "pt-br": "PT-BR",
-    "en": "英語",
-    "ja": "日本語",
-    "es": "スペイン語",
-    "de": "ドイツ語",
-    "ko": "韓国語",
-    "fr": "フランス語",
-    "it": "イタリア語"
-  },
   "labels": {
     "untitled": "無題",
     "coverAlt": "{{title}} の表紙",
@@ -63,7 +51,6 @@
     "community": "コミュニティ",
     "ep": "話",
     "eps": "話",
-    "dubbed": "{{lang}} 吹替",
     "synopsis": "あらすじ",
     "genres": "ジャンル",
     "noDescription": "説明がありません。",
@@ -138,9 +125,7 @@
     "calculating": "おすすめを計算中...",
     "none": "現在おすすめはありません",
     "planToWatchPrompt": "{{provider}} の「Plan to Watch」リストにアニメを追加してください！",
-    "header": "おすすめ — 今見るべき作品 ({{count}})",
-    "ignoreDub": "吹替ボーナスを無視",
-    "onlyFavoriteDub": "お気に入りの吹替のみ表示"
+    "header": "おすすめ — 今見るべき作品 ({{count}})"
   },
   "modals": {
     "genreOrigin": {

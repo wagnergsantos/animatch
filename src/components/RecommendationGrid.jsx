@@ -1,7 +1,6 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import AnimeCard from './AnimeCard.jsx'
-import { fetchDubInfo } from '../api/index.js'
 import { resolveYear } from '../logic/recommender.js'
 import './RecommendationGrid.css'
 
@@ -18,52 +17,13 @@ function SkeletonCard() {
   )
 }
 
-export default function RecommendationGrid({ recommendations = [], isLoading = false, sortBy = 'predicted', favoriteDub = 'nenhuma', provider = 'anilist' }) {
+export default function RecommendationGrid({ recommendations = [], isLoading = false, sortBy = 'predicted', provider = 'anilist' }) {
   const { t } = useTranslation()
-  const [dubMap, setDubMap] = useState(new Map())
-  const [ignoreDub, setIgnoreDub] = useState(false)
-  const [showOnlyFavoriteDub, setShowOnlyFavoriteDub] = useState(false)
-
-  useEffect(() => {
-    if (!recommendations || recommendations.length === 0) return
-
-    if (favoriteDub === 'nenhuma') {
-      setDubMap(new Map())
-      return
-    }
-
-    const fetchDubs = async () => {
-      // Fetch up to 100 recommendations
-      const ids = recommendations.slice(0, 100).map((r) => r.id)
-
-      const newMap = new Map()
-      // Fetch in chunks of 50
-      for (let i = 0; i < ids.length; i += 50) {
-        const chunk = ids.slice(i, i + 50)
-        const chunkMap = await fetchDubInfo(chunk, favoriteDub, provider)
-        for (const [key, val] of chunkMap.entries()) {
-          newMap.set(key, val)
-        }
-      }
-      setDubMap(newMap)
-    }
-
-    fetchDubs()
-  }, [recommendations, favoriteDub, provider])
 
   const displayRecommendations = useMemo(() => {
     if (!recommendations || recommendations.length === 0) return []
 
-    const list = [...recommendations].map((rec) => {
-      const hasDub = dubMap.get(rec.id) ?? false
-      const adjustedScore = hasDub && !ignoreDub ? Math.min(10, rec.predictedScore + 0.1) : rec.predictedScore
-      return {
-        ...rec,
-        predictedScore: adjustedScore,
-      }
-    })
-
-    const sorted = list.sort((a, b) => {
+    const sorted = [...recommendations].sort((a, b) => {
       if (sortBy === 'year_desc') {
         const yA = resolveYear(a)
         const yB = resolveYear(b)
@@ -102,12 +62,8 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
       return (b.communityScore || 0) - (a.communityScore || 0)
     })
 
-    if (favoriteDub !== 'nenhuma' && showOnlyFavoriteDub) {
-      return sorted.filter((rec) => dubMap.get(rec.id) === true)
-    }
-
     return sorted
-  }, [recommendations, dubMap, ignoreDub, sortBy, favoriteDub, showOnlyFavoriteDub])
+  }, [recommendations, sortBy])
 
   if (isLoading) {
     return (
@@ -139,34 +95,12 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
         <h2 className="recommendation-grid__title" style={{ marginBottom: 0 }}>
           {t('recommendationGrid.header', { count: displayRecommendations.length })}
         </h2>
-        {favoriteDub !== 'nenhuma' && (
-          <>
-            <label className="dub-toggle">
-              <input
-                type="checkbox"
-                checked={ignoreDub}
-                onChange={(e) => setIgnoreDub(e.target.checked)}
-              />
-              {t('recommendationGrid.ignoreDub')}
-            </label>
-            <label className="dub-toggle">
-              <input
-                type="checkbox"
-                checked={showOnlyFavoriteDub}
-                onChange={(e) => setShowOnlyFavoriteDub(e.target.checked)}
-              />
-              {t('recommendationGrid.onlyFavoriteDub')}
-            </label>
-          </>
-        )}
       </div>
       <div className="recommendation-grid__grid">
         {displayRecommendations.map((rec) => (
           <AnimeCard
             key={rec.id}
             anime={rec}
-            hasDub={dubMap.get(rec.id) ?? false}
-            dubLanguage={favoriteDub === 'nenhuma' ? 'pt-br' : favoriteDub}
           />
         ))}
       </div>

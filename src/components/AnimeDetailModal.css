@@ -115,16 +115,6 @@
   color: var(--color-muted);
 }
 
-.anime-modal__dub {
-  font-size: var(--text-xs);
-  font-weight: 600;
-  color: var(--color-bg);
-  background-color: var(--color-primary);
-  padding: 2px 8px;
-  border-radius: var(--radius-sm);
-  align-self: flex-start;
-}
-
 .anime-modal__body {
   padding: var(--space-4);
   overflow-y: auto;

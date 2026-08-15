@@ -12,29 +12,6 @@
   font-weight: 600;
 }
 
-.dub-toggle {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
-  cursor: pointer;
-  background: var(--surface-2);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--surface-3);
-  transition: all 0.2s ease;
-}
-
-.dub-toggle:hover {
-  background: var(--surface-3);
-  color: var(--text-primary);
-}
-
-.dub-toggle input {
-  cursor: pointer;
-}
-
 .recommendation-grid__grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));

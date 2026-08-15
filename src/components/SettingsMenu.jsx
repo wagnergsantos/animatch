@@ -2,18 +2,6 @@ import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import './SettingsMenu.css'
 
-export const DUB_LANGUAGE_OPTIONS = [
-  { id: 'nenhuma' },
-  { id: 'pt-br' },
-  { id: 'en' },
-  { id: 'ja' },
-  { id: 'es' },
-  { id: 'de' },
-  { id: 'ko' },
-  { id: 'fr' },
-  { id: 'it' },
-]
-
 export const LANG_OPTIONS = [
   { id: 'pt-BR' },
   { id: 'en' },
@@ -22,8 +10,6 @@ export const LANG_OPTIONS = [
 
 export default function SettingsMenu({
   provider = 'anilist',
-  favoriteDub,
-  onChangeFavoriteDub,
   onRefresh,
   isLoading,
   onLogout,
@@ -130,27 +116,6 @@ export default function SettingsMenu({
               {LANG_OPTIONS.map((opt) => (
                 <option key={opt.id} value={opt.id}>
                   {t(`settings.lang.${opt.id}`) || opt.id}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="settings-menu__section">
-            <label className="settings-menu__label" htmlFor="favorite-dub-select">
-              {t('settings.favoriteDub')}
-            </label>
-            <select
-              id="favorite-dub-select"
-              className="settings-menu__select"
-              value={favoriteDub}
-              onChange={(e) => {
-                onChangeFavoriteDub(e.target.value)
-                setIsOpen(false)
-              }}
-            >
-              {DUB_LANGUAGE_OPTIONS.map((opt) => (
-                <option key={opt.id} value={opt.id}>
-                  {t(`dub.${opt.id}`) || opt.id}
                 </option>
               ))}
             </select>

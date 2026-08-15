@@ -72,23 +72,7 @@ describe('AnimeCard', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 
-  it('shows the PT-BR badge by default when hasDub is true and no dubLanguage is passed', () => {
-    const anime = { title: 'Dubbed Anime' }
-    render(<AnimeCard anime={anime} hasDub={true} />)
-    expect(screen.getByText('🎙️ Dublado PT-BR')).toBeInTheDocument()
-  })
 
-  it('shows the badge with the label matching the given dubLanguage', () => {
-    const anime = { title: 'Dubbed Anime' }
-    render(<AnimeCard anime={anime} hasDub={true} dubLanguage="ja" />)
-    expect(screen.getByText('🎙️ Dublado Japonês')).toBeInTheDocument()
-  })
-
-  it('does not show the dub badge when hasDub is false', () => {
-    const anime = { title: 'Not Dubbed Anime' }
-    render(<AnimeCard anime={anime} hasDub={false} dubLanguage="en" />)
-    expect(screen.queryByText(/Dublado/)).not.toBeInTheDocument()
-  })
 
   it('renders metadata row (year, episodes, status) correctly', () => {
     const anime = {

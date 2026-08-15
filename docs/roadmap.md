@@ -149,7 +149,7 @@ src/
 - [x] Provider Kitsu
 - [x] Estatísticas básicas
 - [ ] **MAL como provider (MAL API v2)**
-- [ ] ⚠️ **Remover feature de Dublagem**
+- [x] ⚠️ **Remover feature de Dublagem**
 - [ ] Fix B1/B2/B3
 - [ ] Login Supabase + sync de settings
 - [ ] OpenTelemetry browser
