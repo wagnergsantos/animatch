@@ -22,6 +22,13 @@ const FORMATS = [
   { id: 'SPECIAL', key: 'formats.SPECIAL' },
 ]
 
+const BADGES = [
+  { id: 'ALL', key: 'filter.allBadges' },
+  { id: 'ACCLAIMED', key: 'labels.badge_ACCLAIMED' },
+  { id: 'PERSONAL_BET', key: 'labels.badge_PERSONAL_BET' },
+  { id: 'STRONG_CONSENSUS', key: 'labels.badge_STRONG_CONSENSUS' },
+]
+
 const SORT_OPTIONS = [
   { id: 'predicted', key: 'sort.predicted' },
   { id: 'community', key: 'sort.community' },
@@ -42,6 +49,8 @@ export default function FilterBar({
   availableYears,
   selectedYear = 'ALL',
   onSelectYear,
+  selectedBadge = 'ALL',
+  onSelectBadge,
   sortBy = 'predicted',
   onSortChange,
   isSeasonOnly = false,
@@ -70,6 +79,7 @@ export default function FilterBar({
     selectedGenre !== 'ALL' ||
     selectedFormat !== 'ALL' ||
     selectedYear !== 'ALL' ||
+    selectedBadge !== 'ALL' ||
     searchQuery.trim() !== '' ||
     isSeasonOnly
 
@@ -77,6 +87,7 @@ export default function FilterBar({
     onSelectGenre?.('ALL')
     onSelectFormat?.('ALL')
     onSelectYear?.('ALL')
+    onSelectBadge?.('ALL')
     onSearchChange?.('')
     onSeasonOnlyChange?.(false)
   }
@@ -131,6 +142,20 @@ export default function FilterBar({
               {availableYears.map((year) => (
                 <option key={year} value={year}>
                   {year}
+                </option>
+              ))}
+            </select>
+          )}
+
+          {onSelectBadge && (
+            <select
+              className="filter-select"
+              value={selectedBadge}
+              onChange={(e) => onSelectBadge(e.target.value)}
+            >
+              {BADGES.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {t(b.key)}
                 </option>
               ))}
             </select>

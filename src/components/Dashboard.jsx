@@ -50,14 +50,13 @@ export default function Dashboard({
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedFormat, setSelectedFormat] = useState('ALL')
   const [selectedYear, setSelectedYear] = useState('ALL')
+  const [selectedBadge, setSelectedBadge] = useState('ALL')
   const [sortBy, setSortBy] = useState('predicted')
   const [modalGenre, setModalGenre] = useState(null)
   const [copied, setCopied] = useState(false)
   const [isSeasonOnly, setIsSeasonOnly] = useState(false)
   const currentYear = new Date().getFullYear()
   const gridRef = useRef(null)
-
-
 
   const tasteProfile = useMemo(() => {
     const completed = allEntries.filter((e) => e.status === 'COMPLETED')
@@ -133,6 +132,11 @@ export default function Dashboard({
       }
     }
 
+    // Filter by badge
+    if (selectedBadge !== 'ALL') {
+      recs = recs.filter((r) => r.badges && r.badges.includes(selectedBadge))
+    }
+
     if (isSeasonOnly) {
       recs = recs.filter((rec) => {
         const isCurrentYear = Number(rec.year) === currentYear
@@ -143,7 +147,7 @@ export default function Dashboard({
     }
 
     return recs
-  }, [planningEntries, tasteProfile, selectedFilterGenre, searchQuery, selectedFormat, selectedYear, isSeasonOnly, currentYear])
+  }, [planningEntries, tasteProfile, selectedFilterGenre, searchQuery, selectedFormat, selectedYear, selectedBadge, isSeasonOnly, currentYear])
 
   const handleTasteProfileGenreClick = (genre) => {
     setSelectedFilterGenre(genre)
@@ -249,6 +253,8 @@ export default function Dashboard({
               availableYears={availableYears}
               selectedYear={selectedYear}
               onSelectYear={setSelectedYear}
+              selectedBadge={selectedBadge}
+              onSelectBadge={setSelectedBadge}
               sortBy={sortBy}
               onSortChange={setSortBy}
               isSeasonOnly={isSeasonOnly}
