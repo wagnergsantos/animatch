@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { UserNotFoundError } from '../errors.js'
 
 const mockFetch = vi.fn()
 global.fetch = mockFetch
@@ -18,9 +19,7 @@ describe('kitsuFetchAll', () => {
       json: () => Promise.resolve({ data: [] }),
     })
 
-    await expect(kitsuFetchAll('nonexistentuser')).rejects.toThrow(
-      'Usuário não encontrado no Kitsu.'
-    )
+    await expect(kitsuFetchAll('nonexistentuser')).rejects.toThrow(UserNotFoundError)
   })
 
   it('fetches user ID then library entries and normalizes to AnimeEntry format', async () => {

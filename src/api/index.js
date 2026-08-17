@@ -2,6 +2,8 @@ import { fetchAllLists as anilistFetchAll, clearUserCache as anilistClearCache }
 import { kitsuFetchAll, clearKitsuCache } from './providers/kitsu.js'
 import { malFetchAll, clearMalCache } from './providers/mal.js'
 
+export * from './errors.js'
+
 const SUPPORTED_PROVIDERS = ["anilist", "kitsu", "mal"]
 
 export async function fetchUserEntries(username, provider = "anilist", options = {}) {
@@ -33,4 +35,5 @@ export function clearProviderCache(username, provider = "anilist") {
     clearMalCache(username)
   }
 }
+
 

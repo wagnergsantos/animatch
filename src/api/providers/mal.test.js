@@ -10,6 +10,7 @@ vi.mock('../../supabase.js', () => ({
 
 import { supabaseClient } from '../../supabase.js'
 import { malFetchAll, clearMalCache } from './mal.js'
+import { UserNotFoundError, RetryableError } from '../errors.js'
 
 const CACHE_PREFIX = 'animatch_mal_cache_'
 
@@ -110,22 +111,22 @@ describe('malFetchAll', () => {
     expect(supabaseClient.functions.invoke).toHaveBeenCalled()
   })
 
-  it('lança erro quando usuário não encontrado', async () => {
+  it('lança UserNotFoundError quando proxy retorna erro no data', async () => {
     supabaseClient.functions.invoke.mockResolvedValueOnce({
-      data: null,
-      error: { message: 'Usuário não encontrado no MyAnimeList.' },
+      data: { error: 'User not found' },
+      error: null,
     })
 
-    await expect(malFetchAll('noexist')).rejects.toThrow('Usuário não encontrado no MyAnimeList.')
+    await expect(malFetchAll('noexist')).rejects.toThrow(UserNotFoundError)
   })
 
-  it('lança erro quando lista é privada', async () => {
+  it('lança RetryableError quando invoke falha no nivel de rede', async () => {
     supabaseClient.functions.invoke.mockResolvedValueOnce({
       data: null,
-      error: { message: 'A lista deste usuário é privada.' },
+      error: { message: 'Erro de conexão' },
     })
 
-    await expect(malFetchAll('privateuser')).rejects.toThrow('A lista deste usuário é privada.')
+    await expect(malFetchAll('privateuser')).rejects.toThrow(RetryableError)
   })
 
   it('deduplica entries com mesmo id', async () => {

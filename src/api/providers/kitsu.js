@@ -1,6 +1,9 @@
+import { UserNotFoundError, RetryableError, ProviderError } from '../errors.js'
+
 const KITSU_API = 'https://kitsu.io/api/edge'
 const KITSU_CACHE_PREFIX = 'animatch_kitsu_cache_'
 const KITSU_CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+
 
 const KITSU_HEADERS = {
   'Accept': 'application/vnd.api+json',
@@ -145,11 +148,11 @@ export async function kitsuFetchAll(username, options = {}) {
     const userRes = await fetch(`${KITSU_API}/users?filter[name]=${encodeURIComponent(username)}`, {
       headers: KITSU_HEADERS
     })
-    if (!userRes.ok) throw new Error('Erro ao conectar com o Kitsu.')
+    if (!userRes.ok) throw new RetryableError('Erro ao conectar com o Kitsu.')
     
     const userData = await userRes.json()
     if (!userData.data || userData.data.length === 0) {
-      throw new Error('Usuário não encontrado no Kitsu.')
+      throw new UserNotFoundError('Kitsu')
     }
     
     const userId = userData.data[0].id
@@ -159,7 +162,7 @@ export async function kitsuFetchAll(username, options = {}) {
     
     while (nextUrl) {
       const res = await fetch(nextUrl, { headers: KITSU_HEADERS })
-      if (!res.ok) throw new Error('Erro ao conectar com o Kitsu.')
+      if (!res.ok) throw new RetryableError('Erro ao conectar com o Kitsu.')
       const data = await res.json()
       
       const included = data.included || []
@@ -192,8 +195,8 @@ export async function kitsuFetchAll(username, options = {}) {
 
     return deduped
   } catch (error) {
-    if (error.message.includes('Usuário não encontrado')) throw error;
-    throw new Error('Erro ao conectar com o Kitsu.')
+    if (error instanceof ProviderError) throw error;
+    throw new RetryableError('Erro ao conectar com o Kitsu.', { cause: error })
   }
 }
 

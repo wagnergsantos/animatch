@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { fetchCompletedList, fetchPlanningList, fetchAllLists, flattenEntries } from './anilist.js'
+import { UserNotFoundError, PrivateListError, RateLimitError, NonRetryableError, RetryableError } from '../errors.js'
 
 
 const mockFetch = vi.fn()
@@ -53,7 +54,7 @@ describe('fetchCompletedList', () => {
     expect(result[1].score).toBe(0)
   })
 
-  it('throws an error when user is not found', async () => {
+  it('throws UserNotFoundError when user is not found', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 404,
@@ -62,22 +63,22 @@ describe('fetchCompletedList', () => {
       }),
     })
 
-    await expect(fetchCompletedList('nonexistent')).rejects.toThrow('Usuário não encontrado no AniList.')
+    await expect(fetchCompletedList('nonexistent')).rejects.toThrow(UserNotFoundError)
   })
 
-  it('throws Portuguese error when response status is HTTP 403', async () => {
+  it('throws RateLimitError when response status is HTTP 403', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 403,
       json: () => Promise.resolve({
-        errors: [{ message: 'Private', status: 403 }],
+        errors: [{ message: 'Forbidden', status: 403 }],
       }),
     })
 
-    await expect(fetchCompletedList('privateuser')).rejects.toThrow('A lista deste usuário é privada.')
+    await expect(fetchCompletedList('privateuser')).rejects.toThrow(RateLimitError)
   })
 
-  it('throws appropriate Portuguese error when GraphQL error status is 404', async () => {
+  it('throws UserNotFoundError when GraphQL error status is 404', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       status: 200,
@@ -86,10 +87,10 @@ describe('fetchCompletedList', () => {
       }),
     })
 
-    await expect(fetchCompletedList('nonexistent')).rejects.toThrow('Usuário não encontrado no AniList.')
+    await expect(fetchCompletedList('nonexistent')).rejects.toThrow(UserNotFoundError)
   })
 
-  it('throws appropriate Portuguese error when GraphQL error status is 403', async () => {
+  it('throws PrivateListError when GraphQL error status indicates private list', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       status: 200,
@@ -98,10 +99,10 @@ describe('fetchCompletedList', () => {
       }),
     })
 
-    await expect(fetchCompletedList('privateuser')).rejects.toThrow('A lista deste usuário é privada.')
+    await expect(fetchCompletedList('privateuser')).rejects.toThrow(PrivateListError)
   })
 
-  it('throws generic error message for other GraphQL errors', async () => {
+  it('throws NonRetryableError message for other GraphQL errors', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       status: 200,
@@ -110,26 +111,26 @@ describe('fetchCompletedList', () => {
       }),
     })
 
-    await expect(fetchCompletedList('testuser')).rejects.toThrow('Internal GraphQL Error')
+    await expect(fetchCompletedList('testuser')).rejects.toThrow(NonRetryableError)
   })
 
-  it('throws generic connection error on non-429/404/403 HTTP error', async () => {
+  it('throws RetryableError connection error on non-429/404/403 HTTP error', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 500,
       json: () => Promise.reject(new Error('Invalid JSON')),
     })
 
-    await expect(fetchCompletedList('testuser')).rejects.toThrow('Erro ao conectar com o AniList.')
+    await expect(fetchCompletedList('testuser')).rejects.toThrow(RetryableError)
   })
 
-  it('throws on rate limit (HTTP 429)', async () => {
+  it('throws NonRetryableError on rate limit (HTTP 429)', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 429,
     })
 
-    await expect(fetchCompletedList('testuser')).rejects.toThrow('O AniList está temporariamente indisponível.')
+    await expect(fetchCompletedList('testuser')).rejects.toThrow(NonRetryableError)
   })
 })
 

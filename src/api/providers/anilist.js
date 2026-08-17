@@ -1,3 +1,12 @@
+import {
+  RetryableError,
+  UserNotFoundError,
+  PrivateListError,
+  RateLimitError,
+  NonRetryableError,
+  ProviderError,
+} from '../errors.js'
+
 const _DEV = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.DEV) || false
 const ANILIST_API = _DEV ? '/anilist-api' : 'https://graphql.anilist.co'
 const CACHE_KEY_PREFIX = 'animatch_cache_'
@@ -30,10 +39,16 @@ query ($userName: String) {
           id
           title { romaji english }
           genres
-          coverImage { large }
+          episodes
+          status
+          format
+          seasonYear
+          startDate { year month day }
           averageScore
-          popularity
+          coverImage { large }
           siteUrl
+          description
+          streamingEpisodes { site url }
         }
       }
     }
@@ -78,24 +93,32 @@ async function queryAniList(query, variables, retries = 2, delayMs = 100) {
   let lastError
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
-      const response = await fetch(ANILIST_API, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({ query, variables }),
-      })
+      let response
+      try {
+        response = await fetch(ANILIST_API, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({ query, variables }),
+        })
+      } catch (fetchErr) {
+        throw new RetryableError('Erro ao conectar com o AniList.', { cause: fetchErr })
+      }
 
       if (!response) {
-        throw new Error('Erro ao conectar com o AniList.')
+        throw new RetryableError('Erro ao conectar com o AniList.')
       }
 
       if (response.status === 429) {
-        throw new Error('O AniList está temporariamente indisponível.')
+        throw new NonRetryableError('O AniList está temporariamente indisponível.')
       }
       if (response.status === 404) {
-        throw new Error('Usuário não encontrado no AniList.')
+        throw new UserNotFoundError('AniList')
+      }
+      if (response.status === 403) {
+        throw new RateLimitError('AniList', 1)
       }
 
       let json = null
@@ -109,16 +132,12 @@ async function queryAniList(query, variables, retries = 2, delayMs = 100) {
         const error = json.errors[0]
         const msg = error.message ? error.message.toLowerCase() : ''
         if (error.status === 404 || msg.includes('not found')) {
-          throw new Error('Usuário não encontrado no AniList.')
+          throw new UserNotFoundError('AniList')
         }
         if (msg.includes('private')) {
-          throw new Error('A lista deste usuário é privada.')
+          throw new PrivateListError('AniList')
         }
-        throw new Error(error.message || 'Erro desconhecido da API.')
-      }
-
-      if (response.status === 403) {
-        throw new Error('O AniList bloqueou temporariamente a requisição (403). Tente novamente em 1 minuto.')
+        throw new NonRetryableError(error.message || 'Erro desconhecido da API.')
       }
 
       if (!response.ok) {
@@ -126,22 +145,19 @@ async function queryAniList(query, variables, retries = 2, delayMs = 100) {
           await new Promise((resolve) => setTimeout(resolve, delayMs * Math.pow(2, attempt)))
           continue
         }
-        throw new Error('Erro ao conectar com o AniList.')
+        throw new RetryableError('Erro ao conectar com o AniList.')
       }
 
       return json?.data
     } catch (err) {
       lastError = err
 
-      // Non-retryable user/validation/API business errors
-      const isNonRetryable =
-        err.message === 'Usuário não encontrado no AniList.' ||
-        err.message === 'A lista deste usuário é privada.' ||
-        err.message === 'O AniList está temporariamente indisponível.' ||
-        err.message === 'Erro ao conectar com o AniList.' ||
-        (err.message && err.message !== 'Failed to fetch' && !err.message.includes('fetch'))
+      if (err instanceof ProviderError && !err.isRetryable) {
+        throw err
+      }
 
-      if (isNonRetryable) {
+      if (!(err instanceof ProviderError)) {
+        // Erro inesperado / não encapsulado trata como não-retentável
         throw err
       }
 
@@ -151,7 +167,7 @@ async function queryAniList(query, variables, retries = 2, delayMs = 100) {
     }
   }
 
-  throw lastError || new Error('Erro ao conectar com o AniList.')
+  throw lastError || new RetryableError('Erro ao conectar com o AniList.')
 }
 
 export function flattenEntries(data) {

@@ -1,4 +1,5 @@
 import { supabaseClient } from '../../supabase.js'
+import { UserNotFoundError, RetryableError, NonRetryableError } from '../errors.js'
 
 const CACHE_PREFIX = 'animatch_mal_cache_'
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutos
@@ -16,8 +17,14 @@ async function invokeProxy(username, status) {
     body: { username, status },
   })
 
-  if (error) throw new Error(error.message ?? 'Erro ao conectar com o MyAnimeList.')
-  if (data?.error) throw new Error(data.error)
+  if (error) throw new RetryableError(error.message ?? 'Erro ao conectar com o MyAnimeList.')
+  if (data?.error) {
+    const errMsg = data.error
+    if (errMsg.toLowerCase().includes('not found') || errMsg.toLowerCase().includes('não encontrado')) {
+      throw new UserNotFoundError('MyAnimeList')
+    }
+    throw new NonRetryableError(errMsg)
+  }
 
   return data?.data ?? []
 }
