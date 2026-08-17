@@ -117,9 +117,6 @@ async function queryAniList(query, variables, retries = 2, delayMs = 100) {
       if (response.status === 404) {
         throw new UserNotFoundError('AniList')
       }
-      if (response.status === 403) {
-        throw new RateLimitError('AniList', 1)
-      }
 
       let json = null
       try {
@@ -138,6 +135,10 @@ async function queryAniList(query, variables, retries = 2, delayMs = 100) {
           throw new PrivateListError('AniList')
         }
         throw new NonRetryableError(error.message || 'Erro desconhecido da API.')
+      }
+
+      if (response.status === 403) {
+        throw new RateLimitError('AniList', 1)
       }
 
       if (!response.ok) {

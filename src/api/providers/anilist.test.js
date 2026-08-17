@@ -70,9 +70,7 @@ describe('fetchCompletedList', () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 403,
-      json: () => Promise.resolve({
-        errors: [{ message: 'Forbidden', status: 403 }],
-      }),
+      json: () => Promise.resolve({}),
     })
 
     await expect(fetchCompletedList('privateuser')).rejects.toThrow(RateLimitError)
@@ -283,7 +281,7 @@ describe('fetchAllLists', () => {
       }),
     })
 
-    await expect(fetchAllLists('privateuser')).rejects.toThrow('A lista deste usuário é privada.')
+    await expect(fetchAllLists('privateuser')).rejects.toThrow(PrivateListError)
   })
 
   it('returns empty array when user has no lists', async () => {
