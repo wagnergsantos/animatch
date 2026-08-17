@@ -62,7 +62,15 @@
     "title": "タイトル",
     "predictedScore": "予測スコア",
     "format": "形式",
-    "year": "年"
+    "year": "年",
+    "fallbackBadge": "コミュニティスコア",
+    "fallbackTooltip": "このアニメのジャンルの履歴が不足しているため、コミュニティスコアを予測値として使用しています。",
+    "recommendationBreakdown": "推薦理由の詳細",
+    "badge_ACCLAIMED": "💎 大好評の話題作",
+    "badge_PERSONAL_BET": "🧪 個人的な穴場",
+    "badge_STRONG_CONSENSUS": "🔥 鉄板のおすすめ",
+    "tasteWeight": "あなたの好み (85%): {{score}}",
+    "communityWeight": "コミュニティ (15%): {{score}}"
   },
   "status": {
     "FINISHED": "完了",

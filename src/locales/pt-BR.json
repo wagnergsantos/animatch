@@ -62,7 +62,15 @@
     "title": "Título",
     "predictedScore": "Nota Prevista",
     "format": "Formato",
-    "year": "Ano"
+    "year": "Ano",
+    "fallbackBadge": "Nota da comunidade",
+    "fallbackTooltip": "Sem histórico suficiente nos gêneros deste anime; utilizando nota da comunidade como previsão.",
+    "recommendationBreakdown": "Justificativa da Recomendação",
+    "badge_ACCLAIMED": "💎 Aclamado pela crítica",
+    "badge_PERSONAL_BET": "🧪 Aposta Pessoal",
+    "badge_STRONG_CONSENSUS": "🔥 Recomendação Forte",
+    "tasteWeight": "Seu Gosto (85%): {{score}}",
+    "communityWeight": "Comunidade (15%): {{score}}"
   },
   "status": {
     "FINISHED": "Concluído",

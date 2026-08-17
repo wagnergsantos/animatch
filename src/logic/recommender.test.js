@@ -233,6 +233,10 @@ describe('scoreRecommendations', () => {
       description: undefined,
       coverImage: '',
       genres: [],
+      matchingGenres: [],
+      baseTasteScore: null,
+      predictionSource: 'community',
+      badges: [],
       format: 'OTHER',
       year: null,
       episodes: null,
@@ -255,6 +259,10 @@ describe('scoreRecommendations', () => {
       description: undefined,
       coverImage: '',
       genres: [],
+      matchingGenres: [],
+      baseTasteScore: null,
+      predictionSource: 'community',
+      badges: [],
       format: 'OTHER',
       year: null,
       episodes: null,
@@ -267,7 +275,7 @@ describe('scoreRecommendations', () => {
     })
   })
 
-  it('calculates predicted score from matching genre averages', () => {
+  it('calculates predicted score from matching genre averages and returns predictionSource taste', () => {
     const planning = [
       {
         media: {
@@ -283,10 +291,19 @@ describe('scoreRecommendations', () => {
 
     const result = scoreRecommendations(planning, tasteProfile)
 
-    expect(result[0].predictedScore).toBe(7) // (5 + 9) / 2
+    // Taste average: (5 + 9) / 2 = 7.0
+    // Community score: 8.0
+    // Hybrid: 7.0 * 0.85 + 8.0 * 0.15 = 5.95 + 1.2 = 7.15
+    expect(result[0].predictedScore).toBe(7.15)
+    expect(result[0].baseTasteScore).toBe(7)
+    expect(result[0].predictionSource).toBe('taste')
+    expect(result[0].matchingGenres).toEqual([
+      { genre: 'Action', score: 5 },
+      { genre: 'Adventure', score: 9 },
+    ])
   })
 
-  it('uses community averageScore as fallback when no genres match', () => {
+  it('uses community averageScore as fallback when no genres match and sets predictionSource community', () => {
     const planning = [
       {
         media: {
@@ -303,6 +320,8 @@ describe('scoreRecommendations', () => {
     const result = scoreRecommendations(planning, tasteProfile)
 
     expect(result[0].predictedScore).toBe(7.5) // 75 / 10
+    expect(result[0].predictionSource).toBe('community')
+    expect(result[0].matchingGenres).toEqual([])
   })
 
   it('sorts by predictedScore descending, then communityScore descending', () => {
@@ -392,7 +411,11 @@ describe('scoreRecommendations', () => {
     ]
 
     const result = scoreRecommendations(planning, customProfile)
-    expect(result[0].predictedScore).toBe(8) // (7.5 + 8.5) / 2 = 8.0
+    // Base taste: (7.5 + 8.5) / 2 = 8.0
+    // Community: 70 / 10 = 7.0
+    // Hybrid: 8.0 * 0.85 + 7.0 * 0.15 = 6.8 + 1.05 = 7.85
+    expect(result[0].predictedScore).toBe(7.85)
+    expect(result[0].baseTasteScore).toBe(8)
   })
 
   it('falls back to average when adjustedAverage is undefined', () => {
@@ -410,7 +433,11 @@ describe('scoreRecommendations', () => {
     ]
 
     const result = scoreRecommendations(planning, customProfile)
-    expect(result[0].predictedScore).toBe(6)
+    // Base taste: 6.0
+    // Community: 70 / 10 = 7.0
+    // Hybrid: 6.0 * 0.85 + 7.0 * 0.15 = 5.1 + 1.05 = 6.15
+    expect(result[0].predictedScore).toBe(6.15)
+    expect(result[0].baseTasteScore).toBe(6)
   })
 
   it('filters out unreleased anime where averageScore is null or 0', () => {

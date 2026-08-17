@@ -102,6 +102,36 @@ export default function AnimeDetailModal({ anime, titlePref = 'english', onClose
           <h3 className="anime-modal__section-title">{t('labels.synopsis')}</h3>
           <p className="anime-modal__description">{cleanDescription}</p>
 
+          {anime?.matchingGenres && anime.matchingGenres.length > 0 ? (
+            <div className="anime-modal__breakdown-section">
+              <h3 className="anime-modal__section-title">{t('labels.recommendationBreakdown')}</h3>
+              
+              <div className="anime-modal__breakdown-summary">
+                <span className="anime-modal__breakdown-summary-item">
+                  🎯 {t('labels.tasteWeight', { score: anime.baseTasteScore ? anime.baseTasteScore.toFixed(2) : '-' })}
+                </span>
+                <span className="anime-modal__breakdown-summary-item">
+                  🌐 {t('labels.communityWeight', { score: anime.communityScore ? anime.communityScore.toFixed(2) : '-' })}
+                </span>
+              </div>
+
+              <div className="anime-modal__breakdown-list">
+                {anime.matchingGenres.map((item) => (
+                  <span key={item.genre} className="anime-modal__breakdown-chip">
+                    {item.genre}: {item.score.toFixed(2)}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : anime?.predictionSource === 'community' ? (
+            <div className="anime-modal__breakdown-section">
+              <h3 className="anime-modal__section-title">{t('labels.recommendationBreakdown')}</h3>
+              <p className="anime-modal__fallback-note">
+                🌐 {t('labels.fallbackTooltip')}
+              </p>
+            </div>
+          ) : null}
+
           {genres.length > 0 && (
             <div className="anime-modal__genres-section">
               <h3 className="anime-modal__section-title">{t('labels.genres')}</h3>

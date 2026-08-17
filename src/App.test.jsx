@@ -51,7 +51,7 @@ describe('App', () => {
     expect(window.location.search).toContain('provider=anilist')
 
     expect(screen.getByText('Rec1')).toBeInTheDocument()
-    expect(screen.getByText('Match: 6.74/10')).toBeInTheDocument()
+    expect(screen.getByText('Match: 7.00/10')).toBeInTheDocument()
     expect(screen.getByText('Comunidade: 8.50/10')).toBeInTheDocument()
   })
 

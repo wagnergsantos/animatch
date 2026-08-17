@@ -93,18 +93,42 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
     const genres = media?.genres ?? []
     const matchingGenres = genres.filter((g) => tasteProfile.has(g))
 
-    let predictedScore
-    if (matchingGenres.length > 0) {
-      const sum = matchingGenres.reduce(
-        (acc, g) => acc + (tasteProfile.get(g).adjustedAverage ?? tasteProfile.get(g).average),
-        0
-      )
-      predictedScore = Math.round((sum / matchingGenres.length) * 100) / 100
-    } else {
-      predictedScore = Math.round((media.averageScore / 10) * 100) / 100
-    }
+    const scoredMatchingGenres = matchingGenres.map((g) => {
+      const stats = tasteProfile.get(g)
+      return {
+        genre: g,
+        score: stats.adjustedAverage ?? stats.average,
+      }
+    })
 
     const communityScore = Math.round((media.averageScore / 10) * 100) / 100
+
+    let baseTasteScore
+    let predictedScore
+    let predictionSource
+    const badges = []
+
+    if (matchingGenres.length > 0) {
+      const sum = scoredMatchingGenres.reduce((acc, item) => acc + item.score, 0)
+      baseTasteScore = Math.round((sum / matchingGenres.length) * 100) / 100
+      
+      // Híbrido: 85% perfil de gosto + 15% nota da comunidade
+      predictedScore = Math.round((baseTasteScore * 0.85 + communityScore * 0.15) * 100) / 100
+      predictionSource = 'taste'
+
+      // Badges baseados em discrepância
+      if (communityScore >= 8.5 && (communityScore - baseTasteScore >= 1.0)) {
+        badges.push('ACCLAIMED')
+      } else if (baseTasteScore - communityScore >= 1.5) {
+        badges.push('PERSONAL_BET')
+      } else if (baseTasteScore >= 8.0 && communityScore >= 8.0) {
+        badges.push('STRONG_CONSENSUS')
+      }
+    } else {
+      baseTasteScore = null
+      predictedScore = communityScore
+      predictionSource = 'community'
+    }
 
     const externalLinks = media.externalLinks ?? []
     const streamingLinks = externalLinks
@@ -121,6 +145,10 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
       description: media.description,
       coverImage: media.coverImage?.large ?? '',
       genres,
+      matchingGenres: scoredMatchingGenres,
+      baseTasteScore,
+      predictionSource,
+      badges,
       format: media.format || 'OTHER',
       year: media.seasonYear || media.startDate?.year || null,
       episodes: media.episodes || null,

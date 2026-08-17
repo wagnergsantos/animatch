@@ -83,6 +83,36 @@ export default function AnimeCard({ anime, titlePref = 'english', onCardClick })
             alt={t('labels.coverAlt', { title })}
             loading="lazy"
           />
+          <div className="anime-card__badges-overlay">
+            {anime?.predictionSource === 'community' ? (
+              <span
+                className="anime-card__badge-floating anime-card__badge-floating--community"
+                title={t('labels.fallbackTooltip')}
+              >
+                <span className="anime-card__badge-icon">🌐</span>
+                <span className="anime-card__badge-label">{t('labels.fallbackBadge')}</span>
+              </span>
+            ) : (
+              anime?.badges?.map((badgeKey) => {
+                const iconMap = {
+                  ACCLAIMED: '💎',
+                  PERSONAL_BET: '🧪',
+                  STRONG_CONSENSUS: '🔥',
+                }
+                const labelText = t(`labels.badge_${badgeKey}`).replace(/^[^\w\s\u00C0-\u00FF]+/u, '').trim()
+                return (
+                  <span
+                    key={badgeKey}
+                    className={`anime-card__badge-floating anime-card__badge-floating--${badgeKey.toLowerCase()}`}
+                    title={t(`labels.badge_${badgeKey}`)}
+                  >
+                    <span className="anime-card__badge-icon">{iconMap[badgeKey] || '⭐'}</span>
+                    <span className="anime-card__badge-label">{labelText}</span>
+                  </span>
+                )
+              })
+            )}
+          </div>
           <button
             className="anime-card__anilist-quickbtn"
             onClick={handleDirectAnilistClick}
