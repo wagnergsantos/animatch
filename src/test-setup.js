@@ -9,6 +9,9 @@ vi.mock('react-i18next', () => ({
       try {
         const parts = key.split('.')
         let v = parts.reduce((obj, k) => (obj && obj[k] !== undefined ? obj[k] : undefined), ptBR)
+        if (v === undefined && opts && typeof opts === 'object' && opts.defaultValue !== undefined) {
+          v = opts.defaultValue
+        }
         if (v === undefined) v = key
         if (typeof v === 'string' && opts) {
           Object.keys(opts).forEach((k) => {

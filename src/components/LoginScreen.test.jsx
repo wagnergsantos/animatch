@@ -103,7 +103,7 @@ describe('LoginScreen', () => {
   })
 
   it('restores provider from localStorage on mount', () => {
-    localStorage.setItem('animatch_provider', 'kitsu')
+    localStorage.setItem('animatch_provider', JSON.stringify('kitsu'))
     render(<LoginScreen onSubmit={() => {}} isLoading={false} error={null} />)
     
     expect(screen.getByRole('button', { name: 'Kitsu' })).toHaveClass('provider-pill--active')

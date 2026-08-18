@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
 import ThemeToggle from './ThemeToggle.jsx'
 import { useTranslation } from 'react-i18next'
-import './LoginScreen.css'
+import useLocalStorage from '../hooks/useLocalStorage.js'
 
 export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = [], initialUsername = '' }) {
   const { t } = useTranslation()
   const [username, setUsername] = useState(initialUsername)
-  const [provider, setProvider] = useState(() => localStorage.getItem('animatch_provider') || 'anilist')
+  const [provider, setProvider] = useLocalStorage('animatch_provider', 'anilist')
   const inputRef = useRef(null)
 
   const handleProviderChange = (newProvider) => {
@@ -15,10 +15,6 @@ export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = 
       inputRef.current.focus()
     }
   }
-
-  useEffect(() => {
-    localStorage.setItem('animatch_provider', provider)
-  }, [provider])
 
   useEffect(() => {
     if (initialUsername) {
@@ -34,7 +30,8 @@ export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = 
     }
   }
 
-  const providerLabel = t(`providers.${provider}`, provider)
+  const providerNames = { anilist: 'AniList', kitsu: 'Kitsu', mal: 'MyAnimeList' }
+  const providerLabel = t(`providers.${provider}`) || providerNames[provider] || provider
 
   return (
     <div className="login-screen">

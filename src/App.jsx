@@ -2,40 +2,23 @@ import { useState, useEffect } from 'react'
 import { fetchUserEntries } from './api/index.js'
 import LoginScreen from './components/LoginScreen.jsx'
 import Dashboard from './components/Dashboard.jsx'
+import useLocalStorage from './hooks/useLocalStorage.js'
 
 export default function App() {
   const [screen, setScreen] = useState('login')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [storedUsername, setStoredUsername] = useLocalStorage('animatch_username', null)
   const [username, setUsername] = useState('')
-  const [provider, setProvider] = useState(() => {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      return localStorage.getItem('animatch_provider') || 'anilist'
-    }
-    return 'anilist'
-  })
-  const [titlePref, setTitlePref] = useState(() => {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      return localStorage.getItem('animatch_title_pref') || 'english'
-    }
-    return 'english'
-  })
+  const [provider, setProvider] = useLocalStorage('animatch_provider', 'anilist')
+  const [titlePref, setTitlePref] = useLocalStorage('animatch_title_pref', 'english')
   const [allEntries, setAllEntries] = useState([])
-  const [recentUsers, setRecentUsers] = useState(() => {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      try {
-        const saved = localStorage.getItem('animatch_recent_users')
-        if (!saved) return []
-        const parsed = JSON.parse(saved)
-        return parsed.map((item) =>
-          typeof item === 'string' ? { username: item, provider: 'anilist' } : item
-        )
-      } catch (e) {
-        return []
-      }
-    }
-    return []
-  })
+  const [recentUsers, setRecentUsers] = useLocalStorage('animatch_recent_users', [])
+
+  // Normalizar recentUsers de arrays legados
+  const normalizedRecentUsers = (recentUsers || []).map((item) =>
+    typeof item === 'string' ? { username: item, provider: 'anilist' } : item
+  )
 
   useEffect(() => {
     // Check URL parameters for ?user=username&provider=provider
@@ -50,29 +33,20 @@ export default function App() {
       } else {
         setUsername(urlUser)
       }
-    } else {
-      const savedUsername = typeof window !== 'undefined' && window.localStorage ? localStorage.getItem('animatch_username') : null
-      if (savedUsername) {
-        const savedProvider = (typeof window !== 'undefined' && window.localStorage ? localStorage.getItem('animatch_provider') : null) || 'anilist'
-        handleLogin(savedUsername, savedProvider)
-      }
+    } else if (storedUsername) {
+      handleLogin(storedUsername, provider || 'anilist')
     }
   }, [])
 
   function addRecentUser(user, prov) {
     setRecentUsers((prev) => {
-      const filtered = prev.filter(
+      const current = (prev || []).map((item) =>
+        typeof item === 'string' ? { username: item, provider: 'anilist' } : item
+      )
+      const filtered = current.filter(
         (u) => !(u.username.toLowerCase() === user.toLowerCase() && u.provider === prov)
       )
-      const updated = [{ username: user, provider: prov }, ...filtered].slice(0, 5)
-      if (typeof window !== 'undefined' && window.localStorage) {
-        try {
-          localStorage.setItem('animatch_recent_users', JSON.stringify(updated))
-        } catch (e) {
-          // Ignore storage errors
-        }
-      }
-      return updated
+      return [{ username: user, provider: prov }, ...filtered].slice(0, 5)
     })
   }
 
@@ -94,14 +68,10 @@ export default function App() {
 
       setUsername(inputUsername)
       setProvider(inputProvider)
+      setStoredUsername(inputUsername)
       setAllEntries(entries)
       setScreen('dashboard')
       addRecentUser(inputUsername, inputProvider)
-
-      if (typeof window !== 'undefined' && window.localStorage) {
-        localStorage.setItem('animatch_username', inputUsername)
-        localStorage.setItem('animatch_provider', inputProvider)
-      }
 
       // Update URL with ?user=username&provider=provider
       if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
@@ -112,9 +82,7 @@ export default function App() {
       }
     } catch (err) {
       setError(err.message)
-      if (typeof window !== 'undefined' && window.localStorage) {
-        localStorage.removeItem('animatch_username')
-      }
+      setStoredUsername(null)
     } finally {
       setIsLoading(false)
     }
@@ -127,12 +95,9 @@ export default function App() {
   function handleLogout() {
     setScreen('login')
     setUsername('')
+    setStoredUsername(null)
     setAllEntries([])
     setError(null)
-
-    if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.removeItem('animatch_username')
-    }
 
     if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
       const url = new URL(window.location.href)
@@ -144,9 +109,6 @@ export default function App() {
 
   const handleTitlePrefChange = (newPref) => {
     setTitlePref(newPref)
-    if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.setItem('animatch_title_pref', newPref)
-    }
   }
 
   if (screen === 'login') {
@@ -155,7 +117,7 @@ export default function App() {
         onSubmit={(user, prov) => handleLogin(user, prov)}
         isLoading={isLoading}
         error={error}
-        recentUsers={recentUsers}
+        recentUsers={normalizedRecentUsers}
         initialUsername={username}
       />
     )
@@ -174,4 +136,5 @@ export default function App() {
     />
   )
 }
+
 
