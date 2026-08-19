@@ -100,10 +100,11 @@ export default function AnimeCard({ anime, titlePref = 'english', onCardClick })
                   STRONG_CONSENSUS: '🔥',
                 }
                 const labelText = t(`labels.badge_${badgeKey}`).replace(/^[^\w\s\u00C0-\u00FF]+/u, '').trim()
+                const modifierClass = styles[`anime-card__badge-floating--${badgeKey.toLowerCase()}`] || ''
                 return (
                   <span
                     key={badgeKey}
-                    className={`anime-card__badge-floating anime-card__badge-floating--${badgeKey.toLowerCase()}`}
+                    className={`${styles['anime-card__badge-floating']} ${modifierClass}`}
                     title={t(`labels.badge_${badgeKey}`)}
                   >
                     <span className={styles['anime-card__badge-icon']}>{iconMap[badgeKey] || '⭐'}</span>
@@ -150,7 +151,7 @@ export default function AnimeCard({ anime, titlePref = 'english', onCardClick })
             return <div className={styles['anime-card__meta']}>{parts.join(' • ')}</div>
           })()}
           {typeof anime?.predictedScore === 'number' && anime.predictedScore != null && !isNaN(anime.predictedScore) && (
-            <p className="anime-card__predicted">
+            <p className={styles['anime-card__predicted']}>
               {t('labels.match')}: {(anime.predictedScore).toFixed(2)}/10
             </p>
           )}

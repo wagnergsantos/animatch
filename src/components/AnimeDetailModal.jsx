@@ -74,7 +74,7 @@ export default function AnimeDetailModal({ anime, titlePref = 'english', onClose
           )}
           <div className={styles['anime-modal__header-info']}>
             <h2 id="modal-title" className={styles['anime-modal__title']}>{title}</h2>
-            {subTitle && <div className="anime-modal__subtitle" style={{ fontSize: 'var(--text-sm)', color: 'var(--color-muted)', marginBottom: 'var(--space-2)' }}>{subTitle}</div>}
+            {subTitle && <div className={styles['anime-modal__subtitle']} style={{ fontSize: 'var(--text-sm)', color: 'var(--color-muted)', marginBottom: 'var(--space-2)' }}>{subTitle}</div>}
             
             <div className={styles['anime-modal__meta-pills']}>
               {year && <span className={styles['anime-modal__pill']}>{year}</span>}
@@ -103,7 +103,7 @@ export default function AnimeDetailModal({ anime, titlePref = 'english', onClose
           <p className={styles['anime-modal__description']}>{cleanDescription}</p>
 
           {anime?.matchingGenres && anime.matchingGenres.length > 0 ? (
-            <div className="anime-modal__breakdown-section">
+            <div className={styles['anime-modal__breakdown-section']}>
               <h3 className={styles['anime-modal__section-title']}>{t('labels.recommendationBreakdown')}</h3>
               
               <div className={styles['anime-modal__breakdown-summary']}>
@@ -124,7 +124,7 @@ export default function AnimeDetailModal({ anime, titlePref = 'english', onClose
               </div>
             </div>
           ) : anime?.predictionSource === 'community' ? (
-            <div className="anime-modal__breakdown-section">
+            <div className={styles['anime-modal__breakdown-section']}>
               <h3 className={styles['anime-modal__section-title']}>{t('labels.recommendationBreakdown')}</h3>
               <p className={styles['anime-modal__fallback-note']}>
                 🌐 {t('labels.fallbackTooltip')}
@@ -132,8 +132,8 @@ export default function AnimeDetailModal({ anime, titlePref = 'english', onClose
             </div>
           ) : null}
 
-          {genres.length > 0 && (
-            <div className="anime-modal__genres-section">
+          {genres.length > 0 && (!anime?.matchingGenres || anime.matchingGenres.length === 0) && (
+            <div className={styles['anime-modal__genres-section']}>
               <h3 className={styles['anime-modal__section-title']}>{t('labels.genres')}</h3>
               <div className={styles['anime-modal__genres']}>
                 {genres.map((g) => (
@@ -144,7 +144,7 @@ export default function AnimeDetailModal({ anime, titlePref = 'english', onClose
           )}
 
           {streamingLinks.length > 0 && (
-            <div className="anime-modal__streaming-section">
+            <div className={styles['anime-modal__streaming-section']}>
               <h3 className={styles['anime-modal__section-title']}>{t('labels.whereToWatch')}</h3>
               <div className={styles['anime-modal__streaming-links']}>
                 {streamingLinks.map((link) => (

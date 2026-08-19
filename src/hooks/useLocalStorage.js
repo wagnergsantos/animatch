@@ -8,9 +8,14 @@ export default function useLocalStorage(key, initialValue) {
     try {
       const item = window.localStorage.getItem(key)
       if (item === null) return typeof initialValue === 'function' ? initialValue() : initialValue
-      return JSON.parse(item)
-    } catch (error) {
-      console.warn(`Erro ao ler localStorage key "${key}":`, error)
+      
+      try {
+        return JSON.parse(item)
+      } catch {
+        // String pura salva no localStorage (ex: 'kitsu', 'anilist')
+        return item
+      }
+    } catch {
       return typeof initialValue === 'function' ? initialValue() : initialValue
     }
   })
@@ -36,3 +41,7 @@ export default function useLocalStorage(key, initialValue) {
 
   return [storedValue, setValue]
 }
+
+
+
+

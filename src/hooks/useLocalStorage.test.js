@@ -36,9 +36,10 @@ describe('useLocalStorage', () => {
     expect(result.current[0]).toBe(2)
   })
 
-  it('trata graciosamente erro de JSON parse', () => {
-    window.localStorage.setItem('invalid_json', '{broken-json')
+  it('trata graciosamente dados de string legada ou não-JSON', () => {
+    window.localStorage.setItem('invalid_json', 'legacy_string')
     const { result } = renderHook(() => useLocalStorage('invalid_json', 'fallback'))
-    expect(result.current[0]).toBe('fallback')
+    expect(result.current[0]).toBe('legacy_string')
+    expect(window.localStorage.getItem('invalid_json')).toBe('legacy_string')
   })
 })
