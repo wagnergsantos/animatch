@@ -6,7 +6,24 @@ import useLocalStorage from './hooks/useLocalStorage.js'
 import { useAsyncAction } from './hooks/useAsyncAction.js'
 
 export default function App() {
-  const [screen, setScreen] = useState('login')
+  const [screen, setScreen] = useState(() => {
+    if (typeof window === 'undefined') return 'login'
+    const params = new URLSearchParams(window.location.search)
+    const urlUser = params.get('user')
+    const urlProvider = params.get('provider')
+    const validProviders = ['anilist', 'kitsu', 'mal']
+    const hasUrlAuth = urlUser && urlProvider && validProviders.includes(urlProvider.toLowerCase())
+
+    let localUser = null
+    try {
+      const item = window.localStorage.getItem('animatch_username')
+      localUser = item ? JSON.parse(item) : null
+    } catch {
+      localUser = null
+    }
+
+    return (hasUrlAuth || localUser) ? 'loading' : 'login'
+  })
   const [storedUsername, setStoredUsername] = useLocalStorage('animatch_username', null)
   const [username, setUsername] = useState('')
   const [provider, setProvider] = useLocalStorage('animatch_provider', 'anilist')
@@ -65,6 +82,7 @@ export default function App() {
       }
     } catch (err) {
       setStoredUsername(null)
+      setScreen('login')
       throw err
     }
   })
@@ -81,9 +99,12 @@ export default function App() {
         handleLogin(urlUser, urlProvider.toLowerCase())
       } else {
         setUsername(urlUser)
+        setScreen('login')
       }
     } else if (storedUsername) {
       handleLogin(storedUsername, provider || 'anilist')
+    } else {
+      setScreen('login')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -109,6 +130,16 @@ export default function App() {
 
   const handleTitlePrefChange = (newPref) => {
     setTitlePref(newPref)
+  }
+
+  if (screen === 'loading') {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', flexDirection: 'column', gap: '1rem', color: '#fff' }}>
+        <div style={{ width: '40px', height: '40px', border: '4px solid rgba(255,255,255,0.2)', borderTopColor: '#6366f1', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+        <p>Carregando dados...</p>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    )
   }
 
   if (screen === 'login') {
