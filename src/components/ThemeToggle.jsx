@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import './ThemeToggle.css'
+import styles from './ThemeToggle.module.css'
 
 export default function ThemeToggle() {
   const [theme, setTheme] = useState(() => {
@@ -26,7 +26,7 @@ export default function ThemeToggle() {
 
   return (
     <button
-      className="theme-toggle"
+      className={styles['theme-toggle']}
       onClick={toggleTheme}
       aria-label={`Alternar para tema ${theme === 'dark' ? 'claro' : 'escuro'}`}
       title={`Alternar para tema ${theme === 'dark' ? 'claro' : 'escuro'}`}

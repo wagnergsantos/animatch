@@ -91,7 +91,7 @@ describe('Dashboard', () => {
     fireEvent.click(article)
     expect(screen.getByRole('dialog')).toBeInTheDocument()
 
-    const quickBtn = article.querySelector('.anime-card__anilist-quickbtn')
+    const quickBtn = article.querySelector('[data-testid="anime-card-quick-link"]')
     fireEvent.click(quickBtn)
     expect(window.open).toHaveBeenCalledWith('https://anilist.co/anime/10', '_blank', 'noopener,noreferrer')
   })

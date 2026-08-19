@@ -6,6 +6,7 @@ import {
   NonRetryableError,
   ProviderError,
 } from '../errors.js'
+import { readCache, writeCache, clearCache } from '../../cache/apiCache.js'
 
 const _DEV = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.DEV) || false
 const ANILIST_API = _DEV ? '/anilist-api' : 'https://graphql.anilist.co'
@@ -197,47 +198,24 @@ export async function fetchAllLists(userName, options = {}) {
   const { forceRefresh = false } = options
   const cacheKey = `${CACHE_KEY_PREFIX}${userName.toLowerCase()}`
 
-  if (!forceRefresh && typeof window !== 'undefined' && window.localStorage) {
-    try {
-      const cached = window.localStorage.getItem(cacheKey)
-      if (cached) {
-        const { timestamp, entries } = JSON.parse(cached)
-        if (Date.now() - timestamp < CACHE_TTL && Array.isArray(entries)) {
-          return entries
-        }
-      }
-    } catch (e) {
-      // Ignore cache read error
+  if (!forceRefresh) {
+    const cached = readCache(cacheKey, CACHE_TTL)
+    if (Array.isArray(cached)) {
+      return cached
     }
   }
 
   const data = await queryAniList(ALL_LISTS_QUERY, { userName })
   const entries = flattenEntries(data)
 
-  if (typeof window !== 'undefined' && window.localStorage && entries.length > 0) {
-    try {
-      window.localStorage.setItem(
-        cacheKey,
-        JSON.stringify({
-          timestamp: Date.now(),
-          entries,
-        })
-      )
-    } catch (e) {
-      // Ignore cache write error (e.g. quota exceeded)
-    }
+  if (entries.length > 0) {
+    writeCache(cacheKey, entries)
   }
 
   return entries
 }
 
 export function clearUserCache(userName) {
-  if (typeof window !== 'undefined' && window.localStorage) {
-    try {
-      window.localStorage.removeItem(`${CACHE_KEY_PREFIX}${userName.toLowerCase()}`)
-    } catch (e) {
-      // Ignore
-    }
-  }
+  clearCache(`${CACHE_KEY_PREFIX}${userName.toLowerCase()}`)
 }
 

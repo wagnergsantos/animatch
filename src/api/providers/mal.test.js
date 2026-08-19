@@ -64,7 +64,7 @@ describe('malFetchAll', () => {
     const cached = [makeEntry()]
     localStorage.setItem(
       CACHE_PREFIX + 'testuser',
-      JSON.stringify({ timestamp: Date.now(), entries: cached })
+      JSON.stringify({ timestamp: Date.now(), value: cached })
     )
 
     const result = await malFetchAll('testuser')
@@ -77,7 +77,7 @@ describe('malFetchAll', () => {
     const cached = [makeEntry()]
     localStorage.setItem(
       CACHE_PREFIX + 'testuser',
-      JSON.stringify({ timestamp: Date.now() - 10 * 60 * 1000, entries: cached })
+      JSON.stringify({ timestamp: Date.now() - 10 * 60 * 1000, value: cached })
     )
 
     const fresh = [makeEntry(), makeEntry({ media: { ...makeEntry().media, id: 99 } })]
@@ -97,7 +97,7 @@ describe('malFetchAll', () => {
     const cached = [makeEntry()]
     localStorage.setItem(
       CACHE_PREFIX + 'testuser',
-      JSON.stringify({ timestamp: Date.now(), entries: cached })
+      JSON.stringify({ timestamp: Date.now(), value: cached })
     )
 
     supabaseClient.functions.invoke

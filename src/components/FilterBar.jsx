@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import './FilterBar.css'
+import styles from './FilterBar.module.css'
 
 const DEFAULT_MAIN_GENRES = [
   { id: 'ALL', key: 'filter.allGenres' },
@@ -93,19 +93,19 @@ export default function FilterBar({
   }
 
   return (
-    <div className="filter-container">
-      <div className="filter-controls">
-        <div className="filter-controls__group">
+    <div className={styles['filter-container']}>
+      <div className={styles['filter-controls']}>
+        <div className={styles['filter-controls__group']}>
           <input
             type="text"
-            className="filter-search"
+            className={styles['filter-search']}
             placeholder={t('filter.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => onSearchChange && onSearchChange(e.target.value)}
           />
 
           <select
-            className="filter-select filter-select--genre"
+            className={`${styles['filter-select']} ${styles['filter-select--genre']}`}
             value={selectedGenre}
             onChange={(e) => onSelectGenre && onSelectGenre(e.target.value)}
             aria-label={t('filter.allGenres')}
@@ -119,7 +119,7 @@ export default function FilterBar({
 
           {onSelectFormat && (
             <select
-              className="filter-select"
+              className={styles['filter-select']}
               value={selectedFormat}
               onChange={(e) => onSelectFormat(e.target.value)}
             >
@@ -133,7 +133,7 @@ export default function FilterBar({
 
           {availableYears && availableYears.length > 0 && (
             <select
-              className="filter-select"
+              className={styles['filter-select']}
               value={selectedYear}
               onChange={(e) => onSelectYear && onSelectYear(e.target.value)}
             >
@@ -149,7 +149,7 @@ export default function FilterBar({
 
           {onSelectBadge && (
             <select
-              className="filter-select"
+              className={styles['filter-select']}
               value={selectedBadge}
               onChange={(e) => onSelectBadge(e.target.value)}
             >
@@ -163,7 +163,7 @@ export default function FilterBar({
 
           {onSortChange && (
             <select
-              className="filter-select"
+              className={styles['filter-select']}
               value={sortBy}
               onChange={(e) => onSortChange(e.target.value)}
             >
@@ -176,12 +176,12 @@ export default function FilterBar({
           )}
 
           <div className="filter-bar__group filter-bar__checkbox-group">
-            <label className="filter-bar__checkbox-label">
+            <label className={styles['filter-bar__checkbox-label']}>
               <input
                 type="checkbox"
                 checked={isSeasonOnly}
                 onChange={(e) => onSeasonOnlyChange?.(e.target.checked)}
-                className="filter-bar__checkbox"
+                className={styles['filter-bar__checkbox']}
               />
               {t('filter.seasonOnly')}
             </label>
@@ -189,7 +189,7 @@ export default function FilterBar({
 
           {isFiltered && (
             <button
-              className="filter-clear-btn"
+              className={styles['filter-clear-btn']}
               onClick={handleResetFilters}
               title={t('filter.clearAll')}
             >
@@ -199,7 +199,7 @@ export default function FilterBar({
         </div>
 
         {onExportCSV && (
-          <button className="export-csv-btn" onClick={onExportCSV} title={t('filter.exportCSV')}>
+          <button className={styles['export-csv-btn']} onClick={onExportCSV} title={t('filter.exportCSV')}>
             📥 {t('filter.exportCSV')}
           </button>
         )}

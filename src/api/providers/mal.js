@@ -1,15 +1,12 @@
 import { supabaseClient } from '../../supabase.js'
 import { UserNotFoundError, RetryableError, NonRetryableError } from '../errors.js'
+import { readCache, writeCache, clearCache } from '../../cache/apiCache.js'
 
 const CACHE_PREFIX = 'animatch_mal_cache_'
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutos
 
 export function clearMalCache(username) {
-  try {
-    localStorage.removeItem(CACHE_PREFIX + username.toLowerCase())
-  } catch (e) {
-    // Ignore
-  }
+  clearCache(CACHE_PREFIX + username.toLowerCase())
 }
 
 async function invokeProxy(username, status) {
@@ -34,17 +31,8 @@ export async function malFetchAll(username, options = {}) {
   const cacheKey = CACHE_PREFIX + username.toLowerCase()
 
   if (!forceRefresh) {
-    try {
-      const cached = localStorage.getItem(cacheKey)
-      if (cached) {
-        const { timestamp, entries } = JSON.parse(cached)
-        if (Date.now() - timestamp < CACHE_TTL && Array.isArray(entries)) {
-          return entries
-        }
-      }
-    } catch (e) {
-      // Ignore cache read error
-    }
+    const cached = readCache(cacheKey, CACHE_TTL)
+    if (Array.isArray(cached)) return cached
   }
 
   // Busca todos os status em paralelo
@@ -67,11 +55,7 @@ export async function malFetchAll(username, options = {}) {
     return true
   })
 
-  try {
-    localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), entries }))
-  } catch (e) {
-    // Ignore quota exceeded
-  }
+  writeCache(cacheKey, entries)
 
   return entries
 }

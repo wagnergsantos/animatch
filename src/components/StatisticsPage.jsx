@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { normalizeEntries, dedupeByMediaId, aggregateGenreStats, buildMetricsSummary } from '../logic/statistics'
 import ExportSnapshotButton from './ExportSnapshotButton.jsx'
 import StatisticsView from './StatisticsView.jsx'
-import './StatisticsPage.css'
+import styles from './StatisticsPage.module.css'
 
 export default function StatisticsPage({ entries = [], user = '', onSelectGenre }) {
   const { t } = useTranslation()
@@ -15,8 +15,8 @@ export default function StatisticsPage({ entries = [], user = '', onSelectGenre 
   const summary = useMemo(() => buildMetricsSummary(unique), [unique])
 
   return (
-    <section className="statistics-page">
-      <header className="statistics-header">
+    <section className={styles['statistics-page']}>
+      <header className={styles['statistics-header']}>
         <h2>{t('statistics.title', 'Estatísticas')}</h2>
         <div className="statistics-actions">
           <ExportSnapshotButton user={user} summary={summary} genreStats={genreStats} details={unique} />

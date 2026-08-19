@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import './SettingsMenu.css'
+import styles from './SettingsMenu.module.css'
 
 export const LANG_OPTIONS = [
   { id: 'pt-BR' },
@@ -90,10 +90,10 @@ export default function SettingsMenu({
   const providerLabel = t(`providers.${provider}`, provider === 'mal' ? 'MyAnimeList' : provider === 'kitsu' ? 'Kitsu' : 'AniList')
 
   return (
-    <div className="settings-menu" ref={containerRef}>
+    <div className={styles['settings-menu']} ref={containerRef}>
       <button
         type="button"
-        className="settings-menu__trigger"
+        className={styles['settings-menu__trigger']}
         onClick={() => setIsOpen((prev) => !prev)}
         aria-label={t('settings.title')}
         title={t('settings.title')}
@@ -104,14 +104,14 @@ export default function SettingsMenu({
       </button>
 
       {isOpen && (
-        <div className="settings-menu__panel" role="dialog" aria-label={t('settings.title')}>
-          <div className="settings-menu__section">
-            <label className="settings-menu__label" htmlFor="language-select">
+        <div className={styles['settings-menu__panel']} role="dialog" aria-label={t('settings.title')}>
+          <div className={styles['settings-menu__section']}>
+            <label className={styles['settings-menu__label']} htmlFor="language-select">
               {t('settings.language')}
             </label>
             <select
               id="language-select"
-              className="settings-menu__select"
+              className={styles['settings-menu__select']}
               value={currentLang}
               onChange={(e) => changeLanguage(e.target.value)}
             >
@@ -123,15 +123,15 @@ export default function SettingsMenu({
             </select>
           </div>
 
-          <div className="settings-menu__divider" />
+          <div className={styles['settings-menu__divider']} />
 
-          <div className="settings-menu__section">
-            <label className="settings-menu__label" htmlFor="title-pref-select">
+          <div className={styles['settings-menu__section']}>
+            <label className={styles['settings-menu__label']} htmlFor="title-pref-select">
               {t('settings.titleLanguage')}
             </label>
             <select
               id="title-pref-select"
-              className="settings-menu__select"
+              className={styles['settings-menu__select']}
               value={titlePref}
               onChange={(e) => onTitlePrefChange && onTitlePrefChange(e.target.value)}
             >
@@ -140,13 +140,13 @@ export default function SettingsMenu({
             </select>
           </div>
 
-          <div className="settings-menu__divider" />
+          <div className={styles['settings-menu__divider']} />
 
-          <div className="settings-menu__row">
-            <span className="settings-menu__label">{t('settings.theme')}</span>
+          <div className={styles['settings-menu__row']}>
+            <span className={styles['settings-menu__label']}>{t('settings.theme')}</span>
             <button
               type="button"
-              className="settings-menu__theme-btn"
+              className={styles['settings-menu__theme-btn']}
               onClick={toggleTheme}
               aria-label={theme === 'dark' ? t('settings.theme_light') : t('settings.theme_dark')}
             >
@@ -154,12 +154,12 @@ export default function SettingsMenu({
             </button>
           </div>
 
-          <div className="settings-menu__divider" />
+          <div className={styles['settings-menu__divider']} />
 
           {onRefresh && (
             <button
               type="button"
-              className="settings-menu__btn"
+              className={styles['settings-menu__btn']}
               onClick={() => {
                 onRefresh()
               }}
@@ -172,7 +172,7 @@ export default function SettingsMenu({
           {onLogout && (
             <button
               type="button"
-              className="settings-menu__btn settings-menu__btn--danger"
+              className={`${styles['settings-menu__btn']} ${styles['settings-menu__btn--danger']}`}
               onClick={() => {
                 onLogout()
                 setIsOpen(false)

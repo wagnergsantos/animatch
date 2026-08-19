@@ -2,13 +2,21 @@ import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import AnimeCard from './AnimeCard.jsx'
 import { resolveYear } from '../logic/recommender.js'
-import './RecommendationGrid.css'
+import styles from './RecommendationGrid.module.css'
+import cardStyles from './AnimeCard.module.css'
 
+// O skeleton de loading reaproveita classes reais de AnimeCard.module.css
+// (anime-card, anime-card__image-wrapper, anime-card__body) pra ter a mesma
+// "silhueta" visual do card de verdade enquanto carrega. `anime-card--skeleton`
+// e `skeleton` (via .skeleton global de src/index.css) não têm equivalente
+// local — o primeiro é um className sem estilo correspondente em lugar
+// nenhum (já era assim antes da migração pra CSS Modules, não modifiquei);
+// o segundo é intencionalmente global, não precisa de import.
 function SkeletonCard() {
   return (
-    <div className="anime-card anime-card--skeleton" data-testid="skeleton">
-      <div className="anime-card__image-wrapper skeleton" />
-      <div className="anime-card__body">
+    <div className={`${cardStyles['anime-card']} anime-card--skeleton`} data-testid="skeleton">
+      <div className={`${cardStyles['anime-card__image-wrapper']} skeleton`} />
+      <div className={cardStyles['anime-card__body']}>
         <div className="skeleton" style={{ height: '1.2rem', width: '80%', marginBottom: 'var(--space-2)' }} />
         <div className="skeleton" style={{ height: '1rem', width: '50%', marginBottom: 'var(--space-1)' }} />
         <div className="skeleton" style={{ height: '0.8rem', width: '40%' }} />
@@ -68,8 +76,8 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
   if (isLoading) {
     return (
       <section className="recommendation-grid">
-        <h2 className="recommendation-grid__title">{t('recommendationGrid.calculating')}</h2>
-        <div className="recommendation-grid__grid">
+        <h2 className={styles['recommendation-grid__title']}>{t('recommendationGrid.calculating')}</h2>
+        <div className={styles['recommendation-grid__grid']}>
           {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
             <SkeletonCard key={i} />
           ))}
@@ -83,7 +91,7 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
   if (!recommendations || recommendations.length === 0) {
     return (
       <section className="recommendation-grid">
-        <h2 className="recommendation-grid__title">{t('recommendationGrid.none')}</h2>
+        <h2 className={styles['recommendation-grid__title']}>{t('recommendationGrid.none')}</h2>
         <p>{t('recommendationGrid.planToWatchPrompt', { provider: providerLabel })}</p>
       </section>
     )
@@ -91,12 +99,12 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
 
   return (
     <section className="recommendation-grid">
-      <div className="recommendation-grid__header">
-        <h2 className="recommendation-grid__title" style={{ marginBottom: 0 }}>
+      <div className={styles['recommendation-grid__header']}>
+        <h2 className={styles['recommendation-grid__title']} style={{ marginBottom: 0 }}>
           {t('recommendationGrid.header', { count: displayRecommendations.length })}
         </h2>
       </div>
-      <div className="recommendation-grid__grid">
+      <div className={styles['recommendation-grid__grid']}>
         {displayRecommendations.map((rec) => (
           <AnimeCard
             key={rec.id}

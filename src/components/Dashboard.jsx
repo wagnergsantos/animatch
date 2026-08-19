@@ -8,7 +8,7 @@ import StatisticsPage from './StatisticsPage.jsx'
 import GenreRecommendationModal from './GenreRecommendationModal.jsx'
 import ThemeToggle from './ThemeToggle.jsx'
 import SettingsMenu from './SettingsMenu.jsx'
-import './Dashboard.css'
+import styles from './Dashboard.module.css'
 
 function exportRecommendationsToCSV(recommendations, t, prefix) {
   if (!recommendations || recommendations.length === 0) return
@@ -173,27 +173,27 @@ export default function Dashboard({
   }
 
   return (
-    <div className="dashboard">
-      <header className="dashboard__header">
-        <div className="dashboard__header-left">
+    <div className={styles.dashboard}>
+      <header className={styles.dashboard__header}>
+        <div className={styles['dashboard__header-left']}>
           <a
             href={providerProfileUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="dashboard__username-link"
+            className={styles['dashboard__username-link']}
             title={`Abrir perfil no ${providerLabel}`}
           >
-            <span className="dashboard__username">{username} <span className="dashboard__provider-badge">({providerLabel})</span></span>
+            <span className={styles.dashboard__username}>{username} <span className="dashboard__provider-badge">({providerLabel})</span></span>
           </a>
-          <nav className="dashboard__nav">
+          <nav className={styles.dashboard__nav}>
             <button
-              className={activeTab === 'recommendations' ? 'active' : ''}
+              className={activeTab === 'recommendations' ? styles.active : ''}
               onClick={() => setActiveTab('recommendations')}
             >
               {t('dashboard.recommendationsTab')}
             </button>
             <button
-              className={activeTab === 'statistics' ? 'active' : ''}
+              className={activeTab === 'statistics' ? styles.active : ''}
               onClick={() => setActiveTab('statistics')}
             >
               {t('dashboard.statisticsTab')}
@@ -228,7 +228,7 @@ export default function Dashboard({
         </div>
       </header>
 
-      <main className="dashboard__main">
+      <main className={styles.dashboard__main}>
         {activeTab === 'recommendations' ? (
           <>
             {tasteProfile.size > 0 && (

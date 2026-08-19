@@ -1,9 +1,10 @@
 import { UserNotFoundError, RetryableError, ProviderError } from '../errors.js'
 
 const KITSU_API = 'https://kitsu.io/api/edge'
+import { readCache, writeCache, clearCache } from '../../cache/apiCache.js'
+
 const KITSU_CACHE_PREFIX = 'animatch_kitsu_cache_'
 const KITSU_CACHE_TTL = 5 * 60 * 1000 // 5 minutes
-
 
 const KITSU_HEADERS = {
   'Accept': 'application/vnd.api+json',
@@ -42,9 +43,7 @@ const CANONICAL_GENRES = new Set([
 ])
 
 export function clearKitsuCache(username) {
-  try {
-    localStorage.removeItem(KITSU_CACHE_PREFIX + username)
-  } catch(e) {}
+  clearCache(KITSU_CACHE_PREFIX + username)
 }
 
 function normalizeEntry(entry, included) {
@@ -133,15 +132,8 @@ function normalizeEntry(entry, included) {
 export async function kitsuFetchAll(username, options = {}) {
   const cacheKey = KITSU_CACHE_PREFIX + username
   if (!options.forceRefresh) {
-    try {
-      const cached = localStorage.getItem(cacheKey)
-      if (cached) {
-        const parsed = JSON.parse(cached)
-        if (Date.now() - parsed.timestamp < KITSU_CACHE_TTL) {
-          return parsed.data
-        }
-      }
-    } catch(e) {}
+    const cached = readCache(cacheKey, KITSU_CACHE_TTL)
+    if (Array.isArray(cached)) return cached
   }
 
   try {
@@ -186,12 +178,7 @@ export async function kitsuFetchAll(username, options = {}) {
       return true
     })
 
-    try {
-      localStorage.setItem(cacheKey, JSON.stringify({
-        timestamp: Date.now(),
-        data: deduped
-      }))
-    } catch(e) {}
+    writeCache(cacheKey, deduped)
 
     return deduped
   } catch (error) {

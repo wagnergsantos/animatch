@@ -63,11 +63,11 @@ describe('TasteProfile Component', () => {
     const g4Badge = screen.getByText('G4 ★ 7.50 (4)')
     const g5Badge = screen.getByText('G5 ★ 6.00 (3)')
 
-    expect(g1Badge).toHaveClass('taste-badge--filled')
-    expect(g2Badge).toHaveClass('taste-badge--filled')
-    expect(g3Badge).toHaveClass('taste-badge--filled')
-    expect(g4Badge).toHaveClass('taste-badge--outline')
-    expect(g5Badge).toHaveClass('taste-badge--outline')
+    expect(g1Badge.className).toMatch(/taste-badge--filled/)
+    expect(g2Badge.className).toMatch(/taste-badge--filled/)
+    expect(g3Badge.className).toMatch(/taste-badge--filled/)
+    expect(g4Badge.className).toMatch(/taste-badge--outline/)
+    expect(g5Badge.className).toMatch(/taste-badge--outline/)
 
     expect(screen.queryByText(/G6/)).not.toBeInTheDocument()
   })
@@ -89,7 +89,7 @@ describe('TasteProfile Component', () => {
     for (let i = 1; i <= 7; i++) {
       const badge = screen.getByText(new RegExp(`G${i} ★`))
       expect(badge).toBeInTheDocument()
-      expect(badge).toHaveClass('taste-badge--filled')
+      expect(badge.className).toMatch(/taste-badge--filled/)
     }
 
     expect(screen.queryByText(/G8/)).not.toBeInTheDocument()

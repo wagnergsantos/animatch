@@ -6,7 +6,7 @@ import {
   computeYearDistribution,
   computeBayesianGenreStats,
 } from '../logic/analytics.js'
-import './StatisticsView.css'
+import styles from './StatisticsView.module.css'
 
 export default function StatisticsView({ entries = [], onSelectGenre }) {
   const [sortBy, setSortBy] = useState('bayesian')
@@ -57,44 +57,44 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
   const maxYearCount = Math.max(...yearDistribution.map((y) => y.count), 1)
 
   return (
-    <div className="statistics-view">
+    <div className={styles['statistics-view']}>
       {/* Overview Cards */}
-      <section className="stats-overview">
-        <div className="stat-card">
-          <span className="stat-card__value">{overview.totalAnimes}</span>
-          <span className="stat-card__label">{t('stats.totalAnimes')}</span>
+      <section className={styles['stats-overview']}>
+        <div className={styles['stat-card']}>
+          <span className={styles['stat-card__value']}>{overview.totalAnimes}</span>
+          <span className={styles['stat-card__label']}>{t('stats.totalAnimes')}</span>
         </div>
-        <div className="stat-card">
-          <span className="stat-card__value">{overview.totalEpisodes}</span>
-          <span className="stat-card__label">{t('stats.totalEpisodes')}</span>
+        <div className={styles['stat-card']}>
+          <span className={styles['stat-card__value']}>{overview.totalEpisodes}</span>
+          <span className={styles['stat-card__label']}>{t('stats.totalEpisodes')}</span>
         </div>
-        <div className="stat-card">
-          <span className="stat-card__value">{overview.userAverageScore}</span>
-          <span className="stat-card__label">{t('stats.userAverageScore')}</span>
+        <div className={styles['stat-card']}>
+          <span className={styles['stat-card__value']}>{overview.userAverageScore}</span>
+          <span className={styles['stat-card__label']}>{t('stats.userAverageScore')}</span>
         </div>
       </section>
 
       {/* Distribution by Status */}
-      <section className="stats-section">
-        <h3 className="stats-section__title">{t('stats.statusDistribution')}</h3>
-        <div className="status-grid">
-          <div className="status-item status-completed">
+      <section className={styles['stats-section']}>
+        <h3 className={styles['stats-section__title']}>{t('stats.statusDistribution')}</h3>
+        <div className={styles['status-grid']}>
+          <div className={`${styles['status-item']} ${styles['status-completed']}`}>
             <span>{t('stats.status.completed')}</span>
             <strong>{statuses.COMPLETED}</strong>
           </div>
-          <div className="status-item status-planning">
+          <div className={`${styles['status-item']} ${styles['status-planning']}`}>
             <span>{t('stats.status.planning')}</span>
             <strong>{statuses.PLANNING}</strong>
           </div>
-          <div className="status-item status-current">
+          <div className={`${styles['status-item']} ${styles['status-current']}`}>
             <span>{t('stats.status.current')}</span>
             <strong>{statuses.CURRENT}</strong>
           </div>
-          <div className="status-item status-dropped">
+          <div className={`${styles['status-item']} ${styles['status-dropped']}`}>
             <span>{t('stats.status.dropped')}</span>
             <strong>{statuses.DROPPED}</strong>
           </div>
-          <div className="status-item status-paused">
+          <div className={`${styles['status-item']} ${styles['status-paused']}`}>
             <span>{t('stats.status.paused')}</span>
             <strong>{statuses.PAUSED}</strong>
           </div>
@@ -102,17 +102,17 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
       </section>
 
       {/* Year Chart */}
-      <section className="stats-section">
-        <h3 className="stats-section__title">{t('stats.releasesByYear')}</h3>
-        <div className="year-chart-container">
-          <div className="year-chart">
+      <section className={styles['stats-section']}>
+        <h3 className={styles['stats-section__title']}>{t('stats.releasesByYear')}</h3>
+        <div className={styles['year-chart-container']}>
+          <div className={styles['year-chart']}>
             {yearDistribution.map(({ year, count }) => (
-              <div key={year} className="year-chart__bar-wrapper" title={`${year}: ${count} animes`}>
+              <div key={year} className={styles['year-chart__bar-wrapper']} title={`${year}: ${count} animes`}>
                 <div
-                  className="year-chart__bar"
+                  className={styles['year-chart__bar']}
                   style={{ height: `${(count / maxYearCount) * 100}%` }}
                 ></div>
-                <span className="year-chart__label">{year}</span>
+                <span className={styles['year-chart__label']}>{year}</span>
               </div>
             ))}
           </div>
@@ -120,10 +120,10 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
       </section>
 
       {/* Genres Table */}
-      <section className="stats-section">
-        <div className="stats-section__header">
-          <h3 className="stats-section__title">{t('stats.favoriteGenresTitle')}</h3>
-          <div className="bayesian-controls" title={t('stats.confidence') }>
+      <section className={styles['stats-section']}>
+        <div className={styles['stats-section__header']}>
+          <h3 className={styles['stats-section__title']}>{t('stats.favoriteGenresTitle')}</h3>
+          <div className={styles['bayesian-controls']} title={t('stats.confidence') }>
             <label htmlFor="confidence-c">{t('stats.confidence', { c: confidenceC })}</label>
             <input
               id="confidence-c"
@@ -136,8 +136,8 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
           </div>
         </div>
 
-        <div className="genre-table-container">
-          <table className="genre-table">
+        <div className={styles['genre-table-container']}>
+          <table className={styles['genre-table']}>
             <thead>
               <tr>
                 <th onClick={() => toggleSort('genre')} role="button">{t('stats.genre')} {sortBy === 'genre' ? (sortDir === 'desc' ? '▼' : '▲') : ''}</th>
@@ -152,7 +152,7 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
                 {sortedGenreStats.map((item) => (
                 <tr
                   key={item.genre}
-                  className="genre-table__row"
+                  className={styles['genre-table__row']}
                   tabIndex={0}
                   role="button"
                   onClick={() => onSelectGenre && onSelectGenre(item.genre)}
@@ -164,12 +164,12 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
                   }}
                   title={t('stats.viewRecommendationsFor', { genre: item.genre })}
                 >
-                  <td className="genre-table__genre">{item.genre} 🔍</td>
+                  <td className={styles['genre-table__genre']}>{item.genre} 🔍</td>
                   <td>{item.count}</td>
                   <td>{item.scoredCount}</td>
                   <td>{item.plannedCount}</td>
                   <td>{typeof item.realAverage === 'number' ? item.realAverage.toFixed(2) : '—'}</td>
-                  <td className="genre-table__bayesian">{typeof item.bayesianAverage === 'number' ? item.bayesianAverage.toFixed(2) : '—'}</td>
+                  <td className={styles['genre-table__bayesian']}>{typeof item.bayesianAverage === 'number' ? item.bayesianAverage.toFixed(2) : '—'}</td>
                 </tr>
               ))}
             </tbody>

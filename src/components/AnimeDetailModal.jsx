@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import './AnimeDetailModal.css'
+import styles from './AnimeDetailModal.module.css'
 
 export default function AnimeDetailModal({ anime, titlePref = 'english', onClose }) {
   const { t } = useTranslation()
@@ -62,35 +62,35 @@ export default function AnimeDetailModal({ anime, titlePref = 'english', onClose
     : t('labels.noDescription')
 
   return (
-    <div className="anime-modal-overlay" onClick={onClose} data-testid="anime-detail-modal-overlay">
-      <div className="anime-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="modal-title">
-        <button className="anime-modal__close" onClick={onClose} aria-label={t('labels.closeModal')}>
+    <div className={styles['anime-modal-overlay']} onClick={onClose} data-testid="anime-detail-modal-overlay">
+      <div className={styles['anime-modal']} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <button className={styles['anime-modal__close']} onClick={onClose} aria-label={t('labels.closeModal')}>
           ✕
         </button>
 
-        <div className="anime-modal__header">
+        <div className={styles['anime-modal__header']}>
           {anime?.coverImage && (
-            <img className="anime-modal__cover" src={anime.coverImage} alt={t('labels.coverAlt', { title })} />
+            <img className={styles['anime-modal__cover']} src={anime.coverImage} alt={t('labels.coverAlt', { title })} />
           )}
-          <div className="anime-modal__header-info">
-            <h2 id="modal-title" className="anime-modal__title">{title}</h2>
+          <div className={styles['anime-modal__header-info']}>
+            <h2 id="modal-title" className={styles['anime-modal__title']}>{title}</h2>
             {subTitle && <div className="anime-modal__subtitle" style={{ fontSize: 'var(--text-sm)', color: 'var(--color-muted)', marginBottom: 'var(--space-2)' }}>{subTitle}</div>}
             
-            <div className="anime-modal__meta-pills">
-              {year && <span className="anime-modal__pill">{year}</span>}
-              {anime?.episodes && <span className="anime-modal__pill">{anime.episodes} {anime.episodes === 1 ? t('labels.ep') : t('labels.eps')}</span>}
-              {statusLabel && <span className="anime-modal__pill">{statusLabel}</span>}
-              {anime?.format && <span className="anime-modal__pill">{anime.format}</span>}
+            <div className={styles['anime-modal__meta-pills']}>
+              {year && <span className={styles['anime-modal__pill']}>{year}</span>}
+              {anime?.episodes && <span className={styles['anime-modal__pill']}>{anime.episodes} {anime.episodes === 1 ? t('labels.ep') : t('labels.eps')}</span>}
+              {statusLabel && <span className={styles['anime-modal__pill']}>{statusLabel}</span>}
+              {anime?.format && <span className={styles['anime-modal__pill']}>{anime.format}</span>}
             </div>
 
-            <div className="anime-modal__scores">
+            <div className={styles['anime-modal__scores']}>
               {typeof anime?.predictedScore === 'number' && !isNaN(anime.predictedScore) && (
-                <span className="anime-modal__score anime-modal__score--match">
+                <span className={`${styles['anime-modal__score']} ${styles['anime-modal__score--match']}`}>
                   {t('labels.match')}: {anime.predictedScore.toFixed(2)}/10
                 </span>
               )}
               {typeof anime?.communityScore === 'number' && !isNaN(anime.communityScore) && (
-                <span className="anime-modal__score anime-modal__score--community">
+                <span className={`${styles['anime-modal__score']} ${styles['anime-modal__score--community']}`}>
                   {t('labels.community')}: {anime.communityScore.toFixed(2)}/10
                 </span>
               )}
@@ -98,26 +98,26 @@ export default function AnimeDetailModal({ anime, titlePref = 'english', onClose
           </div>
         </div>
 
-        <div className="anime-modal__body">
-          <h3 className="anime-modal__section-title">{t('labels.synopsis')}</h3>
-          <p className="anime-modal__description">{cleanDescription}</p>
+        <div className={styles['anime-modal__body']}>
+          <h3 className={styles['anime-modal__section-title']}>{t('labels.synopsis')}</h3>
+          <p className={styles['anime-modal__description']}>{cleanDescription}</p>
 
           {anime?.matchingGenres && anime.matchingGenres.length > 0 ? (
             <div className="anime-modal__breakdown-section">
-              <h3 className="anime-modal__section-title">{t('labels.recommendationBreakdown')}</h3>
+              <h3 className={styles['anime-modal__section-title']}>{t('labels.recommendationBreakdown')}</h3>
               
-              <div className="anime-modal__breakdown-summary">
-                <span className="anime-modal__breakdown-summary-item">
+              <div className={styles['anime-modal__breakdown-summary']}>
+                <span className={styles['anime-modal__breakdown-summary-item']}>
                   🎯 {t('labels.tasteWeight', { score: anime.baseTasteScore ? anime.baseTasteScore.toFixed(2) : '-' })}
                 </span>
-                <span className="anime-modal__breakdown-summary-item">
+                <span className={styles['anime-modal__breakdown-summary-item']}>
                   🌐 {t('labels.communityWeight', { score: anime.communityScore ? anime.communityScore.toFixed(2) : '-' })}
                 </span>
               </div>
 
-              <div className="anime-modal__breakdown-list">
+              <div className={styles['anime-modal__breakdown-list']}>
                 {anime.matchingGenres.map((item) => (
-                  <span key={item.genre} className="anime-modal__breakdown-chip">
+                  <span key={item.genre} className={styles['anime-modal__breakdown-chip']}>
                     {item.genre}: {item.score.toFixed(2)}
                   </span>
                 ))}
@@ -125,8 +125,8 @@ export default function AnimeDetailModal({ anime, titlePref = 'english', onClose
             </div>
           ) : anime?.predictionSource === 'community' ? (
             <div className="anime-modal__breakdown-section">
-              <h3 className="anime-modal__section-title">{t('labels.recommendationBreakdown')}</h3>
-              <p className="anime-modal__fallback-note">
+              <h3 className={styles['anime-modal__section-title']}>{t('labels.recommendationBreakdown')}</h3>
+              <p className={styles['anime-modal__fallback-note']}>
                 🌐 {t('labels.fallbackTooltip')}
               </p>
             </div>
@@ -134,10 +134,10 @@ export default function AnimeDetailModal({ anime, titlePref = 'english', onClose
 
           {genres.length > 0 && (
             <div className="anime-modal__genres-section">
-              <h3 className="anime-modal__section-title">{t('labels.genres')}</h3>
-              <div className="anime-modal__genres">
+              <h3 className={styles['anime-modal__section-title']}>{t('labels.genres')}</h3>
+              <div className={styles['anime-modal__genres']}>
                 {genres.map((g) => (
-                  <span key={g} className="anime-modal__genre-tag">{g}</span>
+                  <span key={g} className={styles['anime-modal__genre-tag']}>{g}</span>
                 ))}
               </div>
             </div>
@@ -145,15 +145,15 @@ export default function AnimeDetailModal({ anime, titlePref = 'english', onClose
 
           {streamingLinks.length > 0 && (
             <div className="anime-modal__streaming-section">
-              <h3 className="anime-modal__section-title">{t('labels.whereToWatch')}</h3>
-              <div className="anime-modal__streaming-links">
+              <h3 className={styles['anime-modal__section-title']}>{t('labels.whereToWatch')}</h3>
+              <div className={styles['anime-modal__streaming-links']}>
                 {streamingLinks.map((link) => (
                   <a
                     key={link.site}
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="anime-modal__streaming-btn"
+                    className={styles['anime-modal__streaming-btn']}
                   >
                     ▶ {link.site}
                   </a>
@@ -163,12 +163,12 @@ export default function AnimeDetailModal({ anime, titlePref = 'english', onClose
           )}
         </div>
 
-        <div className="anime-modal__footer">
+        <div className={styles['anime-modal__footer']}>
           <a
             href={siteUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="anime-modal__anilist-btn"
+            className={styles['anime-modal__anilist-btn']}
           >
             🔗 {t('labels.viewMoreOn', { provider: providerLabel })} ↗
           </a>

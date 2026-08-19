@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import GenreOriginModal from './GenreOriginModal'
-import './TasteProfile.css'
+import styles from './TasteProfile.module.css'
 
 export default function TasteProfile({ profile = new Map(), onGenreClick }) {
   const { t } = useTranslation()
@@ -20,9 +20,9 @@ export default function TasteProfile({ profile = new Map(), onGenreClick }) {
   const displayBadges = sorted.slice(0, limit)
 
   return (
-    <section className="taste-profile">
-      <h2 className="taste-profile__title">{t('tasteProfile.title')}</h2>
-      <div className="taste-profile__badges">
+    <section className={styles['taste-profile']}>
+      <h2 className={styles['taste-profile__title']}>{t('tasteProfile.title')}</h2>
+      <div className={styles['taste-profile__badges']}>
         {displayBadges.map(([genre, stats]) => {
           const score = stats?.adjustedAverage ?? stats?.average ?? 0
           const isFilled = score >= 8.00
@@ -32,7 +32,7 @@ export default function TasteProfile({ profile = new Map(), onGenreClick }) {
           return (
             <span
               key={genre}
-              className={`taste-badge ${isFilled ? 'taste-badge--filled' : 'taste-badge--outline'}`}
+              className={`${styles['taste-badge']} ${isFilled ? styles['taste-badge--filled'] : styles['taste-badge--outline']}`}
               onClick={() => setSelectedModalGenre({ genre, stats })}
               style={{ cursor: 'pointer' }}>
               {genre} &#9733; {realAvg.toFixed(2)} ({count})

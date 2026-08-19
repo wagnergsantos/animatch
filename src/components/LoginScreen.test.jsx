@@ -54,7 +54,7 @@ describe('LoginScreen', () => {
     const input = screen.getByLabelText('Username do AniList')
     expect(button).toBeDisabled()
     expect(input).toBeDisabled()
-    expect(button.querySelector('.login-spinner')).toBeInTheDocument()
+    expect(button.querySelector('[data-testid="login-spinner"]')).toBeInTheDocument()
   })
 
   it('displays an error message when error prop is set', () => {
@@ -71,8 +71,8 @@ describe('LoginScreen', () => {
     
     expect(anilistBtn).toBeInTheDocument()
     expect(kitsuBtn).toBeInTheDocument()
-    expect(anilistBtn).toHaveClass('provider-pill--active')
-    expect(kitsuBtn).not.toHaveClass('provider-pill--active')
+    expect(anilistBtn.className).toMatch(/provider-pill--active/)
+    expect(kitsuBtn.className).not.toMatch(/provider-pill--active/)
   })
 
   it('changes dynamic placeholder when provider changes', () => {
@@ -106,7 +106,7 @@ describe('LoginScreen', () => {
     localStorage.setItem('animatch_provider', JSON.stringify('kitsu'))
     render(<LoginScreen onSubmit={() => {}} isLoading={false} error={null} />)
     
-    expect(screen.getByRole('button', { name: 'Kitsu' })).toHaveClass('provider-pill--active')
+    expect(screen.getByRole('button', { name: 'Kitsu' }).className).toMatch(/provider-pill--active/)
     expect(screen.getByPlaceholderText('Seu usuário no Kitsu...')).toBeInTheDocument()
   })
 

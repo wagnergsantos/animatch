@@ -1,13 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { fetchUserEntries } from './api/index.js'
 import LoginScreen from './components/LoginScreen.jsx'
 import Dashboard from './components/Dashboard.jsx'
 import useLocalStorage from './hooks/useLocalStorage.js'
+import { useAsyncAction } from './hooks/useAsyncAction.js'
 
 export default function App() {
   const [screen, setScreen] = useState('login')
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState(null)
   const [storedUsername, setStoredUsername] = useLocalStorage('animatch_username', null)
   const [username, setUsername] = useState('')
   const [provider, setProvider] = useLocalStorage('animatch_provider', 'anilist')
@@ -19,24 +18,6 @@ export default function App() {
   const normalizedRecentUsers = (recentUsers || []).map((item) =>
     typeof item === 'string' ? { username: item, provider: 'anilist' } : item
   )
-
-  useEffect(() => {
-    // Check URL parameters for ?user=username&provider=provider
-    const params = new URLSearchParams(window.location.search)
-    const urlUser = params.get('user')
-    const urlProvider = params.get('provider')
-    const validProviders = ['anilist', 'kitsu', 'mal']
-
-    if (urlUser) {
-      if (urlProvider && validProviders.includes(urlProvider.toLowerCase())) {
-        handleLogin(urlUser, urlProvider.toLowerCase())
-      } else {
-        setUsername(urlUser)
-      }
-    } else if (storedUsername) {
-      handleLogin(storedUsername, provider || 'anilist')
-    }
-  }, [])
 
   function addRecentUser(user, prov) {
     setRecentUsers((prev) => {
@@ -50,10 +31,14 @@ export default function App() {
     })
   }
 
-  async function handleLogin(inputUsername, inputProvider = 'anilist', options = {}) {
-    setIsLoading(true)
-    setError(null)
-
+  // isLoading/error ficam encapsulados no hook — ver convenção em
+  // docs/roadmap_v2.md e arquitetura_inicial/docs/ARQUITETURA-UNIFICADA.md.
+  const {
+    execute: handleLogin,
+    isLoading,
+    error,
+    setError,
+  } = useAsyncAction(async (inputUsername, inputProvider = 'anilist', options = {}) => {
     try {
       const entries = await fetchUserEntries(inputUsername, inputProvider, options)
 
@@ -61,9 +46,7 @@ export default function App() {
       if (planning.length === 0) {
         const providerNames = { anilist: 'AniList', kitsu: 'Kitsu', mal: 'MyAnimeList' }
         const providerName = providerNames[inputProvider] ?? inputProvider
-        setError(`Adicione animes à sua lista 'Plan to Watch' no ${providerName}.`)
-        setIsLoading(false)
-        return
+        throw new Error(`Adicione animes à sua lista 'Plan to Watch' no ${providerName}.`)
       }
 
       setUsername(inputUsername)
@@ -81,12 +64,29 @@ export default function App() {
         window.history.replaceState({}, '', url.toString())
       }
     } catch (err) {
-      setError(err.message)
       setStoredUsername(null)
-    } finally {
-      setIsLoading(false)
+      throw err
     }
-  }
+  })
+
+  useEffect(() => {
+    // Check URL parameters for ?user=username&provider=provider
+    const params = new URLSearchParams(window.location.search)
+    const urlUser = params.get('user')
+    const urlProvider = params.get('provider')
+    const validProviders = ['anilist', 'kitsu', 'mal']
+
+    if (urlUser) {
+      if (urlProvider && validProviders.includes(urlProvider.toLowerCase())) {
+        handleLogin(urlUser, urlProvider.toLowerCase())
+      } else {
+        setUsername(urlUser)
+      }
+    } else if (storedUsername) {
+      handleLogin(storedUsername, provider || 'anilist')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   function handleRefresh() {
     handleLogin(username, provider, { forceRefresh: true })

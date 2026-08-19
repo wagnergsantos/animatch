@@ -2,7 +2,8 @@ import { useMemo, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { scoreRecommendations } from '../logic/recommender.js'
 import RecommendationGrid from './RecommendationGrid.jsx'
-import './GenreRecommendationModal.css'
+import styles from './GenreRecommendationModal.module.css'
+import overlayStyles from './ModalOverlay.module.css'
 
 export default function GenreRecommendationModal({ genre, planningEntries, tasteProfile, provider = 'anilist', titlePref = 'english', onClose }) {
   const { t } = useTranslation()
@@ -64,25 +65,25 @@ export default function GenreRecommendationModal({ genre, planningEntries, taste
   if (!genre) return null
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className={overlayStyles.overlay} onClick={onClose}>
       <div
         ref={modalRef}
-        className="modal-container"
+        className={styles['modal-container']}
         role="dialog"
         aria-modal="true"
         aria-labelledby="genre-recommendation-modal-title"
         tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="modal-header">
+        <header className={styles['modal-header']}>
           <h2 id="genre-recommendation-modal-title">{t('modals.genreRecommendation.title', { genre })}</h2>
-          <button className="modal-close-btn" onClick={onClose} aria-label={t('labels.closeModal')}>✕</button>
+          <button className={styles['modal-close-btn']} onClick={onClose} aria-label={t('labels.closeModal')}>✕</button>
         </header>
-        <main className="modal-body">
+        <main className={styles['modal-body']}>
           {genreRecommendations.length > 0 ? (
             <RecommendationGrid recommendations={genreRecommendations} provider={provider} titlePref={titlePref} />
           ) : (
-            <div className="modal-empty-msg">
+            <div className={styles['modal-empty-msg']}>
               <p>{t('modals.genreRecommendation.none', { genre })}</p>
               <p>{t('modals.genreRecommendation.prompt', { provider: providerLabel })}</p>
             </div>

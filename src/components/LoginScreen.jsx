@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import ThemeToggle from './ThemeToggle.jsx'
 import { useTranslation } from 'react-i18next'
 import useLocalStorage from '../hooks/useLocalStorage.js'
+import styles from './LoginScreen.module.css'
 
 export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = [], initialUsername = '' }) {
   const { t } = useTranslation()
@@ -34,18 +35,18 @@ export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = 
   const providerLabel = t(`providers.${provider}`) || providerNames[provider] || provider
 
   return (
-    <div className="login-screen">
+    <div className={styles['login-screen']}>
       <div style={{ position: 'absolute', top: 'var(--space-4)', right: 'var(--space-4)' }}>
         <ThemeToggle />
       </div>
-      <div className="login-container">
-        <h1 className="login-title">{t('login.title')}</h1>
-        <p className="login-subtitle">{t('login.subtitle')}</p>
-        <form className="login-form" onSubmit={handleSubmit}>
-          <div className="provider-selector">
+      <div className={styles['login-container']}>
+        <h1 className={styles['login-title']}>{t('login.title')}</h1>
+        <p className={styles['login-subtitle']}>{t('login.subtitle')}</p>
+        <form className={styles['login-form']} onSubmit={handleSubmit}>
+          <div className={styles['provider-selector']}>
             <button
               type="button"
-              className={`provider-pill ${provider === 'anilist' ? 'provider-pill--active' : ''}`}
+              className={`${styles['provider-pill']} ${provider === 'anilist' ? styles['provider-pill--active'] : ''}`}
               onClick={() => handleProviderChange('anilist')}
               disabled={isLoading}
             >
@@ -53,7 +54,7 @@ export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = 
             </button>
             <button
               type="button"
-              className={`provider-pill ${provider === 'kitsu' ? 'provider-pill--active' : ''}`}
+              className={`${styles['provider-pill']} ${provider === 'kitsu' ? styles['provider-pill--active'] : ''}`}
               onClick={() => handleProviderChange('kitsu')}
               disabled={isLoading}
             >
@@ -61,20 +62,20 @@ export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = 
             </button>
             <button
               type="button"
-              className={`provider-pill ${provider === 'mal' ? 'provider-pill--active' : ''}`}
+              className={`${styles['provider-pill']} ${provider === 'mal' ? styles['provider-pill--active'] : ''}`}
               onClick={() => handleProviderChange('mal')}
               disabled={isLoading}
             >
               {t('providers.mal')}
             </button>
           </div>
-          <label htmlFor="username-input" className="login-label">
+          <label htmlFor="username-input" className={styles['login-label']}>
             {t('login.usernameLabel', { provider: providerLabel })}
           </label>
           <input
             ref={inputRef}
             id="username-input"
-            className={`login-input ${error ? 'login-input--error' : ''}`}
+            className={`${styles['login-input']} ${error ? styles['login-input--error'] : ''}`}
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
@@ -85,18 +86,18 @@ export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = 
             aria-describedby={error ? 'username-error' : undefined}
           />
           {error && (
-            <p id="username-error" className="login-error" role="alert">
+            <p id="username-error" className={styles['login-error']} role="alert">
               {error}
             </p>
           )}
           <button
-            className="login-button"
+            className={styles['login-button']}
             type="submit"
             disabled={isLoading || !username.trim()}
           >
             {isLoading ? (
               <>
-                <span className="login-spinner" aria-hidden="true" />
+                <span className={styles['login-spinner']} aria-hidden="true" data-testid="login-spinner" />
                 {t('login.loading')}
               </>
             ) : (

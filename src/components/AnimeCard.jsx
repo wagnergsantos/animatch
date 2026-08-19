@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import AnimeDetailModal from './AnimeDetailModal.jsx'
-import './AnimeCard.css'
+import styles from './AnimeCard.module.css'
 
 export default function AnimeCard({ anime, titlePref = 'english', onCardClick }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -68,7 +68,7 @@ export default function AnimeCard({ anime, titlePref = 'english', onCardClick })
   return (
     <>
       <article
-        className="anime-card"
+        className={styles['anime-card']}
         onClick={handleCardClick}
         onKeyDown={handleKeyDown}
         tabIndex={0}
@@ -76,21 +76,21 @@ export default function AnimeCard({ anime, titlePref = 'english', onCardClick })
         style={{ cursor: 'pointer' }}
         title={title}
       >
-        <div className="anime-card__image-wrapper">
+        <div className={styles['anime-card__image-wrapper']}>
           <img
-            className="anime-card__image"
+            className={styles['anime-card__image']}
             src={anime?.coverImage || undefined}
             alt={t('labels.coverAlt', { title })}
             loading="lazy"
           />
-          <div className="anime-card__badges-overlay">
+          <div className={styles['anime-card__badges-overlay']}>
             {anime?.predictionSource === 'community' ? (
               <span
-                className="anime-card__badge-floating anime-card__badge-floating--community"
+                className={`${styles['anime-card__badge-floating']} ${styles['anime-card__badge-floating--community']}`}
                 title={t('labels.fallbackTooltip')}
               >
-                <span className="anime-card__badge-icon">🌐</span>
-                <span className="anime-card__badge-label">{t('labels.fallbackBadge')}</span>
+                <span className={styles['anime-card__badge-icon']}>🌐</span>
+                <span className={styles['anime-card__badge-label']}>{t('labels.fallbackBadge')}</span>
               </span>
             ) : (
               anime?.badges?.map((badgeKey) => {
@@ -106,25 +106,26 @@ export default function AnimeCard({ anime, titlePref = 'english', onCardClick })
                     className={`anime-card__badge-floating anime-card__badge-floating--${badgeKey.toLowerCase()}`}
                     title={t(`labels.badge_${badgeKey}`)}
                   >
-                    <span className="anime-card__badge-icon">{iconMap[badgeKey] || '⭐'}</span>
-                    <span className="anime-card__badge-label">{labelText}</span>
+                    <span className={styles['anime-card__badge-icon']}>{iconMap[badgeKey] || '⭐'}</span>
+                    <span className={styles['anime-card__badge-label']}>{labelText}</span>
                   </span>
                 )
               })
             )}
           </div>
           <button
-            className="anime-card__anilist-quickbtn"
+            className={styles['anime-card__anilist-quickbtn']}
             onClick={handleDirectAnilistClick}
             title={t('labels.openProvider', { provider: providerLabel })}
             aria-label={t('labels.openProvider', { provider: providerLabel })}
+            data-testid="anime-card-quick-link"
           >
             🔗 {providerLabel} ↗
           </button>
         </div>
-        <div className="anime-card__body">
-          <h3 className="anime-card__title">{mainTitle}</h3>
-          {subTitle && <div className="anime-card__subtitle">{subTitle}</div>}
+        <div className={styles['anime-card__body']}>
+          <h3 className={styles['anime-card__title']}>{mainTitle}</h3>
+          {subTitle && <div className={styles['anime-card__subtitle']}>{subTitle}</div>}
           {(() => {
             const parts = []
             const year = anime?.year ?? anime?.seasonYear ?? anime?.startDate?.year
@@ -146,7 +147,7 @@ export default function AnimeCard({ anime, titlePref = 'english', onCardClick })
             }
 
             if (parts.length === 0) return null
-            return <div className="anime-card__meta">{parts.join(' • ')}</div>
+            return <div className={styles['anime-card__meta']}>{parts.join(' • ')}</div>
           })()}
           {typeof anime?.predictedScore === 'number' && anime.predictedScore != null && !isNaN(anime.predictedScore) && (
             <p className="anime-card__predicted">
@@ -154,23 +155,23 @@ export default function AnimeCard({ anime, titlePref = 'english', onCardClick })
             </p>
           )}
           {typeof anime?.communityScore === 'number' && anime.communityScore != null && !isNaN(anime.communityScore) && (
-            <p className="anime-card__community">
+            <p className={styles['anime-card__community']}>
               {t('labels.community')}: {(anime.communityScore).toFixed(2)}/10
             </p>
           )}
 
           {genres.length > 0 && (
-            <div className="anime-card__genres">
+            <div className={styles['anime-card__genres']}>
               {genres.slice(0, 3).map((genre) => (
                 <span
                   key={genre}
-                  className="anime-card__genre-pill"
+                  className={styles['anime-card__genre-pill']}
                 >
                   {genre}
                 </span>
               ))}
               {genres.length > 3 && (
-                <span className="anime-card__genre-pill anime-card__genre-pill--more">
+                <span className={`${styles['anime-card__genre-pill']} ${styles['anime-card__genre-pill--more']}`}>
                   +{genres.length - 3}
                 </span>
               )}
