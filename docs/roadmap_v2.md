@@ -211,29 +211,44 @@ cache).
 Priorizadas da mais simples/barata para a mais ambiciosa. Todas reaproveitam
 peças que já existem no repo.
 
-### B1. Explicação da recomendação ("por quê esse anime?")
+### B1. Explicação da recomendação ("Por que esse anime?")
 
-**Reaproveita:** `matchingGenres` já calculado dentro de `scoreRecommendations()`.
+**Reaproveita:** `matchingGenres` e histórico de notas do usuário em `scoreRecommendations()`.
 
-Ao clicar/expandir um card de recomendação, mostrar quais gêneros pesaram na
-nota prevista e a contribuição de cada um (ex.: "Ação: 8.4 · Drama: 7.9").
-Aumenta a confiança do usuário no algoritmo e é praticamente só expor um dado
-que já existe internamente — hoje `scoreRecommendations()` calcula
-`matchingGenres` e descarta o detalhamento, devolvendo só a média final.
+Ao clicar ou expandir um card/modal de recomendação, apresentar a justificativa de compatibilidade em **camadas de experiência**:
 
-**Esforço:** pequeno. Ajuste no retorno de `scoreRecommendations()` +
-componente novo (modal ou tooltip) em `AnimeCard.jsx`/`AnimeDetailModal.jsx`.
+1. **Nível 1 — Síntese Curta (Card principal)**: Frase direta de 1 linha (ex: *"Esta é uma das recomendações mais fortes com base nas suas avaliações anteriores."* ou *"Pelos seus gostos recentes, este parece o próximo passo natural."*).
+2. **Nível 2 — Justificativa Personalizada (Detalhamento estatístico)**:
+   - **Similaridade**: *"Você avaliou muito bem Monster (10) e Death Note (9)."*
+   - **Gêneros**: Decomposição da nota prevista (ex: *"Mistério: 8.9 · Drama: 8.4"*).
+   - **Estúdio/Público**: Afinidade com o estúdio ou perfil maduro.
+3. **Nível 3 — Engajamento Humano (Modo Decisão / Hero)**: Copy opinativa e provocativa (ex: *"Se eu tivesse que escolher apenas um anime do seu Planning hoje, seria este."* ou *"Você acumulou este anime no Planning por tempo demais. Está na hora."*).
+4. **Nível 4 — Contexto de Sorteio (Top 20 Ponderado)**: Transparência quando o anime for sorteado (ex: *"Sorteado entre o seu Top 20 de maior compatibilidade para garantir variabilidade com alta qualidade."*).
+
+**Esforço:** Pequeno. Expor detalhamento em `scoreRecommendations()` + componente `RecommendationReason.jsx` com suporte a i18n em `src/locales/`.
 
 ---
 
-### B2. Filtro de descoberta ("surpreenda-me")
+### B2. Modo Decisão & Descoberta ("Escolha pra mim")
 
-Um modo de ordenação alternativo que prioriza animes de gêneros com baixo
-`scoredCount` no perfil do usuário (pouco explorados) mas com `communityScore`
-alto — o oposto do modo "mais do mesmo" atual.
+Em listas extensas (200+ itens no Planning), a ordenação tradicional gera **paralisia por análise**. O Modo Decisão resolve esse problema oferecendo um botão flutuante/destacado `✨ Escolher por mim` com suporte a 3 modos principais:
 
-**Esforço:** pequeno-médio. Nova função de scoring em `recommender.js`
-reaproveitando o `tasteProfile`, mais um toggle na `FilterBar.jsx`.
+1. 🎯 **Melhor Escolha**: Retorna estritamente o recomendador #1 com alta compatibilidade.
+2. 🎲 **Surpreenda-me (Sorteio Ponderado Top 20)**: Amostragem probabilística decrescente entre o Top 20 da recomendação (ex.: #1 tem ~15% de chance, #2 ~12%, ..., #20 ~1%), evitando repetir sempre o #1 sem cair no aleatório puro.
+3. ⚡ **Quero Começar Hoje**: Prioriza animes do Planning com poucos episódios ($\le$ 12-24 eps), disponíveis nas assinaturas ativas do usuário e não iniciados.
+
+**Filtro por Serviços de Streaming Assinados**:
+- Permite ao usuário marcar no `FilterBar.jsx` / `SettingsMenu.jsx` quais plataformas ele assina (ex: ☑ Crunchyroll, ☑ Netflix, ☑ Prime Video).
+- **Recálculo de Ranking**:
+  - Modo estrito: Oculta títulos indisponíveis nas assinaturas marcadas.
+  - Modo priorização (boost): Concede bônus de pontuação aos títulos disponíveis, reordenando o ranking para destacar obras prontas para assistir agora.
+
+**Card de Resposta & Justificativa ("Por quê?")**:
+- Exibe o anime sorteado/escolhido com compatibilidade (%).
+- Detalha a justificativa com bullets ("Você deu 10 para X", "Você curte gênero Y", "Disponível na sua Crunchyroll").
+- Oferece atalhos diretos: `[Assistir]`, `[Escolher outro]`.
+
+**Esforço:** Médio. Requer amostragem ponderada em `recommender.js`, persistência de assinaturas do usuário, filtro dinâmico de duração/streaming, modal/card interativo e botão flutuante (FAB).
 
 ---
 
@@ -327,6 +342,39 @@ Monitorar latência de APIs externas (AniList/Kitsu/MAL), taxas de erro de rende
 
 **Esforço estimado:** Médio.
 
+### A9. Auditoria de Web Quality — SEO, OpenGraph & Acessibilidade (a11y)
+
+**Onde:** `index.html`, `src/index.css`, `src/components/LoginScreen.jsx`
+
+**Problema:**
+- Ausência de meta tags OpenGraph (`og:*`) e Twitter Cards para compartilhamento em redes sociais.
+- Falta de tag `<link rel="canonical">`.
+- Importação da fonte Google Fonts via `@import` no `index.css` sem `font-display: swap` explícito e preconnect, o que pode impactar a performance de renderização.
+- Seletores de provedor em `LoginScreen.jsx` faltam papéis e estados ARIA (`role="tablist"`, `role="tab"`, `aria-selected`).
+
+**Correção proposta:**
+- Adicionar metadados sociais e canonical no `index.html`.
+- Mover a importação da fonte para o `<head>` usando `preconnect` e `display=swap`.
+- Adicionar atributos ARIA apropriados para abas de seleção de provedores.
+
+**Esforço estimado:** Pequeno (0,5 dia).
+
+### A10. Otimização de Performance e Core Web Vitals (CWV)
+
+**Onde:** `vite.config.js`, `src/App.jsx`, `src/components/AnimeCard.jsx`, `src/components/AnimeCard.module.css`
+
+**Problema:**
+- O bundle final da aplicação gera um chunk único de JS excede `547 kB` (`158 kB` gzip), resultando em aviso do Rollup/Vite.
+- `loading="lazy"` é aplicado em todas as imagens de capa dos cards (`AnimeCard.jsx`), atrasando o LCP (Largest Contentful Paint) para animes visíveis acima da dobra.
+- Risco de CLS (Cumulative Layout Shift) caso o aspecto da imagem não esteja explicitamente reservado antes do carregamento completo da imagem.
+
+**Correção proposta:**
+- Configurar `manualChunks` no `vite.config.js` para isolar vendors (`chart.js`, `react-i18next`) e aplicar `React.lazy()` para telas/modais pesados (`StatisticsPage`, `GenreRecommendationModal`).
+- Remover `loading="lazy"` dos primeiros cards acima da dobra.
+- Aplicar `aspect-ratio: 2 / 3` via CSS no container da imagem do card para evitar reflows de layout.
+
+**Esforço estimado:** Pequeno-Médio (0,5–1 dia).
+
 ---
 
 ## 4. Ordem sugerida de execução
@@ -335,16 +383,18 @@ Monitorar latência de APIs externas (AniList/Kitsu/MAL), taxas de erro de rende
 |---|------|--------|------------|--------|
 | 1 | A3 + B1 (entregues juntos) | Correção + Melhoria | 🔥 Alta | Ganho imediato de UX com esforço mínimo — expõe a justificativa da nota. |
 | 2 | A2 — erros tipados | Correção | 🔥 Alta | Previne regressão silenciosa de retry por mudança de copy/i18n. |
-| 3 | A5 — hook `useLocalStorage` | Correção | 🟡 Média | Limpeza de código e refatoração de `App.jsx`. |
-| 4 | A1 + A4 (agrupados por porte) | Correção | 🟡 Média | LRU cache com índice + desacoplamento de constantes do algoritmo. |
-| 5* | A6 — cleanup de artefatos legados | Correção | 🟢 Rápida | Deletar `test-fetch-dub.js` e XML de scraping da dublagem. |
-| 6 | B2 + B5 | Melhoria | 🚀 Features | Modo descoberta e exportação visual de perfil. |
-| 7 | B6 — Sync Supabase | Melhoria | 🚀 Features | Login e sincronização de configurações cross-device. |
-| 8 | B3 — comparação entre usuários | Melhoria | 🚀 Features | Recomendações cruzadas entre dois perfis. |
-| 9 | A7 — Web Worker Performance | Correção/Infra | 🟡 Média | Otimização para grandes volumes de dados. |
-| 10 | A8 — OpenTelemetry | Infra | ⏸️ Baixa | Telemetria e observabilidade client-side. |
-| 11 | B4 — novidades de temporada (v1 client-side) | Melhoria | 🚀 Features | Checagem de novas temporadas ao carregar a lista. |
-| 12 | B4 — Web Push completo (v2) | Backlog | ⏸️ Baixa | Exige infra persistente (cron, VAPID, tabela de subscriptions). |
+| 3 | A9 — Web Quality & SEO | Correção / UX | 🔥 Alta | Melhora SEO, compartilhamento social e acessibilidade da landing page. |
+| 4 | A10 — Core Web Vitals & Bundle | Correção / Perf | 🔥 Alta | Reduz tamanho do bundle JS inicial (code-splitting) e otimiza LCP/CLS. |
+| 5 | A5 — hook `useLocalStorage` | Correção | 🟡 Média | Limpeza de código e refatoração de `App.jsx`. |
+| 6 | A1 + A4 (agrupados por porte) | Correção | 🟡 Média | LRU cache com índice + desacoplamento de constantes do algoritmo. |
+| 7* | A6 — cleanup de artefatos legados | Correção | 🟢 Rápida | Deletar `test-fetch-dub.js` e XML de scraping da dublagem. |
+| 8 | B2 + B5 | Melhoria | 🚀 Features | Modo descoberta e exportação visual de perfil. |
+| 9 | B6 — Sync Supabase | Melhoria | 🚀 Features | Login e sincronização de configurações cross-device. |
+| 10 | B3 — comparação entre usuários | Melhoria | 🚀 Features | Recomendações cruzadas entre dois perfis. |
+| 11 | A7 — Web Worker Performance | Correção/Infra | 🟡 Média | Otimização para grandes volumes de dados. |
+| 12 | A8 — OpenTelemetry | Infra | ⏸️ Baixa | Telemetria e observabilidade client-side. |
+| 13 | B4 — novidades de temporada (v1 client-side) | Melhoria | 🚀 Features | Checagem de novas temporadas ao carregar a lista. |
+| 14 | B4 — Web Push completo (v2) | Backlog | ⏸️ Baixa | Exige infra persistente (cron, VAPID, tabela de subscriptions). |
 
 P = pequeno, M = médio, A = alto.
 

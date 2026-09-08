@@ -59,8 +59,7 @@ export default function Dashboard({
   const gridRef = useRef(null)
 
   const tasteProfile = useMemo(() => {
-    const completed = allEntries.filter((e) => e.status === 'COMPLETED')
-    return buildTasteProfile(completed)
+    return buildTasteProfile(allEntries)
   }, [allEntries])
 
   const planningEntries = useMemo(() => {

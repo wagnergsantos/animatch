@@ -178,6 +178,48 @@ describe('buildTasteProfile', () => {
     expect(profile.get('Action').adjustedAverage).toBe(8.26)
     expect(profile.get('Fantasy').adjustedAverage).toBe(8.17)
   })
+
+  it('includes CURRENT/WATCHING entries with score > 0 weighted by 0.7', () => {
+    const entries = [
+      { score: 10, status: 'COMPLETED', media: { genres: ['Action'] } },
+      { score: 10, status: 'CURRENT', media: { genres: ['Action'] } },
+    ]
+
+    const profile = buildTasteProfile(entries)
+    const action = profile.get('Action')
+
+    expect(action).toBeDefined()
+    expect(action.scoredCount).toBe(2)
+    // real average: (10*1.0 + 10*0.7) / (1.0 + 0.7) = 17 / 1.7 = 10
+    expect(action.average).toBe(10)
+    // userGlobalAverage = 17 / 1.7 = 10
+    // adjusted = (15*10 + 17) / (15 + 1.7) = 167 / 16.7 = 10
+    expect(action.adjustedAverage).toBe(10)
+  })
+
+  it('ignores CURRENT/WATCHING entries with score <= 0', () => {
+    const entries = [
+      { score: 10, status: 'COMPLETED', media: { genres: ['Action'] } },
+      { score: 0, status: 'CURRENT', media: { genres: ['Action'] } },
+    ]
+
+    const profile = buildTasteProfile(entries)
+    // Only 1 valid entry for Action -> MIN_GENRE_COUNT is 2, so Action shouldn't be included
+    expect(profile.has('Action')).toBe(false)
+  })
+
+  it('completely ignores DROPPED, PAUSED, and PLANNING entries even if they have scores', () => {
+    const entries = [
+      { score: 10, status: 'COMPLETED', media: { genres: ['Action'] } },
+      { score: 10, status: 'DROPPED', media: { genres: ['Action'] } },
+      { score: 10, status: 'PAUSED', media: { genres: ['Action'] } },
+      { score: 10, status: 'PLANNING', media: { genres: ['Action'] } },
+    ]
+
+    const profile = buildTasteProfile(entries)
+    // Only 1 completed entry -> Action does not meet MIN_GENRE_COUNT of 2
+    expect(profile.has('Action')).toBe(false)
+  })
 })
 
 describe('scoreRecommendations', () => {

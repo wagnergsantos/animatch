@@ -1,5 +1,6 @@
 const MIN_GENRE_COUNT = 2
 const CONFIDENCE_CONSTANT = 15
+export const WATCHING_SCORE_WEIGHT = 0.7
 
 export function resolveYear(item) {
   if (!item) return null
@@ -14,19 +15,39 @@ export function resolveYear(item) {
   )
 }
 
-export function buildTasteProfile(completedEntries = []) {
+export function buildTasteProfile(entries = []) {
   const genreStats = new Map()
-  let globalTotal = 0
-  let globalScoredCount = 0
+  let globalWeightedTotal = 0
+  let globalTotalWeight = 0
 
-  for (const entry of completedEntries) {
+  for (const entry of entries) {
     if (!entry?.media) continue
-    const genres = entry.media.genres ?? []
-    const score = entry.score ?? 0
 
-    if (score > 0) {
-      globalTotal += score
-      globalScoredCount += 1
+    const rawStatus = (entry.status || 'COMPLETED').toUpperCase()
+
+    if (
+      rawStatus === 'DROPPED' ||
+      rawStatus === 'PAUSED' ||
+      rawStatus === 'PLANNING' ||
+      rawStatus === 'PLAN_TO_WATCH' ||
+      rawStatus === 'ON_HOLD'
+    ) {
+      continue
+    }
+
+    const isWatching = rawStatus === 'CURRENT' || rawStatus === 'WATCHING'
+    const rawScore = entry.score ?? 0
+
+    if (isWatching && rawScore <= 0) {
+      continue
+    }
+
+    const weight = isWatching ? WATCHING_SCORE_WEIGHT : 1.0
+    const genres = entry.media.genres ?? []
+
+    if (rawScore > 0) {
+      globalWeightedTotal += rawScore * weight
+      globalTotalWeight += weight
     }
 
     const animeInfo = {
@@ -36,36 +57,37 @@ export function buildTasteProfile(completedEntries = []) {
         english: entry.media.title?.english || '',
         romaji: entry.media.title?.romaji || '',
       },
-      score: score,
+      score: rawScore,
       coverImage: entry.media.coverImage?.large ?? '',
       status: entry.status || 'COMPLETED',
     }
 
     for (const genre of genres) {
       if (!genreStats.has(genre)) {
-        genreStats.set(genre, { total: 0, count: 0, scoredCount: 0, sourceAnimes: [] })
+        genreStats.set(genre, { total: 0, weightTotal: 0, count: 0, scoredCount: 0, sourceAnimes: [] })
       }
       const stats = genreStats.get(genre)
       stats.count += 1
       stats.sourceAnimes.push(animeInfo)
 
-      if (score > 0) {
-        stats.total += score
+      if (rawScore > 0) {
+        stats.total += rawScore * weight
+        stats.weightTotal += weight
         stats.scoredCount += 1
       }
     }
   }
 
-  const userGlobalAverage = globalScoredCount > 0 ? globalTotal / globalScoredCount : 7.0
+  const userGlobalAverage = globalTotalWeight > 0 ? globalWeightedTotal / globalTotalWeight : 7.0
 
   const profile = new Map()
 
   for (const [genre, stats] of genreStats) {
     if (stats.scoredCount >= MIN_GENRE_COUNT) {
-      const realAverage = stats.total / stats.scoredCount
+      const realAverage = stats.total / stats.weightTotal
       const adjustedAverage =
         (CONFIDENCE_CONSTANT * userGlobalAverage + stats.total) /
-        (CONFIDENCE_CONSTANT + stats.scoredCount)
+        (CONFIDENCE_CONSTANT + stats.weightTotal)
 
       profile.set(genre, {
         average: Math.round(realAverage * 100) / 100,
