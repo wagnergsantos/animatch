@@ -16,7 +16,7 @@ jobs:
           RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
             -X GET "${{ secrets.VITE_SUPABASE_URL }}/rest/v1/" \
             -H "apikey: ${{ secrets.VITE_SUPABASE_ANON_KEY }}" \
-            -H "Authorization: Bearer ${{ secrets.VITE_SUPABASE_ANON_KEY }}")
+            -H "Authorization: Bearer ******")
           
           echo "HTTP Status: $RESPONSE"
           
