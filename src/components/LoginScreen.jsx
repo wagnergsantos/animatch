@@ -43,9 +43,11 @@ export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = 
         <h1 className={styles['login-title']}>{t('login.title')}</h1>
         <p className={styles['login-subtitle']}>{t('login.subtitle')}</p>
         <form className={styles['login-form']} onSubmit={handleSubmit}>
-          <div className={styles['provider-selector']}>
+          <div className={styles['provider-selector']} role="tablist" aria-label={t('login.providerSelectorLabel') || 'Provedor de animes'}>
             <button
               type="button"
+              role="tab"
+              aria-selected={provider === 'anilist'}
               className={`${styles['provider-pill']} ${provider === 'anilist' ? styles['provider-pill--active'] : ''}`}
               onClick={() => handleProviderChange('anilist')}
               disabled={isLoading}
@@ -54,6 +56,8 @@ export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = 
             </button>
             <button
               type="button"
+              role="tab"
+              aria-selected={provider === 'kitsu'}
               className={`${styles['provider-pill']} ${provider === 'kitsu' ? styles['provider-pill--active'] : ''}`}
               onClick={() => handleProviderChange('kitsu')}
               disabled={isLoading}
@@ -62,6 +66,8 @@ export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = 
             </button>
             <button
               type="button"
+              role="tab"
+              aria-selected={provider === 'mal'}
               className={`${styles['provider-pill']} ${provider === 'mal' ? styles['provider-pill--active'] : ''}`}
               onClick={() => handleProviderChange('mal')}
               disabled={isLoading}

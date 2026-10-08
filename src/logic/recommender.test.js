@@ -1,5 +1,10 @@
-import { describe, it, test, expect } from 'vitest'
-import { buildTasteProfile, scoreRecommendations, resolveYear } from './recommender.js'
+import {
+  buildTasteProfile,
+  scoreRecommendations,
+  resolveYear,
+  DEFAULT_MIN_GENRE_COUNT,
+  DEFAULT_CONFIDENCE_CONSTANT,
+} from './recommender.js'
 
 describe('resolveYear', () => {
   it('returns null for null/undefined input', () => {
@@ -521,6 +526,24 @@ describe('scoreRecommendations', () => {
     const actionOnly = scoreRecommendations(planning, profile, 'Action')
     expect(actionOnly).toHaveLength(1)
     expect(actionOnly[0].id).toBe(1)
+  })
+
+  it('respects custom minGenreCount and confidenceConstant options', () => {
+    expect(DEFAULT_MIN_GENRE_COUNT).toBe(2)
+    expect(DEFAULT_CONFIDENCE_CONSTANT).toBe(15)
+
+    const entries = [
+      { score: 9, media: { genres: ['Sci-Fi'] } },
+    ]
+
+    // Default requires 2 scored animes -> Sci-Fi excluded
+    const defaultProfile = buildTasteProfile(entries)
+    expect(defaultProfile.has('Sci-Fi')).toBe(false)
+
+    // With minGenreCount = 1 -> Sci-Fi included
+    const customProfile = buildTasteProfile(entries, { minGenreCount: 1, confidenceConstant: 5 })
+    expect(customProfile.has('Sci-Fi')).toBe(true)
+    expect(customProfile.get('Sci-Fi').count).toBe(1)
   })
 })
 

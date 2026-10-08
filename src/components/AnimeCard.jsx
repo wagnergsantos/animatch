@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import AnimeDetailModal from './AnimeDetailModal.jsx'
 import styles from './AnimeCard.module.css'
 
-export default function AnimeCard({ anime, titlePref = 'english', onCardClick }) {
+export default function AnimeCard({ anime, titlePref = 'english', priority = false, onCardClick }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const { t } = useTranslation()
 
@@ -81,7 +81,8 @@ export default function AnimeCard({ anime, titlePref = 'english', onCardClick })
             className={styles['anime-card__image']}
             src={anime?.coverImage || undefined}
             alt={t('labels.coverAlt', { title })}
-            loading="lazy"
+            loading={priority ? 'eager' : 'lazy'}
+            fetchPriority={priority ? 'high' : 'auto'}
           />
           <div className={styles['anime-card__badges-overlay']}>
             {anime?.predictionSource === 'community' ? (

@@ -1,5 +1,5 @@
-const MIN_GENRE_COUNT = 2
-const CONFIDENCE_CONSTANT = 15
+export const DEFAULT_MIN_GENRE_COUNT = 2
+export const DEFAULT_CONFIDENCE_CONSTANT = 15
 export const WATCHING_SCORE_WEIGHT = 0.7
 
 export function resolveYear(item) {
@@ -15,7 +15,11 @@ export function resolveYear(item) {
   )
 }
 
-export function buildTasteProfile(entries = []) {
+export function buildTasteProfile(entries = [], options = {}) {
+  const {
+    minGenreCount = DEFAULT_MIN_GENRE_COUNT,
+    confidenceConstant = DEFAULT_CONFIDENCE_CONSTANT,
+  } = options
   const genreStats = new Map()
   let globalWeightedTotal = 0
   let globalTotalWeight = 0
@@ -83,11 +87,11 @@ export function buildTasteProfile(entries = []) {
   const profile = new Map()
 
   for (const [genre, stats] of genreStats) {
-    if (stats.scoredCount >= MIN_GENRE_COUNT) {
+    if (stats.scoredCount >= minGenreCount) {
       const realAverage = stats.total / stats.weightTotal
       const adjustedAverage =
-        (CONFIDENCE_CONSTANT * userGlobalAverage + stats.total) /
-        (CONFIDENCE_CONSTANT + stats.weightTotal)
+        (confidenceConstant * userGlobalAverage + stats.total) /
+        (confidenceConstant + stats.weightTotal)
 
       profile.set(genre, {
         average: Math.round(realAverage * 100) / 100,

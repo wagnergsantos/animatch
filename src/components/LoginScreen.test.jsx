@@ -66,11 +66,13 @@ describe('LoginScreen', () => {
   it('renders provider pills and defaults to AniList', () => {
     render(<LoginScreen onSubmit={() => {}} isLoading={false} error={null} />)
     
-    const anilistBtn = screen.getByRole('button', { name: 'AniList' })
-    const kitsuBtn = screen.getByRole('button', { name: 'Kitsu' })
+    const anilistBtn = screen.getByRole('tab', { name: 'AniList' })
+    const kitsuBtn = screen.getByRole('tab', { name: 'Kitsu' })
     
     expect(anilistBtn).toBeInTheDocument()
     expect(kitsuBtn).toBeInTheDocument()
+    expect(anilistBtn).toHaveAttribute('aria-selected', 'true')
+    expect(kitsuBtn).toHaveAttribute('aria-selected', 'false')
     expect(anilistBtn.className).toMatch(/provider-pill--active/)
     expect(kitsuBtn.className).not.toMatch(/provider-pill--active/)
   })
@@ -80,7 +82,7 @@ describe('LoginScreen', () => {
     
     expect(screen.getByPlaceholderText('Seu usuário no AniList...')).toBeInTheDocument()
     
-    fireEvent.click(screen.getByRole('button', { name: 'Kitsu' }))
+    fireEvent.click(screen.getByRole('tab', { name: 'Kitsu' }))
     
     expect(screen.getByPlaceholderText('Seu usuário no Kitsu...')).toBeInTheDocument()
     expect(screen.getByLabelText('Username do Kitsu')).toBeInTheDocument()
@@ -90,7 +92,7 @@ describe('LoginScreen', () => {
     const onSubmit = vi.fn()
     render(<LoginScreen onSubmit={onSubmit} isLoading={false} error={null} />)
     
-    fireEvent.click(screen.getByRole('button', { name: 'Kitsu' }))
+    fireEvent.click(screen.getByRole('tab', { name: 'Kitsu' }))
     
     expect(localStorage.getItem('animatch_provider')).toBe('kitsu')
     
@@ -106,7 +108,9 @@ describe('LoginScreen', () => {
     localStorage.setItem('animatch_provider', JSON.stringify('kitsu'))
     render(<LoginScreen onSubmit={() => {}} isLoading={false} error={null} />)
     
-    expect(screen.getByRole('button', { name: 'Kitsu' }).className).toMatch(/provider-pill--active/)
+    const kitsuTab = screen.getByRole('tab', { name: 'Kitsu' })
+    expect(kitsuTab).toHaveAttribute('aria-selected', 'true')
+    expect(kitsuTab.className).toMatch(/provider-pill--active/)
     expect(screen.getByPlaceholderText('Seu usuário no Kitsu...')).toBeInTheDocument()
   })
 

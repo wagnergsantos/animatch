@@ -105,11 +105,12 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
         </h2>
       </div>
       <div className={styles['recommendation-grid__grid']}>
-        {displayRecommendations.map((rec) => (
+        {displayRecommendations.map((rec, index) => (
           <AnimeCard
             key={rec.id}
             anime={rec}
             titlePref={titlePref}
+            priority={index < 4}
           />
         ))}
       </div>

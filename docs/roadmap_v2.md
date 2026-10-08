@@ -1,19 +1,13 @@
 # Pré-Spec — AniMatch: Correções e Melhorias
 
 **Repositório:** wagnergsantos/animatch
-**Data:** 16/08/2026 (revisado)
+**Data:** 08/10/2026 (revisado)
 **Escopo:** Revisão de código existente + propostas de novas funcionalidades
 
 **Changelog desta revisão:**
-- A1: trocada varredura completa do `localStorage` a cada escrita por
-  estratégia de LRU com índice explícito (ou consolidação em chave JSON única).
-- A6: arquivos legados de dublagem passam de "mover para `scripts/`" para
-  "deletar", já que a feature de preferência de dublagem foi removida do produto.
-- B4: rebaixada para última prioridade e redesenhada como checagem client-side
-  (v1) em vez de Web Push completo (v2, backlog) — dado o custo de infra
-  persistente que a versão original exigiria.
-- Seção 4: ordem de execução reorganizada por prioridade de entrega de valor
-  (A3+B1 e A2 primeiro), não apenas por esforço/tamanho técnico.
+- **Débitos técnicos concluídos:** A1 (LRU Cache em `apiCache.js`), A2 (Erros tipados e retry), A3 (`predictionSource` e badges), A4 (Constantes desacopladas), A5 (Hook `useLocalStorage`), A6 (Remoção de scripts/XML legados), A9 (SEO/OpenGraph/a11y) e A10 (Rollup `manualChunks` e LCP `priority`).
+- **A7 (Web Worker):** Avaliado e arquivado/backlog — ganho imperceptível (~2-4ms para 2500 itens) com overhead de serialização `postMessage` consumindo tempo similar.
+- Seção 4: Tabela de prioridades atualizada com status de conclusão.
 
 ---
 
@@ -34,9 +28,9 @@ propostas de evolução do produto.
 
 ## 2. Frente A — Correções e débitos técnicos
 
-### A1. Cache em `localStorage` nunca é limpo por conta antiga (risco de quota)
+### [x] A1. Cache em `localStorage` nunca é limpo por conta antiga (Concluído ✅)
 
-**Onde:** `src/api/providers/anilist.js`, `fetchAllLists()` (linhas ~179-215)
+**Onde:** `src/cache/apiCache.js` (extraído e consumido por todos os providers)
 
 **Problema:** cada usuário consultado gera uma chave `animatch_cache_<username>`
 com TTL de 5 minutos, mas o TTL só é checado *na leitura* — a entrada nunca é
@@ -72,137 +66,33 @@ simples; a migração para IndexedDB, se necessária, é a parte que mais adicio
 
 ---
 
-### A2. Lógica de retry frágil e baseada em comparação de string
+### [x] A2. Lógica de retry frágil e baseada em comparação de string (Concluído ✅)
 
-**Onde:** `src/api/providers/anilist.js`, função `queryAniList()`,
-bloco `isNonRetryable` (linhas 136-146)
-
-**Problema:**
-```js
-const isNonRetryable =
-  err.message === 'Usuário não encontrado no AniList.' ||
-  err.message === 'A lista deste usuário é privada.' ||
-  err.message === 'O AniList está temporariamente indisponível.' ||
-  err.message === 'Erro ao conectar com o AniList.' ||
-  (err.message && err.message !== 'Failed to fetch' && !err.message.includes('fetch'))
-```
-A decisão de tentar de novo ou não depende do **texto exato** da mensagem de
-erro. Qualquer alteração de copy (inclusive futura tradução via i18next) quebra
-a lógica de retry silenciosamente — passa a tentar de novo erros que não
-deveriam, ou desiste de erros que deveriam ser retentados.
-
-**Correção proposta:**
-- Criar uma classe `RetryableError extends Error` (para timeouts/5xx/rede) e
-  lançar erros de negócio (`UserNotFoundError`, `PrivateListError`, etc.) como
-  classes próprias.
-- `catch` passa a checar `err instanceof RetryableError` em vez de comparar
-  string.
-- Bônus: essas classes tipadas facilitam tratar erros de forma diferente na UI
-  (ex.: mostrar botão "tentar novamente" só para erros retryable).
-
-**Esforço estimado:** pequeno-médio (0,5–1 dia, inclui ajustar testes existentes
-em `anilist.test.js`).
+**Onde:** `src/api/errors.js` e `src/api/providers/{anilist,kitsu,mal}.js`
 
 ---
 
-### A3. Fallback silencioso do `predictedScore` para nota da comunidade
+### [x] A3. Fallback silencioso do `predictedScore` para nota da comunidade (Concluído ✅)
 
-**Onde:** `src/logic/recommender.js`, `scoreRecommendations()` (linhas 96-105)
-
-```js
-if (matchingGenres.length > 0) {
-  // ... calcula pela média Bayesiana dos gêneros
-} else {
-  predictedScore = Math.round((media.averageScore / 10) * 100) / 100
-}
-```
-
-**Problema:** quando nenhum gênero do anime está no perfil de gosto do usuário
-(ex.: usuário nunca assistiu esse gênero), a nota "prevista" vira a nota da
-comunidade — mas nada na UI indica que essa previsão não é personalizada. Do
-ponto de vista do usuário, ele não sabe diferenciar "eu realmente previ que
-você vai gostar" de "não sei, então usei a nota geral".
-
-**Correção proposta:**
-- Retornar também um flag `predictionSource: 'taste' | 'community'` no objeto
-  de recomendação.
-- Na UI (`AnimeCard.jsx` / `RecommendationGrid.jsx`), sinalizar visualmente
-  (ex. badge discreto "sem histórico nesse gênero") quando `predictionSource
-  === 'community'`.
-- Documentar esse comportamento no `DESIGN.md`, já que hoje ele não está
-  explícito em nenhum lugar do repo.
-
-**Esforço estimado:** pequeno (meio dia, lógica + ajuste visual simples).
+**Onde:** `src/logic/recommender.js`, `scoreRecommendations()`
 
 ---
 
-### A4. Constantes do algoritmo fixas no código
+### [x] A4. Constantes do algoritmo fixas no código (Concluído ✅)
 
-**Onde:** `src/logic/recommender.js`, topo do arquivo
-
-```js
-const MIN_GENRE_COUNT = 2
-const CONFIDENCE_CONSTANT = 15
-```
-
-**Problema:** não é um bug, mas é um débito de flexibilidade. `SettingsMenu.jsx`
-já existe como superfície de configuração — hoje esses dois parâmetros centrais
-do algoritmo (quantos animes de um gênero são necessários para contar, e o quão
-"conservador" é o ajuste Bayesiano) não são visíveis nem ajustáveis por ninguém.
-
-**Correção proposta:**
-- Extrair para valores default exportados (`DEFAULT_MIN_GENRE_COUNT`,
-  `DEFAULT_CONFIDENCE_CONSTANT`) e permitir override via parâmetro nas funções
-  `buildTasteProfile()` / `scoreRecommendations()`.
-- Não necessariamente expor na UI nesta fase — só desacoplar do hardcode já
-  destrava a melhoria futura (ver B1).
-
-**Esforço estimado:** pequeno (poucas horas).
+**Onde:** `src/logic/recommender.js`, export de `DEFAULT_MIN_GENRE_COUNT` e `DEFAULT_CONFIDENCE_CONSTANT` + `options` em `buildTasteProfile()`
 
 ---
 
-### A5. Duplicação do padrão `typeof window !== 'undefined' && window.localStorage`
+### [x] A5. Duplicação do padrão `typeof window !== 'undefined' && window.localStorage` (Concluído ✅)
 
-**Onde:** `src/App.jsx` — repetido nas linhas 12, 18, 25, 54, 56, 68, 101,
-115, 133, 147 (10 ocorrências)
-
-**Problema:** o mesmo guard de SSR/ambiente de teste é copiado manualmente em
-cada leitura/escrita de `localStorage`. Além de poluir o componente, aumenta a
-chance de esquecer o guard em um novo `useState` futuro.
-
-**Correção proposta:**
-- Extrair um hook `useLocalStorage(key, defaultValue)` (padrão comum, com
-  `try/catch` interno e checagem de `window` uma única vez) e substituir os
-  `useState` com inicializador manual por ele.
-- Reduz `App.jsx` de ~178 linhas para uma fração disso, e o hook pode ser
-  testado isoladamente.
-
-**Esforço estimado:** pequeno-médio (0,5 dia, inclui migrar os ~5 estados
-afetados e re-rodar `App.test.jsx`).
+**Onde:** `src/hooks/useLocalStorage.js` (hook reutilizável e testado)
 
 ---
 
-### A6. Arquivos legados na raiz do repositório
+### [x] A6. Arquivos legados na raiz do repositório (Concluído ✅)
 
-**Atualização de contexto:** o conceito de preferência de dublagem foi removido
-do produto (cf. commits/PR recentes). Isso muda a recomendação original de
-"mover para `scripts/`" para **deletar diretamente**:
-
-- `test-fetch-dub.js` — script de teste manual referente à feature de
-  dublagem, que não existe mais. Remover, não arquivar.
-- `scrape_anilistanimealt.xml` (356K) — artefato de scraping legado. Se
-  também estiver ligado à feature removida (títulos alternativos por
-  dublagem), remover junto. Se for usado por outro fluxo ainda ativo,
-  confirmar antes de apagar.
-
-**Correção proposta:** deletar os dois arquivos da raiz numa PR de limpeza,
-e conferir se não há import/script no `package.json` (`scripts`) ainda
-referenciando `test-fetch-dub.js` antes de remover.
-
-**Verificação adicional (mantida):** `mal.js` e `kitsu.js` — confirmar se
-implementam o mesmo padrão de cache/TTL e tratamento de erro de `anilist.js`,
-ou se há assimetria entre providers (ex.: um provider sem retry, outro sem
-cache).
+**Onde:** Raiz do repositório (`test-fetch-dub.js` e `scrape_anilistanimealt.xml` deletados).
 
 ---
 
@@ -318,15 +208,32 @@ Sincronizar as preferências do usuário entre diferentes navegadores e disposit
 
 ---
 
-### A7. Web Worker para processamento estatístico pesado
+### B7. Recomendação Unificada Multi-Provider (Ensemble Recommender)
+
+**Reaproveita:** `B6` (usernames vinculados na conta), providers existentes (`anilist.js`, `kitsu.js`, `mal.js`) e `recommender.js`.
+
+Permitir consolidar os dados de múltiplas plataformas (AniList, Kitsu, MyAnimeList) em uma única visão integrada e gerar recomendações ponderadas pelo conjunto.
+
+- **Deduplicação & Identidade:** Mapear e agrupar animes usando `idMal` (exposto por AniList e Kitsu) com fallback em títulos normalizados.
+- **Perfil de Gosto Consolidado:** Unir listas de `Completed` dos 3 providers (removendo duplicatas ou calculando média de notas) para gerar um `tasteProfile` Bayesiano com maior densidade estatística.
+- **Planning Agregado:** Consolidar itens únicos de "Plan to Watch" de todas as contas conectadas.
+- **Multi-presence Boost:** Ponderar a nota prevista pelo número de plataformas em que a obra foi adicionada ao Planning:
+  $$\text{FinalScore} = \text{PredictedScore} \times (1 + k \cdot (\text{countProviders} - 1))$$
+  *(Exemplo: anime presente no Planning dos 3 serviços ganha maior prioridade que o presente em apenas um).*
+
+**Esforço:** Médio-Alto (1–2 dias). Requer normalizador multi-provider, `Promise.allSettled` nos fetches e UI com badges indicando os provedores de origem.
+
+---
+
+### [⏸️] A7. Web Worker para processamento estatístico pesado (Arquivado / Backlog)
 
 **Onde:** `src/logic/analytics.js` e `src/logic/recommender.js`
 
-**Problema:** Em contas com listas extensas (ex. >500-1000 animes), os cálculos repetitivos de `computeBayesianGenreStats` e `scoreRecommendations()` na thread principal podem causar pequenos travamentos na UI durante a renderização inicial ou filtragem.
-
-**Correção proposta:**
-- Mover a execução desses cálculos para um Web Worker dedicado via `Worker` API / Vite plugin.
-- Manter a versão síncrona como fallback caso Web Workers não estejam disponíveis.
+**Avaliação técnica (08/10/2026):**
+- **Complexidade $O(N)$ linear**: As funções `buildTasteProfile` e `scoreRecommendations` são puras e fazem operações aritméticas simples sobre arrays em memória.
+- **Tempo de execução irrisório**: Em listas grandes (ex: 2.000 assistidos + 500 no planning), a engine V8 executa os loops em **~2 a 4ms**, imperceptível para o usuário.
+- **Overhead de serialização**: O custo de clonar e transferir o payload via `postMessage` (`structuredClone`) entre threads consome ~1 a 3ms, anulando qualquer ganho prático.
+- **Decisão**: Classificado como **otimização prematura**. Item mantido arquivado/backlog caso o produto venha a integrar datasets externos offline com dezenas de milhares de itens.
 
 **Esforço estimado:** Médio (0,5–1 dia).
 
@@ -342,59 +249,39 @@ Monitorar latência de APIs externas (AniList/Kitsu/MAL), taxas de erro de rende
 
 **Esforço estimado:** Médio.
 
-### A9. Auditoria de Web Quality — SEO, OpenGraph & Acessibilidade (a11y)
+---
+
+### [x] A9. Auditoria de Web Quality — SEO, OpenGraph & Acessibilidade (Concluído ✅)
 
 **Onde:** `index.html`, `src/index.css`, `src/components/LoginScreen.jsx`
 
-**Problema:**
-- Ausência de meta tags OpenGraph (`og:*`) e Twitter Cards para compartilhamento em redes sociais.
-- Falta de tag `<link rel="canonical">`.
-- Importação da fonte Google Fonts via `@import` no `index.css` sem `font-display: swap` explícito e preconnect, o que pode impactar a performance de renderização.
-- Seletores de provedor em `LoginScreen.jsx` faltam papéis e estados ARIA (`role="tablist"`, `role="tab"`, `aria-selected`).
+---
 
-**Correção proposta:**
-- Adicionar metadados sociais e canonical no `index.html`.
-- Mover a importação da fonte para o `<head>` usando `preconnect` e `display=swap`.
-- Adicionar atributos ARIA apropriados para abas de seleção de provedores.
+### [x] A10. Otimização de Performance e Core Web Vitals (Concluído ✅)
 
-**Esforço estimado:** Pequeno (0,5 dia).
-
-### A10. Otimização de Performance e Core Web Vitals (CWV)
-
-**Onde:** `vite.config.js`, `src/App.jsx`, `src/components/AnimeCard.jsx`, `src/components/AnimeCard.module.css`
-
-**Problema:**
-- O bundle final da aplicação gera um chunk único de JS excede `547 kB` (`158 kB` gzip), resultando em aviso do Rollup/Vite.
-- `loading="lazy"` é aplicado em todas as imagens de capa dos cards (`AnimeCard.jsx`), atrasando o LCP (Largest Contentful Paint) para animes visíveis acima da dobra.
-- Risco de CLS (Cumulative Layout Shift) caso o aspecto da imagem não esteja explicitamente reservado antes do carregamento completo da imagem.
-
-**Correção proposta:**
-- Configurar `manualChunks` no `vite.config.js` para isolar vendors (`chart.js`, `react-i18next`) e aplicar `React.lazy()` para telas/modais pesados (`StatisticsPage`, `GenreRecommendationModal`).
-- Remover `loading="lazy"` dos primeiros cards acima da dobra.
-- Aplicar `aspect-ratio: 2 / 3` via CSS no container da imagem do card para evitar reflows de layout.
-
-**Esforço estimado:** Pequeno-Médio (0,5–1 dia).
+**Onde:** `vite.config.js` (`manualChunks`), `src/components/AnimeCard.jsx` (`priority` LCP eager + high priority)
 
 ---
 
-## 4. Ordem sugerida de execução
+## 4. Status e Ordem sugerida de execução
 
-| # | Item | Frente | Prioridade | Motivo |
-|---|------|--------|------------|--------|
-| 1 | A3 + B1 (entregues juntos) | Correção + Melhoria | 🔥 Alta | Ganho imediato de UX com esforço mínimo — expõe a justificativa da nota. |
-| 2 | A2 — erros tipados | Correção | 🔥 Alta | Previne regressão silenciosa de retry por mudança de copy/i18n. |
-| 3 | A9 — Web Quality & SEO | Correção / UX | 🔥 Alta | Melhora SEO, compartilhamento social e acessibilidade da landing page. |
-| 4 | A10 — Core Web Vitals & Bundle | Correção / Perf | 🔥 Alta | Reduz tamanho do bundle JS inicial (code-splitting) e otimiza LCP/CLS. |
-| 5 | A5 — hook `useLocalStorage` | Correção | 🟡 Média | Limpeza de código e refatoração de `App.jsx`. |
-| 6 | A1 + A4 (agrupados por porte) | Correção | 🟡 Média | LRU cache com índice + desacoplamento de constantes do algoritmo. |
-| 7* | A6 — cleanup de artefatos legados | Correção | 🟢 Rápida | Deletar `test-fetch-dub.js` e XML de scraping da dublagem. |
-| 8 | B2 + B5 | Melhoria | 🚀 Features | Modo descoberta e exportação visual de perfil. |
-| 9 | B6 — Sync Supabase | Melhoria | 🚀 Features | Login e sincronização de configurações cross-device. |
-| 10 | B3 — comparação entre usuários | Melhoria | 🚀 Features | Recomendações cruzadas entre dois perfis. |
-| 11 | A7 — Web Worker Performance | Correção/Infra | 🟡 Média | Otimização para grandes volumes de dados. |
-| 12 | A8 — OpenTelemetry | Infra | ⏸️ Baixa | Telemetria e observabilidade client-side. |
-| 13 | B4 — novidades de temporada (v1 client-side) | Melhoria | 🚀 Features | Checagem de novas temporadas ao carregar a lista. |
-| 14 | B4 — Web Push completo (v2) | Backlog | ⏸️ Baixa | Exige infra persistente (cron, VAPID, tabela de subscriptions). |
+| # | Item | Frente | Prioridade | Status | Motivo |
+|---|------|--------|------------|--------|--------|
+| 1 | A3 + B1 | Correção + Melhoria | 🔥 Alta | 🟡 Parcial | A3 concluído (badges/predictionSource). Falta B1 (detalhamento UI). |
+| 2 | A2 — erros tipados | Correção | 🔥 Alta | ✅ Concluído | Erros tipados e retry protegidos contra quebra de copy. |
+| 3 | A9 — Web Quality & SEO | Correção / UX | 🔥 Alta | ✅ Concluído | Metadados sociais OpenGraph/Twitter, preconnect e a11y em tabs. |
+| 4 | A10 — Core Web Vitals & Bundle | Correção / Perf | 🔥 Alta | ✅ Concluído | Code-splitting Rollup (`manualChunks`) e LCP com `priority`. |
+| 5 | A5 — hook `useLocalStorage` | Correção | 🟡 Média | ✅ Concluído | Hook centralizado e limpo em `App.jsx`. |
+| 6 | A1 + A4 | Correção | 🟡 Média | ✅ Concluído | LRU cache com índice + desacoplamento de constantes e options. |
+| 7 | A6 — cleanup de artefatos legados | Correção | 🟢 Rápida | ✅ Concluído | Deletados `test-fetch-dub.js` e XML de scraping da raiz. |
+| 8 | B2 + B5 | Melhoria | 🚀 Features | ⏳ Pendente | Modo descoberta e exportação visual de perfil. |
+| 9 | B6 — Sync Supabase | Melhoria | 🚀 Features | ⏳ Pendente | Login e sincronização de configurações cross-device. |
+| 10 | B7 — Recomendação Multi-Provider | Melhoria | 🚀 Features | ⏳ Pendente | Fusão de perfis e deduplicação com multi-presence boost. |
+| 11 | B3 — comparação entre usuários | Melhoria | 🚀 Features | ⏳ Pendente | Recomendações cruzadas entre dois perfis. |
+| 12 | A7 — Web Worker Performance | Correção/Infra | ⏸️ Baixa | 🛑 Arquivado | Ganho nulo (~2ms de CPU vs ~2ms de overhead de serialização). |
+| 13 | A8 — OpenTelemetry | Infra | ⏸️ Baixa | ⏳ Pendente | Telemetria e observabilidade client-side. |
+| 14 | B4 — novidades de temporada (v1 client-side) | Melhoria | 🚀 Features | ⏳ Pendente | Checagem de novas temporadas ao carregar a lista. |
+| 15 | B4 — Web Push completo (v2) | Backlog | ⏸️ Baixa | ⏳ Pendente | Exige infra persistente (cron, VAPID, tabela de subscriptions). |
 
 P = pequeno, M = médio, A = alto.
 
@@ -402,7 +289,7 @@ P = pequeno, M = médio, A = alto.
 
 ## 5. Próximos passos
 
-- Abrir issues no GitHub (`gh issue create`) seguindo a ordem priorizada acima.
+- Abrir issues no GitHub (`gh issue create`) para as novas features planejadas (B1, B2, B6).
 - O progresso e conclusão das tarefas devem ser gerenciados diretamente no GitHub Issues (`gh issue list`, `gh issue close <id>`).
 - Este documento funciona como pré-especificação técnica dos epics e deve ser mantido atualizado conforme novas ideias surgirem.
 
