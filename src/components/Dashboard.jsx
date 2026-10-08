@@ -1,12 +1,12 @@
-import { useState, useMemo, useRef, useEffect } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useLocalStorage } from '../hooks/useLocalStorage.js'
 import { buildTasteProfile, scoreRecommendations, resolveYear } from '../logic/recommender.js'
 import TasteProfile from './TasteProfile.jsx'
 import RecommendationGrid from './RecommendationGrid.jsx'
 import FilterBar from './FilterBar.jsx'
 import StatisticsPage from './StatisticsPage.jsx'
 import GenreRecommendationModal from './GenreRecommendationModal.jsx'
-import ThemeToggle from './ThemeToggle.jsx'
 import SettingsMenu from './SettingsMenu.jsx'
 import styles from './Dashboard.module.css'
 
@@ -52,6 +52,7 @@ export default function Dashboard({
   const [selectedYear, setSelectedYear] = useState('ALL')
   const [selectedBadge, setSelectedBadge] = useState('ALL')
   const [sortBy, setSortBy] = useState('predicted')
+  const [viewMode, setViewMode] = useLocalStorage('animatch_view_mode', 'grid')
   const [modalGenre, setModalGenre] = useState(null)
   const [copied, setCopied] = useState(false)
   const [isSeasonOnly, setIsSeasonOnly] = useState(false)
@@ -259,6 +260,8 @@ export default function Dashboard({
               isSeasonOnly={isSeasonOnly}
               onSeasonOnlyChange={setIsSeasonOnly}
               onExportCSV={() => exportRecommendationsToCSV(recommendations, t, t('dashboard.exportFilenamePrefix'))}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
             />
             <div ref={gridRef}>
               <RecommendationGrid
@@ -267,6 +270,7 @@ export default function Dashboard({
                 sortBy={sortBy}
                 provider={provider}
                 titlePref={titlePref}
+                viewMode={viewMode}
               />
             </div>
           </>

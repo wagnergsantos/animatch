@@ -78,7 +78,11 @@
     "anchorAnimesTitle": "あなたが高評価した同系統の作品：",
     "cardReasonTaste": "💡 {{genres}} の好みに合致",
     "cardReasonAnchor": "💡 {{title}} の高評価から",
-    "cardReasonFallback": "🌐 コミュニティ人気作"
+    "cardReasonFallback": "🌐 コミュニティ人気作",
+    "expandDetails": "詳細を展開",
+    "collapseDetails": "詳細を折りたたむ",
+    "viewGrid": "グリッド",
+    "viewList": "リスト"
   },
   "status": {
     "FINISHED": "完了",

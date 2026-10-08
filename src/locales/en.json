@@ -78,7 +78,11 @@
     "anchorAnimesTitle": "Similar animes you watched and loved:",
     "cardReasonTaste": "💡 Matches your taste in {{genres}}",
     "cardReasonAnchor": "💡 Because you loved {{title}}",
-    "cardReasonFallback": "🌐 Community highlight"
+    "cardReasonFallback": "🌐 Community highlight",
+    "expandDetails": "Expand details",
+    "collapseDetails": "Collapse details",
+    "viewGrid": "Grid",
+    "viewList": "List"
   },
   "status": {
     "FINISHED": "Finished",

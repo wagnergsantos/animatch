@@ -78,7 +78,11 @@
     "anchorAnimesTitle": "Animes que você assistiu e amou neste estilo:",
     "cardReasonTaste": "💡 Combina com seu gosto por {{genres}}",
     "cardReasonAnchor": "💡 Porque você amou {{title}}",
-    "cardReasonFallback": "🌐 Destaque da comunidade"
+    "cardReasonFallback": "🌐 Destaque da comunidade",
+    "expandDetails": "Expandir detalhes",
+    "collapseDetails": "Recolher detalhes",
+    "viewGrid": "Grade",
+    "viewList": "Lista"
   },
   "status": {
     "FINISHED": "Concluído",

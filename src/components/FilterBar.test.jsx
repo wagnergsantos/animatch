@@ -134,4 +134,19 @@ describe('FilterBar', () => {
     expect(screen.getByText('Action (5)')).toBeInTheDocument()
     expect(screen.getByText('Comedy (3)')).toBeInTheDocument()
   })
+
+  it('renders view mode toggle buttons and calls onViewModeChange', () => {
+    const handleViewModeChange = vi.fn()
+    render(
+      <FilterBar
+        viewMode="grid"
+        onViewModeChange={handleViewModeChange}
+      />
+    )
+
+    const listBtn = screen.getByRole('button', { name: 'Lista' })
+    fireEvent.click(listBtn)
+    expect(handleViewModeChange).toHaveBeenCalledWith('list')
+  })
 })
+

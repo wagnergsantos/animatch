@@ -81,7 +81,18 @@ describe('RecommendationGrid', () => {
       expect(titles).toEqual(['HasYear', 'NoYear'])
     })
   })
+
+  it('renders AnimeRow components when viewMode is list', () => {
+    const mockRecs = [
+      { id: 1, title: 'List Anime 1', predictedScore: 8.5, communityScore: 8.0, coverImage: '' },
+      { id: 2, title: 'List Anime 2', predictedScore: 9.0, communityScore: 8.8, coverImage: '' },
+    ]
+    render(<RecommendationGrid isLoading={false} recommendations={mockRecs} viewMode="list" />)
+    const rows = screen.getAllByTestId('anime-row')
+    expect(rows).toHaveLength(2)
+  })
 })
+
 
 
 

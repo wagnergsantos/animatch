@@ -12,14 +12,19 @@ describe('RecommendationReason', () => {
     }
 
     render(<RecommendationReason anime={anime} />)
-    expect(screen.getByText(/Comunidade/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/comunidade/i).length).toBeGreaterThanOrEqual(1)
+    expect(screen.getByText(/Sem histórico suficiente/i)).toBeInTheDocument()
   })
 
-  it('renders personal taste breakdown with top genres and anchor animes', () => {
+  it('renders consolidated taste breakdown with weights, genres, and anchor animes', () => {
     const anime = {
       predictionSource: 'taste',
       baseTasteScore: 9.1,
       communityScore: 8.0,
+      matchingGenres: [
+        { genre: 'Sci-Fi', score: 9.5 },
+        { genre: 'Drama', score: 8.7 },
+      ],
       topContributingGenres: [
         { genre: 'Sci-Fi', score: 9.5 },
         { genre: 'Drama', score: 8.7 },
@@ -34,22 +39,11 @@ describe('RecommendationReason', () => {
     expect(screen.getByText(/Por que esse anime\?/i)).toBeInTheDocument()
     expect(screen.getAllByText(/Steins;Gate/i).length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText(/Monster/i).length).toBeGreaterThanOrEqual(1)
-  })
-
-  it('renders genre based summary when no anchor animes exist', () => {
-    const anime = {
-      predictionSource: 'taste',
-      baseTasteScore: 9.1,
-      communityScore: 8.0,
-      topContributingGenres: [
-        { genre: 'Sci-Fi', score: 9.5 },
-        { genre: 'Drama', score: 8.7 },
-      ],
-      anchorAnimes: [],
-    }
-
-    render(<RecommendationReason anime={anime} />)
-    expect(screen.getByText(/Sci-Fi/i)).toBeInTheDocument()
+    expect(screen.getByText(/Seu Gosto \(85%\): 9.10/i)).toBeInTheDocument()
+    expect(screen.getByText(/Comunidade \(15%\): 8.00/i)).toBeInTheDocument()
+    expect(screen.getByText(/Sci-Fi:/i)).toBeInTheDocument()
+    expect(screen.getByText(/9.50/i)).toBeInTheDocument()
+    expect(screen.getByText(/Drama:/i)).toBeInTheDocument()
+    expect(screen.getByText(/8.70/i)).toBeInTheDocument()
   })
 })
-

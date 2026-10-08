@@ -7,6 +7,7 @@ export default function RecommendationReason({ anime }) {
   if (!anime) return null
 
   const isCommunity = anime.predictionSource === 'community'
+  const matchingGenres = anime.matchingGenres ?? []
   const topGenres = anime.topContributingGenres ?? []
   const anchors = anime.anchorAnimes ?? []
 
@@ -33,25 +34,53 @@ export default function RecommendationReason({ anime }) {
         <p className={styles['reason-summary']}>{summaryText}</p>
       )}
 
-      {anchors.length > 0 && (
-        <div className={styles['anchors-section']}>
-          <div className={styles['anchors-title']}>{t('labels.anchorAnimesTitle')}</div>
-          <div className={styles['anchors-list']}>
-            {anchors.map((item) => (
-              <span key={item.id} className={styles['anchor-chip']}>
-                {item.coverImage && (
-                  <img
-                    src={item.coverImage}
-                    alt={item.title}
-                    className={styles['anchor-chip__cover']}
-                  />
-                )}
-                <span className={styles['anchor-chip__title']}>{item.title}</span>
-                <span className={styles['anchor-chip__score']}>★ {item.score}</span>
-              </span>
-            ))}
+      {isCommunity ? (
+        <p className={styles['fallback-note']}>
+          🌐 {t('labels.fallbackTooltip')}
+        </p>
+      ) : (
+        <>
+          <div className={styles['weights-bar']}>
+            <span>
+              🎯 {t('labels.tasteWeight', { score: anime.baseTasteScore != null ? anime.baseTasteScore.toFixed(2) : '-' })}
+            </span>
+            <span>
+              🌐 {t('labels.communityWeight', { score: anime.communityScore != null ? anime.communityScore.toFixed(2) : '-' })}
+            </span>
           </div>
-        </div>
+
+          {matchingGenres.length > 0 && (
+            <div className={styles['genres-breakdown']}>
+              {matchingGenres.map((item) => (
+                <span key={item.genre} className={styles['genre-chip']}>
+                  <span>{item.genre}:</span>
+                  <span className={styles['genre-chip__score']}>{item.score.toFixed(2)}</span>
+                </span>
+              ))}
+            </div>
+          )}
+
+          {anchors.length > 0 && (
+            <div className={styles['anchors-section']}>
+              <div className={styles['anchors-title']}>{t('labels.anchorAnimesTitle')}</div>
+              <div className={styles['anchors-list']}>
+                {anchors.map((item) => (
+                  <span key={item.id} className={styles['anchor-chip']}>
+                    {item.coverImage && (
+                      <img
+                        src={item.coverImage}
+                        alt={item.title}
+                        className={styles['anchor-chip__cover']}
+                      />
+                    )}
+                    <span className={styles['anchor-chip__title']}>{item.title}</span>
+                    <span className={styles['anchor-chip__score']}>★ {item.score}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   )

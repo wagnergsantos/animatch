@@ -56,6 +56,8 @@ export default function FilterBar({
   isSeasonOnly = false,
   onSeasonOnlyChange,
   onExportCSV,
+  viewMode = 'grid',
+  onViewModeChange,
 }) {
   const { t } = useTranslation()
 
@@ -198,11 +200,36 @@ export default function FilterBar({
           )}
         </div>
 
-        {onExportCSV && (
-          <button className={styles['export-csv-btn']} onClick={onExportCSV} title={t('filter.exportCSV')}>
-            📥 {t('filter.exportCSV')}
-          </button>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+          {onViewModeChange && (
+            <div className={styles['view-mode-toggle']} role="group" aria-label="Modo de visualização">
+              <button
+                type="button"
+                className={`${styles['view-mode-btn']} ${viewMode === 'grid' ? styles['view-mode-btn--active'] : ''}`}
+                onClick={() => onViewModeChange('grid')}
+                aria-label={t('labels.viewGrid')}
+                title={t('labels.viewGrid')}
+              >
+                ⊞
+              </button>
+              <button
+                type="button"
+                className={`${styles['view-mode-btn']} ${viewMode === 'list' ? styles['view-mode-btn--active'] : ''}`}
+                onClick={() => onViewModeChange('list')}
+                aria-label={t('labels.viewList')}
+                title={t('labels.viewList')}
+              >
+                ☰
+              </button>
+            </div>
+          )}
+
+          {onExportCSV && (
+            <button className={styles['export-csv-btn']} onClick={onExportCSV} title={t('filter.exportCSV')}>
+              📥 {t('filter.exportCSV')}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )

@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import AnimeCard from './AnimeCard.jsx'
+import AnimeRow from './AnimeRow.jsx'
 import { resolveYear } from '../logic/recommender.js'
 import styles from './RecommendationGrid.module.css'
 import cardStyles from './AnimeCard.module.css'
@@ -25,7 +26,7 @@ function SkeletonCard() {
   )
 }
 
-export default function RecommendationGrid({ recommendations = [], isLoading = false, sortBy = 'predicted', provider = 'anilist', titlePref = 'english' }) {
+export default function RecommendationGrid({ recommendations = [], isLoading = false, sortBy = 'predicted', provider = 'anilist', titlePref = 'english', viewMode = 'grid' }) {
   const { t } = useTranslation()
 
   const displayRecommendations = useMemo(() => {
@@ -104,16 +105,29 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
           {t('recommendationGrid.header', { count: displayRecommendations.length })}
         </h2>
       </div>
-      <div className={styles['recommendation-grid__grid']}>
-        {displayRecommendations.map((rec, index) => (
-          <AnimeCard
-            key={rec.id}
-            anime={rec}
-            titlePref={titlePref}
-            priority={index < 4}
-          />
-        ))}
-      </div>
+      {viewMode === 'list' ? (
+        <div className={styles['recommendation-grid__list']}>
+          {displayRecommendations.map((rec, index) => (
+            <AnimeRow
+              key={rec.id}
+              anime={rec}
+              titlePref={titlePref}
+              priority={index < 4}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className={styles['recommendation-grid__grid']}>
+          {displayRecommendations.map((rec, index) => (
+            <AnimeCard
+              key={rec.id}
+              anime={rec}
+              titlePref={titlePref}
+              priority={index < 4}
+            />
+          ))}
+        </div>
+      )}
     </section>
   )
 }
