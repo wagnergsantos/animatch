@@ -41,7 +41,7 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
     }
   }
 
-  const handleCardClick = (e) => {
+  const handleCardClick = (_e) => {
     // If selecting text, don't open modal
     const selection = window.getSelection()
     if (selection && selection.toString().length > 0) return
@@ -161,6 +161,32 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
               {t('labels.community')}: {(anime.communityScore).toFixed(2)}/10
             </p>
           )}
+
+          {(() => {
+            if (anime?.predictionSource === 'community') {
+              return (
+                <div className={styles['anime-card__reason']}>
+                  {t('labels.cardReasonFallback')}
+                </div>
+              )
+            }
+            if (anime?.anchorAnimes && anime.anchorAnimes.length > 0) {
+              return (
+                <div className={styles['anime-card__reason']}>
+                  {t('labels.cardReasonAnchor', { title: anime.anchorAnimes[0].title })}
+                </div>
+              )
+            }
+            if (anime?.topContributingGenres && anime.topContributingGenres.length > 0) {
+              const gList = anime.topContributingGenres.slice(0, 2).map((g) => g.genre).join(', ')
+              return (
+                <div className={styles['anime-card__reason']}>
+                  {t('labels.cardReasonTaste', { genres: gList })}
+                </div>
+              )
+            }
+            return null
+          })()}
 
           {genres.length > 0 && (
             <div className={styles['anime-card__genres']}>

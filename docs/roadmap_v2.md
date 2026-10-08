@@ -101,7 +101,7 @@ simples; a migração para IndexedDB, se necessária, é a parte que mais adicio
 Priorizadas da mais simples/barata para a mais ambiciosa. Todas reaproveitam
 peças que já existem no repo.
 
-### B1. Explicação da recomendação ("Por que esse anime?")
+### [x] B1. Explicação da recomendação ("Por que esse anime?") (Concluído ✅)
 
 **Reaproveita:** `matchingGenres` e histórico de notas do usuário em `scoreRecommendations()`.
 
@@ -267,7 +267,7 @@ Monitorar latência de APIs externas (AniList/Kitsu/MAL), taxas de erro de rende
 
 | # | Item | Frente | Prioridade | Status | Motivo |
 |---|------|--------|------------|--------|--------|
-| 1 | A3 + B1 | Correção + Melhoria | 🔥 Alta | 🟡 Parcial | A3 concluído (badges/predictionSource). Falta B1 (detalhamento UI). |
+| 1 | A3 + B1 | Correção + Melhoria | 🔥 Alta | ✅ Concluído | Badges + justificativas e animes âncora no card e modal. |
 | 2 | A2 — erros tipados | Correção | 🔥 Alta | ✅ Concluído | Erros tipados e retry protegidos contra quebra de copy. |
 | 3 | A9 — Web Quality & SEO | Correção / UX | 🔥 Alta | ✅ Concluído | Metadados sociais OpenGraph/Twitter, preconnect e a11y em tabs. |
 | 4 | A10 — Core Web Vitals & Bundle | Correção / Perf | 🔥 Alta | ✅ Concluído | Code-splitting Rollup (`manualChunks`) e LCP com `priority`. |

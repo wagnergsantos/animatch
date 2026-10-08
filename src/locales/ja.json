@@ -70,7 +70,15 @@
     "badge_PERSONAL_BET": "🧪 個人的な穴場",
     "badge_STRONG_CONSENSUS": "🔥 鉄板のおすすめ",
     "tasteWeight": "あなたの好み (85%): {{score}}",
-    "communityWeight": "コミュニティ (15%): {{score}}"
+    "communityWeight": "コミュニティ (15%): {{score}}",
+    "reasonTitle": "おすすめの理由",
+    "reasonSummaryTaste": "{{genres}} の好みに合致。",
+    "reasonSummaryAnchor": "高評価した {{animes}} に近い作風。",
+    "reasonSummaryFallback": "コミュニティの高評価に基づくおすすめ。",
+    "anchorAnimesTitle": "あなたが高評価した同系統の作品：",
+    "cardReasonTaste": "💡 {{genres}} の好みに合致",
+    "cardReasonAnchor": "💡 {{title}} の高評価から",
+    "cardReasonFallback": "🌐 コミュニティ人気作"
   },
   "status": {
     "FINISHED": "完了",

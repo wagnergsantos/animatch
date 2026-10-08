@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import RecommendationReason from './RecommendationReason.jsx'
 import styles from './AnimeDetailModal.module.css'
 
 export default function AnimeDetailModal({ anime, titlePref = 'english', onClose }) {
@@ -99,6 +100,8 @@ export default function AnimeDetailModal({ anime, titlePref = 'english', onClose
         </div>
 
         <div className={styles['anime-modal__body']}>
+          <RecommendationReason anime={anime} />
+
           <h3 className={styles['anime-modal__section-title']}>{t('labels.synopsis')}</h3>
           <p className={styles['anime-modal__description']}>{cleanDescription}</p>
 

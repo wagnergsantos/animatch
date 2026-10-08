@@ -133,6 +133,8 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
     let predictedScore
     let predictionSource
     const badges = []
+    let topContributingGenres = []
+    let anchorAnimes = []
 
     if (matchingGenres.length > 0) {
       const sum = scoredMatchingGenres.reduce((acc, item) => acc + item.score, 0)
@@ -141,6 +143,27 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
       // Híbrido: 85% perfil de gosto + 15% nota da comunidade
       predictedScore = Math.round((baseTasteScore * 0.85 + communityScore * 0.15) * 100) / 100
       predictionSource = 'taste'
+
+      // Gêneros com maior pontuação
+      topContributingGenres = [...scoredMatchingGenres].sort((a, b) => b.score - a.score)
+
+      // Animes âncora (avaliados pelo usuário nos gêneros coincidentes)
+      const seenAnimeIds = new Set()
+      const collectedAnchors = []
+
+      for (const item of topContributingGenres) {
+        const stats = tasteProfile.get(item.genre)
+        const sources = stats?.sourceAnimes ?? []
+        for (const anime of sources) {
+          if (anime?.id && !seenAnimeIds.has(anime.id) && anime.score > 0) {
+            seenAnimeIds.add(anime.id)
+            collectedAnchors.push(anime)
+          }
+        }
+      }
+
+      collectedAnchors.sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+      anchorAnimes = collectedAnchors.slice(0, 3)
 
       // Badges baseados em discrepância
       if (communityScore >= 8.5 && (communityScore - baseTasteScore >= 1.0)) {
@@ -172,6 +195,8 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
       coverImage: media.coverImage?.large ?? '',
       genres,
       matchingGenres: scoredMatchingGenres,
+      topContributingGenres,
+      anchorAnimes,
       baseTasteScore,
       predictionSource,
       badges,

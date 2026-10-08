@@ -120,4 +120,34 @@ describe('AnimeCard', () => {
     expect(quickBtn).toBeInTheDocument()
     expect(quickBtn).toHaveTextContent('🔗 Kitsu ↗')
   })
+
+  it('renders anchor anime reason synthesis when anchorAnimes are available', () => {
+    const anime = {
+      title: 'Steins;Gate 0',
+      predictionSource: 'taste',
+      anchorAnimes: [{ id: 1, title: 'Steins;Gate' }],
+    }
+    render(<AnimeCard anime={anime} />)
+    expect(screen.getByText(/Porque você amou Steins;Gate/i)).toBeInTheDocument()
+  })
+
+  it('renders taste genres reason synthesis when only topContributingGenres are available', () => {
+    const anime = {
+      title: 'Cyberpunk Anime',
+      predictionSource: 'taste',
+      topContributingGenres: [{ genre: 'Sci-Fi' }, { genre: 'Action' }],
+    }
+    render(<AnimeCard anime={anime} />)
+    expect(screen.getByText(/Combina com seu gosto por Sci-Fi, Action/i)).toBeInTheDocument()
+  })
+
+  it('renders community fallback reason when predictionSource is community', () => {
+    const anime = {
+      title: 'Random Popular Anime',
+      predictionSource: 'community',
+    }
+    render(<AnimeCard anime={anime} />)
+    expect(screen.getByText(/Destaque da comunidade/i)).toBeInTheDocument()
+  })
 })
+

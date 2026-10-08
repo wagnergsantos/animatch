@@ -281,6 +281,8 @@ describe('scoreRecommendations', () => {
       coverImage: '',
       genres: [],
       matchingGenres: [],
+      topContributingGenres: [],
+      anchorAnimes: [],
       baseTasteScore: null,
       predictionSource: 'community',
       badges: [],
@@ -307,6 +309,8 @@ describe('scoreRecommendations', () => {
       coverImage: '',
       genres: [],
       matchingGenres: [],
+      topContributingGenres: [],
+      anchorAnimes: [],
       baseTasteScore: null,
       predictionSource: 'community',
       badges: [],
@@ -544,6 +548,60 @@ describe('scoreRecommendations', () => {
     const customProfile = buildTasteProfile(entries, { minGenreCount: 1, confidenceConstant: 5 })
     expect(customProfile.has('Sci-Fi')).toBe(true)
     expect(customProfile.get('Sci-Fi').count).toBe(1)
+  })
+
+  it('extracts topContributingGenres and anchorAnimes from matching genres', () => {
+    const profile = new Map([
+      [
+        'Sci-Fi',
+        {
+          average: 9.0,
+          adjustedAverage: 8.8,
+          sourceAnimes: [
+            { id: 101, title: 'Steins;Gate', score: 10, coverImage: 'sg.jpg' },
+            { id: 102, title: 'Psycho-Pass', score: 8, coverImage: 'pp.jpg' },
+          ],
+        },
+      ],
+      [
+        'Drama',
+        {
+          average: 8.5,
+          adjustedAverage: 8.2,
+          sourceAnimes: [
+            { id: 103, title: 'Monster', score: 9.5, coverImage: 'm.jpg' },
+            { id: 101, title: 'Steins;Gate', score: 10, coverImage: 'sg.jpg' }, // duplicata de anime em outro genero
+          ],
+        },
+      ],
+    ])
+
+    const planning = [
+      {
+        media: {
+          id: 50,
+          title: { english: 'Cyberpunk', romaji: 'Cyberpunk' },
+          genres: ['Sci-Fi', 'Drama', 'Comedy'],
+          averageScore: 82,
+        },
+      },
+    ]
+
+    const result = scoreRecommendations(planning, profile)
+    expect(result).toHaveLength(1)
+    
+    // topContributingGenres ordenados por score decrescente
+    expect(result[0].topContributingGenres).toEqual([
+      { genre: 'Sci-Fi', score: 8.8 },
+      { genre: 'Drama', score: 8.2 },
+    ])
+
+    // anchorAnimes ordenados por nota decrescente, sem duplicatas e maximo 3
+    expect(result[0].anchorAnimes).toEqual([
+      { id: 101, title: 'Steins;Gate', score: 10, coverImage: 'sg.jpg' },
+      { id: 103, title: 'Monster', score: 9.5, coverImage: 'm.jpg' },
+      { id: 102, title: 'Psycho-Pass', score: 8, coverImage: 'pp.jpg' },
+    ])
   })
 })
 

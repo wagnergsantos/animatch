@@ -70,7 +70,15 @@
     "badge_PERSONAL_BET": "🧪 Aposta Pessoal",
     "badge_STRONG_CONSENSUS": "🔥 Recomendação Forte",
     "tasteWeight": "Seu Gosto (85%): {{score}}",
-    "communityWeight": "Comunidade (15%): {{score}}"
+    "communityWeight": "Comunidade (15%): {{score}}",
+    "reasonTitle": "Por que esse anime?",
+    "reasonSummaryTaste": "Compatível com suas preferências em {{genres}}.",
+    "reasonSummaryAnchor": "Porque você avaliou muito bem {{animes}}.",
+    "reasonSummaryFallback": "Recomendado pela alta avaliação geral da comunidade.",
+    "anchorAnimesTitle": "Animes que você assistiu e amou neste estilo:",
+    "cardReasonTaste": "💡 Combina com seu gosto por {{genres}}",
+    "cardReasonAnchor": "💡 Porque você amou {{title}}",
+    "cardReasonFallback": "🌐 Destaque da comunidade"
   },
   "status": {
     "FINISHED": "Concluído",
