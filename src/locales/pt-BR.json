@@ -36,9 +36,27 @@
     "titleLanguage": "Título dos Animes",
     "titleLanguage_english": "Inglês (Romaji secundário)",
     "titleLanguage_romaji": "Romaji (Inglês secundário)",
+    "streamingSubscriptions": "Serviços de Streaming Assinados",
+    "streamingBoost": "Priorizar no ranking animes disponíveis nas minhas assinaturas (+0.3 pts)",
     "syncing": "⏳ Sincronizando com {{provider}}...",
     "sync": "🔄 Sincronizar {{provider}}",
     "logout": "🚪 Trocar de conta"
+  },
+  "decision": {
+    "title": "Escolha pra mim",
+    "fab_aria": "Escolha pra mim (Modo Decisão)",
+    "mode_best": "🎯 Melhor Escolha",
+    "mode_best_desc": "O anime número #1 do seu perfil com maior compatibilidade.",
+    "mode_surprise": "🎲 Surpreenda-me",
+    "mode_surprise_desc": "Sorteio ponderado entre os Top 20 mais compatíveis.",
+    "mode_quick": "⚡ Quero Começar Hoje",
+    "mode_quick_desc": "Animes curtos (≤ 24 eps) disponíveis nas suas assinaturas.",
+    "pick_another": "🎲 Sortear outro",
+    "watch_now": "Assistir no {{service}}",
+    "no_streaming": "Sem link de streaming direto",
+    "no_results": "Nenhum anime encontrado para esta estratégia.",
+    "close": "Fechar",
+    "compatibility": "Compatibilidade: {{percent}}%"
   },
   "providers": {
     "anilist": "AniList",
@@ -99,6 +117,7 @@
     "noYear": "Sem Ano",
     "allBadges": "Todos os Destaques",
     "seasonOnly": "Apenas da Temporada",
+    "streamingOnly": "Somente assinados",
     "clearAll": "Limpar todos os filtros",
     "clear": "Limpar Filtros",
     "exportCSV": "Exportar recomendações em CSV"

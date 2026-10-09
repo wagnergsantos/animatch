@@ -36,9 +36,27 @@
     "titleLanguage": "アニメタイトル表示",
     "titleLanguage_english": "英語（サブ：ローマ字）",
     "titleLanguage_romaji": "ローマ字（サブ：英語）",
+    "streamingSubscriptions": "登録中の配信サービス",
+    "streamingBoost": "登録サービスで配信中の作品のスコアを加点 (+0.3)",
     "syncing": "⏳ {{provider}} と同期中...",
     "sync": "🔄 {{provider}} と同期",
     "logout": "🚪 アカウント切替"
+  },
+  "decision": {
+    "title": "私に選んで",
+    "fab_aria": "私に選んで（決定モード）",
+    "mode_best": "🎯 最適な選択",
+    "mode_best_desc": "あなたのプロフィールで最も相性の良い第1位のアニメ。",
+    "mode_surprise": "🎲 おまかせ抽選",
+    "mode_surprise_desc": "おすすめTop 20からの確率的抽選。",
+    "mode_quick": "⚡ 今日から観る",
+    "mode_quick_desc": "登録中の配信で観られる短い作品（24話以下）。",
+    "pick_another": "🎲 別の作品を選ぶ",
+    "watch_now": "{{service}}で観る",
+    "no_streaming": "配信リンクなし",
+    "no_results": "この条件に一致するアニメが見つかりませんでした。",
+    "close": "閉じる",
+    "compatibility": "相性度: {{percent}}%"
   },
   "providers": {
     "anilist": "AniList",
@@ -99,6 +117,7 @@
     "noYear": "年なし",
     "allBadges": "すべてのハイライト",
     "seasonOnly": "今期のみ",
+    "streamingOnly": "登録サービスのみ",
     "clearAll": "すべてのフィルタをクリア",
     "clear": "フィルタをクリア",
     "exportCSV": "おすすめをCSVでエクスポート"
