@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
 import {
   getSession,
   onAuthStateChange,
@@ -51,33 +51,36 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
-  const signInWithPassword = async (credentials) => {
+  const signInWithPassword = useCallback(async (credentials) => {
     return apiSignInWithPassword(credentials)
-  }
+  }, [])
 
-  const signUpWithPassword = async (credentials) => {
+  const signUpWithPassword = useCallback(async (credentials) => {
     return apiSignUpWithPassword(credentials)
-  }
+  }, [])
 
-  const signInWithOAuth = async (options) => {
+  const signInWithOAuth = useCallback(async (options) => {
     return apiSignInWithOAuth(options)
-  }
+  }, [])
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     await apiSignOut()
     setSession(null)
     setUser(null)
-  }
+  }, [])
 
-  const value = {
-    user,
-    session,
-    isLoading,
-    signInWithPassword,
-    signUpWithPassword,
-    signInWithOAuth,
-    signOut,
-  }
+  const value = useMemo(
+    () => ({
+      user,
+      session,
+      isLoading,
+      signInWithPassword,
+      signUpWithPassword,
+      signInWithOAuth,
+      signOut,
+    }),
+    [user, session, isLoading, signInWithPassword, signUpWithPassword, signInWithOAuth, signOut]
+  )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
