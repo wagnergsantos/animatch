@@ -11,9 +11,19 @@ export const DECISION_MODES = {
  * @param {Array<Object>} recommendations
  * @returns {Object|null}
  */
-export function pickBestRecommendation(recommendations) {
+/**
+ * Returns the highest ranked recommendation (#1) or next best if excludeId is provided.
+ * @param {Array<Object>} recommendations
+ * @param {number|string|null} [excludeId=null]
+ * @returns {Object|null}
+ */
+export function pickBestRecommendation(recommendations, excludeId = null) {
   if (!recommendations || recommendations.length === 0) {
     return null
+  }
+  if (excludeId != null && recommendations.length > 1) {
+    const nextBest = recommendations.find((r) => (r.id ?? r.media?.id) !== excludeId)
+    if (nextBest) return nextBest
   }
   return recommendations[0]
 }
@@ -21,18 +31,28 @@ export function pickBestRecommendation(recommendations) {
 /**
  * Draws an item from the top 20 recommendations using decreasing power weights:
  * w_i = (N - i)^1.5 where N = min(recommendations.length, 20).
+ * Excludes excludeId if pool has more than 1 item.
  * @param {Array<Object>} recommendations
  * @param {Function} [randomFn=Math.random]
+ * @param {number|string|null} [excludeId=null]
  * @returns {Object|null}
  */
-export function pickWeightedTop20(recommendations, randomFn = Math.random) {
+export function pickWeightedTop20(recommendations, randomFn = Math.random, excludeId = null) {
   if (!recommendations || recommendations.length === 0) {
     return null
   }
 
-  const pool = recommendations.slice(0, 20)
+  let pool = recommendations.slice(0, 20)
+  if (excludeId != null && pool.length > 1) {
+    const filteredPool = pool.filter((r) => (r.id ?? r.media?.id) !== excludeId)
+    if (filteredPool.length > 0) {
+      pool = filteredPool
+    }
+  }
+
   const n = pool.length
   if (n === 0) return null
+  if (n === 1) return pool[0]
 
   const weights = pool.map((_, i) => Math.pow(n - i, 1.5))
   const totalWeight = weights.reduce((sum, w) => sum + w, 0)
@@ -58,13 +78,15 @@ export function pickWeightedTop20(recommendations, randomFn = Math.random) {
  * @param {Array<string>} [userSubscriptions=[]]
  * @param {number} [maxEpisodes=24]
  * @param {Function} [randomFn=Math.random]
+ * @param {number|string|null} [excludeId=null]
  * @returns {Object|null}
  */
 export function pickQuickStart(
   recommendations = [],
   userSubscriptions = [],
   maxEpisodes = 24,
-  randomFn = Math.random
+  randomFn = Math.random,
+  excludeId = null
 ) {
   if (!recommendations || recommendations.length === 0) {
     return null
@@ -90,7 +112,7 @@ export function pickQuickStart(
     candidates = recommendations
   }
 
-  return pickWeightedTop20(candidates, randomFn)
+  return pickWeightedTop20(candidates, randomFn, excludeId)
 }
 
 /**
@@ -99,13 +121,15 @@ export function pickQuickStart(
  * @param {Array<Object>} recommendations
  * @param {Array<string>} [userSubscriptions=[]]
  * @param {Function} [randomFn=Math.random]
+ * @param {number|string|null} [excludeId=null]
  * @returns {Object|null}
  */
 export function makeDecision(
   mode,
   recommendations = [],
   userSubscriptions = [],
-  randomFn = Math.random
+  randomFn = Math.random,
+  excludeId = null
 ) {
   if (!recommendations || recommendations.length === 0) {
     return null
@@ -113,12 +137,12 @@ export function makeDecision(
 
   switch (mode) {
     case DECISION_MODES.BEST:
-      return pickBestRecommendation(recommendations)
+      return pickBestRecommendation(recommendations, excludeId)
     case DECISION_MODES.SURPRISE:
-      return pickWeightedTop20(recommendations, randomFn)
+      return pickWeightedTop20(recommendations, randomFn, excludeId)
     case DECISION_MODES.QUICK:
-      return pickQuickStart(recommendations, userSubscriptions, 24, randomFn)
+      return pickQuickStart(recommendations, userSubscriptions, 24, randomFn, excludeId)
     default:
-      return pickBestRecommendation(recommendations)
+      return pickWeightedTop20(recommendations, randomFn, excludeId)
   }
 }

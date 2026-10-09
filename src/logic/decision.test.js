@@ -167,9 +167,17 @@ describe('decision engine logic', () => {
       expect(decision?.id).toBe(3)
     })
 
-    it('falls back to BEST mode for unknown modes', () => {
-      const decision = makeDecision('unknown_mode', mockRecs, ['Crunchyroll'])
+    it('falls back to SURPRISE mode for unknown modes', () => {
+      const decision = makeDecision('unknown_mode', mockRecs, ['Crunchyroll'], () => 0.0001)
       expect(decision?.id).toBe(1)
+    })
+
+    it('respects excludeId across modes', () => {
+      const decisionBest = makeDecision(DECISION_MODES.BEST, mockRecs, ['Crunchyroll'], Math.random, 1)
+      expect(decisionBest?.id).toBe(2)
+
+      const decisionSurprise = makeDecision(DECISION_MODES.SURPRISE, mockRecs, ['Crunchyroll'], () => 0.0001, 1)
+      expect(decisionSurprise?.id).not.toBe(1)
     })
 
     it('handles empty recommendations cleanly', () => {

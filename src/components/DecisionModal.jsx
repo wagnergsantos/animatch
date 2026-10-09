@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { DECISION_MODES, makeDecision } from '../logic/decision.js'
 import RecommendationReason from './RecommendationReason.jsx'
@@ -13,18 +13,31 @@ export default function DecisionModal({
   onSelectAnime,
 }) {
   const { t } = useTranslation()
-  const [activeMode, setActiveMode] = useState(DECISION_MODES.BEST)
-  const [rollCount, setRollCount] = useState(0)
+  const [activeMode, setActiveMode] = useState(DECISION_MODES.SURPRISE)
+  const [selectedAnime, setSelectedAnime] = useState(null)
   const [isShuffling, setIsShuffling] = useState(false)
 
-  // Reset or initialize state when opening
+  // Draw or re-draw anime with optional exclusion of current anime
+  const drawAnime = useCallback(
+    (mode, excludeId = null) => {
+      if (!recommendations || recommendations.length === 0) {
+        setSelectedAnime(null)
+        return
+      }
+      const pick = makeDecision(mode, recommendations, subscriptions, Math.random, excludeId)
+      setSelectedAnime(pick)
+    },
+    [recommendations, subscriptions]
+  )
+
+  // Reset and draw on modal open
   useEffect(() => {
     if (isOpen) {
-      setActiveMode(DECISION_MODES.BEST)
-      setRollCount(0)
+      setActiveMode(DECISION_MODES.SURPRISE)
       setIsShuffling(false)
+      drawAnime(DECISION_MODES.SURPRISE)
     }
-  }, [isOpen])
+  }, [isOpen, drawAnime])
 
   // Handle escape key
   useEffect(() => {
@@ -40,32 +53,23 @@ export default function DecisionModal({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, onClose])
 
-  // Draw decision anime based on activeMode and rollCount
-  const selectedAnime = useMemo(() => {
-    if (!isOpen || !recommendations || recommendations.length === 0) {
-      return null
-    }
-    // rollCount is an input dependency so makeDecision runs a new randomized draw
-    return makeDecision(activeMode, recommendations, subscriptions)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, activeMode, rollCount, recommendations, subscriptions])
-
   const handlePickAnother = useCallback(() => {
     setIsShuffling(true)
-    setRollCount((prev) => prev + 1)
+    const currentId = selectedAnime?.id ?? selectedAnime?.media?.id ?? null
+    drawAnime(activeMode, currentId)
     setTimeout(() => {
       setIsShuffling(false)
-    }, 300)
-  }, [])
+    }, 250)
+  }, [activeMode, selectedAnime, drawAnime])
 
   const handleModeChange = (mode) => {
     if (mode === activeMode) return
     setActiveMode(mode)
     setIsShuffling(true)
-    setRollCount((prev) => prev + 1)
+    drawAnime(mode)
     setTimeout(() => {
       setIsShuffling(false)
-    }, 300)
+    }, 250)
   }
 
   if (!isOpen) return null
