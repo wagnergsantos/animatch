@@ -102,10 +102,11 @@ export default function Dashboard({
 
   const recommendations = useMemo(() => {
     let recs = scoreRecommendations(planningEntries, tasteProfile, selectedFilterGenre)
+    const planningMap = new Map(planningEntries.map((e) => [e.media?.id ?? e.id, e]))
 
     // Map year, seasonYear, startDate, streamingLinks to recs from planningEntries if not present
     recs = recs.map((r) => {
-      const match = planningEntries.find((e) => (e.media?.id ?? e.id) === r.id)
+      const match = planningMap.get(r.id)
       const seasonYear = r.seasonYear ?? match?.seasonYear ?? match?.media?.seasonYear
       const startDate = r.startDate ?? match?.startDate ?? match?.media?.startDate
       const year = resolveYear(r) ?? resolveYear(match)
@@ -283,6 +284,7 @@ export default function Dashboard({
               onSeasonOnlyChange={setIsSeasonOnly}
               isStreamingOnly={isStreamingOnly}
               onStreamingOnlyChange={setIsStreamingOnly}
+              onOpenDecisionModal={() => setIsDecisionModalOpen(true)}
               onExportCSV={() => exportRecommendationsToCSV(recommendations, t, t('dashboard.exportFilenamePrefix'))}
               viewMode={viewMode}
               onViewModeChange={setViewMode}

@@ -182,7 +182,7 @@ export default function FilterBar({
             </select>
           )}
 
-          <div className="filter-bar__group filter-bar__checkbox-group">
+          <div className={styles['filter-bar__checkbox-group']}>
             <label className={styles['filter-bar__checkbox-label']}>
               <input
                 type="checkbox"
@@ -195,7 +195,7 @@ export default function FilterBar({
           </div>
 
           {onStreamingOnlyChange && (
-            <div className="filter-bar__group filter-bar__checkbox-group">
+            <div className={styles['filter-bar__checkbox-group']}>
               <label className={`${styles['filter-bar__checkbox-label']} ${isStreamingOnly ? styles['filter-bar__checkbox-label--active'] || '' : ''}`}>
                 <input
                   type="checkbox"

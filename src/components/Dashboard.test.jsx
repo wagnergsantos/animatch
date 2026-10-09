@@ -398,7 +398,7 @@ describe('Dashboard', () => {
       expect(screen.queryByTestId('skeleton')).not.toBeInTheDocument()
     })
 
-    const fab = screen.getByRole('button', { name: /Escolha pra mim/i })
+    const fab = screen.getByRole('button', { name: /Modo Decisão|Decision Mode/i })
     expect(fab).toBeInTheDocument()
 
     fireEvent.click(fab)
