@@ -1,6 +1,6 @@
 import React from 'react'
 import { renderHook, act, waitFor } from '@testing-library/react'
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { useUserSettings, DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY } from './useUserSettings'
 import * as authModule from '../auth/AuthContext'
 import { supabaseClient } from '../supabase'
@@ -46,10 +46,6 @@ describe('useUserSettings', () => {
       }
       return {}
     })
-  })
-
-  afterEach(() => {
-    vi.useRealTimers()
   })
 
   describe('Anonymous mode (logged out)', () => {
@@ -182,7 +178,6 @@ describe('useUserSettings', () => {
 
   describe('Logged in mode (debounced updates)', () => {
     it('debounces cloud upsert when updating settings while logged in', async () => {
-      vi.useFakeTimers()
       mockAuthUser = { id: 'user-debounce', email: 'deb@test.com' }
       mockSupabaseSelect.mockResolvedValue({
         data: { settings: DEFAULT_SETTINGS },
@@ -190,15 +185,12 @@ describe('useUserSettings', () => {
       })
       mockSupabaseUpsert.mockResolvedValue({ error: null })
 
-      const { result } = renderHook(() => useUserSettings({ debounceMs: 300 }))
+      const { result } = renderHook(() => useUserSettings({ debounceMs: 50 }))
 
-      // Wait for initial sync
-      await act(async () => {
-        await vi.runAllTimersAsync()
+      await waitFor(() => {
+        expect(result.current.syncStatus).toBe('synced')
       })
-      expect(result.current.syncStatus).toBe('synced')
 
-      // Update setting
       act(() => {
         result.current.updateSetting('theme', 'light')
       })
@@ -207,9 +199,8 @@ describe('useUserSettings', () => {
       expect(result.current.syncStatus).toBe('syncing')
       expect(mockSupabaseUpsert).not.toHaveBeenCalled()
 
-      // Fast forward time
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(350)
+      await waitFor(() => {
+        expect(result.current.syncStatus).toBe('synced')
       })
 
       expect(mockSupabaseUpsert).toHaveBeenCalledTimes(1)
@@ -219,11 +210,9 @@ describe('useUserSettings', () => {
           settings: expect.objectContaining({ theme: 'light' }),
         })
       )
-      expect(result.current.syncStatus).toBe('synced')
     })
 
     it('batches rapid updates into a single cloud save with latest values', async () => {
-      vi.useFakeTimers()
       mockAuthUser = { id: 'user-rapid', email: 'rapid@test.com' }
       mockSupabaseSelect.mockResolvedValue({
         data: { settings: DEFAULT_SETTINGS },
@@ -231,23 +220,20 @@ describe('useUserSettings', () => {
       })
       mockSupabaseUpsert.mockResolvedValue({ error: null })
 
-      const { result } = renderHook(() => useUserSettings({ debounceMs: 300 }))
-      await act(async () => {
-        await vi.runAllTimersAsync()
+      const { result } = renderHook(() => useUserSettings({ debounceMs: 50 }))
+
+      await waitFor(() => {
+        expect(result.current.syncStatus).toBe('synced')
       })
 
       act(() => {
         result.current.updateSetting('theme', 'light')
-      })
-      act(() => {
         result.current.updateSetting('language', 'ja')
-      })
-      act(() => {
         result.current.updateSetting('streaming_boost', true)
       })
 
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(350)
+      await waitFor(() => {
+        expect(result.current.syncStatus).toBe('synced')
       })
 
       expect(mockSupabaseUpsert).toHaveBeenCalledTimes(1)
@@ -264,7 +250,6 @@ describe('useUserSettings', () => {
     })
 
     it('sets syncStatus to error if cloud save fails', async () => {
-      vi.useFakeTimers()
       mockAuthUser = { id: 'user-fail', email: 'fail@test.com' }
       mockSupabaseSelect.mockResolvedValue({
         data: { settings: DEFAULT_SETTINGS },
@@ -272,44 +257,38 @@ describe('useUserSettings', () => {
       })
       mockSupabaseUpsert.mockResolvedValue({ error: { message: 'Network error' } })
 
-      const { result } = renderHook(() => useUserSettings({ debounceMs: 300 }))
-      await act(async () => {
-        await vi.runAllTimersAsync()
+      const { result } = renderHook(() => useUserSettings({ debounceMs: 50 }))
+
+      await waitFor(() => {
+        expect(result.current.syncStatus).toBe('synced')
       })
 
       act(() => {
         result.current.updateSetting('theme', 'light')
       })
 
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(350)
+      await waitFor(() => {
+        expect(result.current.syncStatus).toBe('error')
       })
 
-      expect(result.current.syncStatus).toBe('error')
       // Local state is preserved
       expect(result.current.settings.theme).toBe('light')
     })
 
     it('sets syncStatus to offline if navigator is offline', async () => {
-      vi.useFakeTimers()
       const originalOnLine = navigator.onLine
       Object.defineProperty(navigator, 'onLine', { value: false, configurable: true })
 
       mockAuthUser = { id: 'user-offline', email: 'off@test.com' }
 
-      const { result } = renderHook(() => useUserSettings({ debounceMs: 300 }))
-      await act(async () => {
-        await vi.runAllTimersAsync()
-      })
+      const { result } = renderHook(() => useUserSettings({ debounceMs: 50 }))
 
-      expect(result.current.syncStatus).toBe('offline')
+      await waitFor(() => {
+        expect(result.current.syncStatus).toBe('offline')
+      })
 
       act(() => {
         result.current.updateSetting('theme', 'light')
-      })
-
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(350)
       })
 
       expect(result.current.syncStatus).toBe('offline')

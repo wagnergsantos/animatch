@@ -161,54 +161,51 @@ export function useUserSettings({ debounceMs = 400 } = {}) {
 
   const updateSettings = useCallback(
     (partial) => {
-      setSettings((prev) => {
-        const next = mergeSettings(prev, partial)
-        settingsRef.current = next
-        saveToLocalStorage(next)
+      const next = mergeSettings(settingsRef.current, partial)
+      settingsRef.current = next
+      setSettings(next)
+      saveToLocalStorage(next)
 
-        if (user) {
-          if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-            setSyncStatus('offline')
-            return next
-          }
-
-          setSyncStatus('syncing')
-          if (debounceTimerRef.current) {
-            clearTimeout(debounceTimerRef.current)
-          }
-
-          debounceTimerRef.current = setTimeout(async () => {
-            try {
-              if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-                if (isMountedRef.current) setSyncStatus('offline')
-                return
-              }
-
-              const { error } = await supabaseClient
-                .from('user_settings')
-                .upsert({
-                  user_id: user.id,
-                  settings: next,
-                  updated_at: new Date().toISOString(),
-                })
-
-              if (!isMountedRef.current) return
-
-              if (error) {
-                setSyncStatus(typeof navigator !== 'undefined' && navigator.onLine === false ? 'offline' : 'error')
-              } else {
-                setSyncStatus('synced')
-              }
-            } catch (err) {
-              if (isMountedRef.current) {
-                setSyncStatus(typeof navigator !== 'undefined' && navigator.onLine === false ? 'offline' : 'error')
-              }
-            }
-          }, debounceMs)
+      if (user) {
+        if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+          setSyncStatus('offline')
+          return
         }
 
-        return next
-      })
+        setSyncStatus('syncing')
+        if (debounceTimerRef.current) {
+          clearTimeout(debounceTimerRef.current)
+        }
+
+        debounceTimerRef.current = setTimeout(async () => {
+          try {
+            if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+              if (isMountedRef.current) setSyncStatus('offline')
+              return
+            }
+
+            const { error } = await supabaseClient
+              .from('user_settings')
+              .upsert({
+                user_id: user.id,
+                settings: settingsRef.current,
+                updated_at: new Date().toISOString(),
+              })
+
+            if (!isMountedRef.current) return
+
+            if (error) {
+              setSyncStatus(typeof navigator !== 'undefined' && navigator.onLine === false ? 'offline' : 'error')
+            } else {
+              setSyncStatus('synced')
+            }
+          } catch (err) {
+            if (isMountedRef.current) {
+              setSyncStatus(typeof navigator !== 'undefined' && navigator.onLine === false ? 'offline' : 'error')
+            }
+          }
+        }, debounceMs)
+      }
     },
     [user, debounceMs]
   )
