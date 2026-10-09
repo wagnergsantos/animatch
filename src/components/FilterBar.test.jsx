@@ -148,5 +148,76 @@ describe('FilterBar', () => {
     fireEvent.click(listBtn)
     expect(handleViewModeChange).toHaveBeenCalledWith('list')
   })
+
+  it('calls onStreamingOnlyChange when streaming filter checkbox is clicked', () => {
+    const handleStreamingChange = vi.fn()
+    render(
+      <FilterBar
+        selectedGenre="ALL"
+        isStreamingOnly={false}
+        onStreamingOnlyChange={handleStreamingChange}
+      />
+    )
+
+    const streamingToggle = screen.getByLabelText(/Somente assinados/i)
+    fireEvent.click(streamingToggle)
+    expect(handleStreamingChange).toHaveBeenCalledWith(true)
+  })
+
+  it('resets streaming filter and other filters when clear button is clicked', () => {
+    const handleGenreChange = vi.fn()
+    const handleFormatChange = vi.fn()
+    const handleYearChange = vi.fn()
+    const handleBadgeChange = vi.fn()
+    const handleSearchChange = vi.fn()
+    const handleSeasonChange = vi.fn()
+    const handleStreamingChange = vi.fn()
+
+    render(
+      <FilterBar
+        selectedGenre="Action"
+        onSelectGenre={handleGenreChange}
+        selectedFormat="TV"
+        onSelectFormat={handleFormatChange}
+        selectedYear="2024"
+        onSelectYear={handleYearChange}
+        selectedBadge="ACCLAIMED"
+        onSelectBadge={handleBadgeChange}
+        searchQuery="Naruto"
+        onSearchChange={handleSearchChange}
+        isSeasonOnly={true}
+        onSeasonOnlyChange={handleSeasonChange}
+        isStreamingOnly={true}
+        onStreamingOnlyChange={handleStreamingChange}
+      />
+    )
+
+    const clearButton = screen.getByRole('button', { name: /Limpar Filtros/i })
+    expect(clearButton).toBeInTheDocument()
+    fireEvent.click(clearButton)
+
+    expect(handleGenreChange).toHaveBeenCalledWith('ALL')
+    expect(handleFormatChange).toHaveBeenCalledWith('ALL')
+    expect(handleYearChange).toHaveBeenCalledWith('ALL')
+    expect(handleBadgeChange).toHaveBeenCalledWith('ALL')
+    expect(handleSearchChange).toHaveBeenCalledWith('')
+    expect(handleSeasonChange).toHaveBeenCalledWith(false)
+    expect(handleStreamingChange).toHaveBeenCalledWith(false)
+  })
+
+  it('renders shortcut button when onOpenDecisionModal is provided and triggers callback', () => {
+    const onOpenDecisionModal = vi.fn()
+    render(
+      <FilterBar
+        onOpenDecisionModal={onOpenDecisionModal}
+      />
+    )
+
+    const decisionButton = screen.getByRole('button', { name: /Escolha pra mim/i })
+    expect(decisionButton).toBeInTheDocument()
+    fireEvent.click(decisionButton)
+    expect(onOpenDecisionModal).toHaveBeenCalledTimes(1)
+  })
 })
+
 

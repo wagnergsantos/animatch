@@ -2,12 +2,16 @@ import { useState, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocalStorage } from '../hooks/useLocalStorage.js'
 import { buildTasteProfile, scoreRecommendations, resolveYear } from '../logic/recommender.js'
+import { applyStreamingBoost, matchesUserSubscriptions } from '../logic/streaming.js'
 import TasteProfile from './TasteProfile.jsx'
 import RecommendationGrid from './RecommendationGrid.jsx'
 import FilterBar from './FilterBar.jsx'
 import StatisticsPage from './StatisticsPage.jsx'
 import GenreRecommendationModal from './GenreRecommendationModal.jsx'
 import SettingsMenu from './SettingsMenu.jsx'
+import FloatingRandomizerButton from './FloatingRandomizerButton.jsx'
+import DecisionModal from './DecisionModal.jsx'
+import AnimeDetailModal from './AnimeDetailModal.jsx'
 import styles from './Dashboard.module.css'
 
 function exportRecommendationsToCSV(recommendations, t, prefix) {
@@ -53,6 +57,11 @@ export default function Dashboard({
   const [selectedBadge, setSelectedBadge] = useState('ALL')
   const [sortBy, setSortBy] = useState('predicted')
   const [viewMode, setViewMode] = useLocalStorage('animatch_view_mode', 'grid')
+  const [subscriptions, setSubscriptions] = useLocalStorage('animatch_subscriptions', ['Crunchyroll', 'Netflix'])
+  const [streamingBoost, setStreamingBoost] = useLocalStorage('animatch_streaming_boost', false)
+  const [isStreamingOnly, setIsStreamingOnly] = useState(false)
+  const [isDecisionModalOpen, setIsDecisionModalOpen] = useState(false)
+  const [selectedAnimeDetail, setSelectedAnimeDetail] = useState(null)
   const [modalGenre, setModalGenre] = useState(null)
   const [copied, setCopied] = useState(false)
   const [isSeasonOnly, setIsSeasonOnly] = useState(false)
@@ -94,7 +103,7 @@ export default function Dashboard({
   const recommendations = useMemo(() => {
     let recs = scoreRecommendations(planningEntries, tasteProfile, selectedFilterGenre)
 
-    // Map year, seasonYear, startDate to recs from planningEntries if not present
+    // Map year, seasonYear, startDate, streamingLinks to recs from planningEntries if not present
     recs = recs.map((r) => {
       const match = planningEntries.find((e) => (e.media?.id ?? e.id) === r.id)
       const seasonYear = r.seasonYear ?? match?.seasonYear ?? match?.media?.seasonYear
@@ -103,8 +112,17 @@ export default function Dashboard({
       const status = r.status ?? match?.status ?? match?.media?.status
       const titleObj = r.titleObj ?? match?.media?.title ?? match?.titleObj
       const title = r.title ?? match?.media?.title?.english ?? match?.media?.title?.romaji
-      return { ...r, seasonYear, startDate, year, status, titleObj, title }
+      const streamingLinks = r.streamingLinks ?? match?.streamingLinks ?? match?.media?.streamingLinks
+      return { ...r, seasonYear, startDate, year, status, titleObj, title, streamingLinks }
     })
+
+    if (streamingBoost) {
+      recs = applyStreamingBoost(recs, subscriptions)
+    }
+
+    if (isStreamingOnly) {
+      recs = recs.filter((r) => matchesUserSubscriptions(r, subscriptions))
+    }
 
     // Filter by search query
     if (searchQuery.trim()) {
@@ -147,7 +165,7 @@ export default function Dashboard({
     }
 
     return recs
-  }, [planningEntries, tasteProfile, selectedFilterGenre, searchQuery, selectedFormat, selectedYear, selectedBadge, isSeasonOnly, currentYear])
+  }, [planningEntries, tasteProfile, selectedFilterGenre, streamingBoost, subscriptions, isStreamingOnly, searchQuery, selectedFormat, selectedYear, selectedBadge, isSeasonOnly, currentYear])
 
   const handleTasteProfileGenreClick = (genre) => {
     setSelectedFilterGenre(genre)
@@ -224,6 +242,10 @@ export default function Dashboard({
             onRefresh={onRefresh}
             isLoading={isLoading}
             onLogout={onLogout}
+            subscriptions={subscriptions}
+            onSubscriptionsChange={setSubscriptions}
+            streamingBoost={streamingBoost}
+            onStreamingBoostChange={setStreamingBoost}
           />
         </div>
       </header>
@@ -259,6 +281,8 @@ export default function Dashboard({
               onSortChange={setSortBy}
               isSeasonOnly={isSeasonOnly}
               onSeasonOnlyChange={setIsSeasonOnly}
+              isStreamingOnly={isStreamingOnly}
+              onStreamingOnlyChange={setIsStreamingOnly}
               onExportCSV={() => exportRecommendationsToCSV(recommendations, t, t('dashboard.exportFilenamePrefix'))}
               viewMode={viewMode}
               onViewModeChange={setViewMode}
@@ -282,6 +306,30 @@ export default function Dashboard({
           />
         )}
       </main>
+
+      {activeTab === 'recommendations' && recommendations.length > 0 && (
+        <FloatingRandomizerButton
+          onClick={() => setIsDecisionModalOpen(true)}
+          count={recommendations.length}
+        />
+      )}
+
+      <DecisionModal
+        isOpen={isDecisionModalOpen}
+        onClose={() => setIsDecisionModalOpen(false)}
+        recommendations={recommendations}
+        subscriptions={subscriptions}
+        titlePref={titlePref}
+        onSelectAnime={(anime) => setSelectedAnimeDetail(anime)}
+      />
+
+      {selectedAnimeDetail && (
+        <AnimeDetailModal
+          anime={selectedAnimeDetail}
+          titlePref={titlePref}
+          onClose={() => setSelectedAnimeDetail(null)}
+        />
+      )}
 
       <GenreRecommendationModal
         genre={modalGenre}
