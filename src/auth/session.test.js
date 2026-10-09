@@ -2,6 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const mockGetSession = vi.fn()
 const mockOnAuthStateChange = vi.fn()
+const mockSignInWithPassword = vi.fn()
+const mockSignUp = vi.fn()
+const mockSignInWithOAuth = vi.fn()
 const mockSignOut = vi.fn()
 
 vi.mock('../supabase.js', () => ({
@@ -9,6 +12,9 @@ vi.mock('../supabase.js', () => ({
     auth: {
       getSession: (...args) => mockGetSession(...args),
       onAuthStateChange: (...args) => mockOnAuthStateChange(...args),
+      signInWithPassword: (...args) => mockSignInWithPassword(...args),
+      signUp: (...args) => mockSignUp(...args),
+      signInWithOAuth: (...args) => mockSignInWithOAuth(...args),
       signOut: (...args) => mockSignOut(...args),
     },
   },
@@ -17,6 +23,9 @@ vi.mock('../supabase.js', () => ({
 beforeEach(() => {
   mockGetSession.mockReset()
   mockOnAuthStateChange.mockReset()
+  mockSignInWithPassword.mockReset()
+  mockSignUp.mockReset()
+  mockSignInWithOAuth.mockReset()
   mockSignOut.mockReset()
 })
 
@@ -52,6 +61,45 @@ describe('onAuthStateChange', () => {
 
     unsub()
     expect(unsubscribe).toHaveBeenCalled()
+  })
+})
+
+describe('signInWithPassword', () => {
+  it('delega chamada ao supabaseClient.auth.signInWithPassword', async () => {
+    mockSignInWithPassword.mockResolvedValue({ data: { user: { id: 'u1' } }, error: null })
+    const { signInWithPassword } = await import('./session.js')
+    const res = await signInWithPassword({ email: 'test@example.com', password: '123' })
+    expect(mockSignInWithPassword).toHaveBeenCalledWith({ email: 'test@example.com', password: '123' })
+    expect(res).toEqual({ data: { user: { id: 'u1' } }, error: null })
+  })
+})
+
+describe('signUpWithPassword', () => {
+  it('delega chamada ao supabaseClient.auth.signUp', async () => {
+    mockSignUp.mockResolvedValue({ data: { user: { id: 'u2' } }, error: null })
+    const { signUpWithPassword } = await import('./session.js')
+    const res = await signUpWithPassword({ email: 'test@example.com', password: '123' })
+    expect(mockSignUp).toHaveBeenCalledWith({ email: 'test@example.com', password: '123' })
+    expect(res).toEqual({ data: { user: { id: 'u2' } }, error: null })
+  })
+})
+
+describe('signInWithOAuth', () => {
+  it('delega chamada ao supabaseClient.auth.signInWithOAuth', async () => {
+    mockSignInWithOAuth.mockResolvedValue({ data: { provider: 'google' }, error: null })
+    const { signInWithOAuth } = await import('./session.js')
+    const res = await signInWithOAuth({ provider: 'google' })
+    expect(mockSignInWithOAuth).toHaveBeenCalledWith({ provider: 'google' })
+    expect(res).toEqual({ data: { provider: 'google' }, error: null })
+  })
+})
+
+describe('signOut', () => {
+  it('delega chamada ao supabaseClient.auth.signOut', async () => {
+    mockSignOut.mockResolvedValue({})
+    const { signOut } = await import('./session.js')
+    await signOut()
+    expect(mockSignOut).toHaveBeenCalled()
   })
 })
 

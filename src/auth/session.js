@@ -1,20 +1,14 @@
 /**
  * Camada `auth/`: wrapper fino sobre o cliente de autenticação (Supabase Auth).
  * Não decide UI nem redireciona — só expõe estado de sessão e helpers puros
- * para quem precisar (api/, cache/, components/).
- *
- * Auth entra como estrutura pronta (mesmo padrão do template em
- * arquitetura_inicial/template/src/auth/session.js), mas o AniMatch hoje não
- * tem nenhuma tela de login/escrita que dependa disso — fica pronto pra ser
- * ligado quando o app ganhar dados pessoais no Supabase (ex.: perfil de
- * gosto salvo por usuário, em vez de só localStorage local).
+ * para quem precisar (api/, cache/, components/, hooks/).
  */
 import { supabaseClient } from '../supabase.js'
 
 /** Retorna a sessão atual (ou null se não houver usuário logado). */
 export async function getSession() {
   const { data } = await supabaseClient.auth.getSession()
-  return data.session
+  return data?.session ?? null
 }
 
 /**
@@ -25,11 +19,27 @@ export function onAuthStateChange(callback) {
   const { data } = supabaseClient.auth.onAuthStateChange((_event, session) => {
     callback(session)
   })
-  return () => data.subscription.unsubscribe()
+  return () => data?.subscription?.unsubscribe()
 }
 
+/** Autentica um usuário existente com e-mail e senha. */
+export async function signInWithPassword(credentials) {
+  return supabaseClient.auth.signInWithPassword(credentials)
+}
+
+/** Cria uma nova conta de usuário com e-mail e senha. */
+export async function signUpWithPassword(credentials) {
+  return supabaseClient.auth.signUp(credentials)
+}
+
+/** Autentica via provedor OAuth (ex: Google). */
+export async function signInWithOAuth(options) {
+  return supabaseClient.auth.signInWithOAuth(options)
+}
+
+/** Encerra a sessão do usuário no Supabase Auth. */
 export async function signOut() {
-  await supabaseClient.auth.signOut()
+  return supabaseClient.auth.signOut()
 }
 
 /** Extrai o user id de uma sessão, ou null. */
