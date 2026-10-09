@@ -1,7 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import DecisionModal from './DecisionModal.jsx'
-import { DECISION_MODES } from '../logic/decision.js'
 
 const sampleRecs = [
   {
