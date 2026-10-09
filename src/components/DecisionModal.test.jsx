@@ -52,7 +52,7 @@ describe('DecisionModal', () => {
       <DecisionModal
         isOpen={true}
         onClose={vi.fn()}
-        recommendations={sampleRecs}
+        recommendations={[sampleRecs[0]]}
         subscriptions={['Crunchyroll']}
         titlePref="english"
       />
@@ -78,7 +78,7 @@ describe('DecisionModal', () => {
       <DecisionModal
         isOpen={true}
         onClose={vi.fn()}
-        recommendations={sampleRecs}
+        recommendations={[sampleRecs[0]]}
         subscriptions={['Crunchyroll']}
         titlePref="english"
       />
