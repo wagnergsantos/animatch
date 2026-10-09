@@ -55,6 +55,9 @@ export default function FilterBar({
   onSortChange,
   isSeasonOnly = false,
   onSeasonOnlyChange,
+  isStreamingOnly = false,
+  onStreamingOnlyChange,
+  onOpenDecisionModal,
   onExportCSV,
   viewMode = 'grid',
   onViewModeChange,
@@ -83,7 +86,8 @@ export default function FilterBar({
     selectedYear !== 'ALL' ||
     selectedBadge !== 'ALL' ||
     searchQuery.trim() !== '' ||
-    isSeasonOnly
+    isSeasonOnly ||
+    isStreamingOnly
 
   const handleResetFilters = () => {
     onSelectGenre?.('ALL')
@@ -92,6 +96,7 @@ export default function FilterBar({
     onSelectBadge?.('ALL')
     onSearchChange?.('')
     onSeasonOnlyChange?.(false)
+    onStreamingOnlyChange?.(false)
   }
 
   return (
@@ -177,7 +182,7 @@ export default function FilterBar({
             </select>
           )}
 
-          <div className="filter-bar__group filter-bar__checkbox-group">
+          <div className={styles['filter-bar__checkbox-group']}>
             <label className={styles['filter-bar__checkbox-label']}>
               <input
                 type="checkbox"
@@ -188,6 +193,20 @@ export default function FilterBar({
               {t('filter.seasonOnly')}
             </label>
           </div>
+
+          {onStreamingOnlyChange && (
+            <div className={styles['filter-bar__checkbox-group']}>
+              <label className={`${styles['filter-bar__checkbox-label']} ${isStreamingOnly ? styles['filter-bar__checkbox-label--active'] || '' : ''}`}>
+                <input
+                  type="checkbox"
+                  checked={isStreamingOnly}
+                  onChange={(e) => onStreamingOnlyChange(e.target.checked)}
+                  className={styles['filter-bar__checkbox']}
+                />
+                {t('filter.streamingOnly')}
+              </label>
+            </div>
+          )}
 
           {isFiltered && (
             <button
@@ -201,6 +220,17 @@ export default function FilterBar({
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+          {onOpenDecisionModal && (
+            <button
+              type="button"
+              className={styles['export-csv-btn']}
+              onClick={onOpenDecisionModal}
+              title={t('decision.title')}
+            >
+              🎲 {t('decision.title')}
+            </button>
+          )}
+
           {onViewModeChange && (
             <div className={styles['view-mode-toggle']} role="group" aria-label="Modo de visualização">
               <button

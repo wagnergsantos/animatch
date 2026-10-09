@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import Dashboard from './Dashboard.jsx'
 
@@ -389,5 +389,65 @@ describe('Dashboard', () => {
 
     expect(screen.getByText('String Year Anime')).toBeInTheDocument()
     expect(screen.queryByText('Old Anime')).not.toBeInTheDocument()
+  })
+
+  it('renders FloatingRandomizerButton and opens and closes DecisionModal', async () => {
+    render(<Dashboard allEntries={mockEntries} username="testuser" onLogout={vi.fn()} />)
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('skeleton')).not.toBeInTheDocument()
+    })
+
+    const fab = screen.getByRole('button', { name: /Modo Decisão|Decision Mode/i })
+    expect(fab).toBeInTheDocument()
+
+    fireEvent.click(fab)
+
+    const modalTitle = screen.getByRole('heading', { name: /Escolha pra mim/i })
+    expect(modalTitle).toBeInTheDocument()
+
+    const closeBtn = screen.getByRole('button', { name: /Fechar/i })
+    fireEvent.click(closeBtn)
+
+    expect(screen.queryByRole('heading', { name: /Escolha pra mim/i })).not.toBeInTheDocument()
+  })
+
+  it('filters recommendations by streaming subscriptions when isStreamingOnly toggle is enabled', async () => {
+    const entriesWithStreaming = [
+      { status: 'COMPLETED', score: 9, media: { id: 1, title: { romaji: 'A' }, genres: ['Action'] } },
+      {
+        status: 'PLANNING',
+        media: {
+          id: 10,
+          title: { romaji: 'Crunchy Anime' },
+          genres: ['Action'],
+          averageScore: 85,
+          streamingLinks: [{ site: 'Crunchyroll', url: 'https://crunchyroll.com/anime' }],
+        },
+      },
+      {
+        status: 'PLANNING',
+        media: {
+          id: 11,
+          title: { romaji: 'Unstreamable Anime' },
+          genres: ['Action'],
+          averageScore: 80,
+          streamingLinks: [],
+        },
+      },
+    ]
+
+    render(<Dashboard allEntries={entriesWithStreaming} username="testuser" onLogout={vi.fn()} />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Crunchy Anime')).toBeInTheDocument()
+      expect(screen.getByText('Unstreamable Anime')).toBeInTheDocument()
+    })
+
+    const streamingCheckbox = screen.getByLabelText(/Somente assinados/i)
+    fireEvent.click(streamingCheckbox)
+
+    expect(screen.getByText('Crunchy Anime')).toBeInTheDocument()
+    expect(screen.queryByText('Unstreamable Anime')).not.toBeInTheDocument()
   })
 })

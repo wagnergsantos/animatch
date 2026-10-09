@@ -36,9 +36,27 @@
     "titleLanguage": "Anime Titles",
     "titleLanguage_english": "English (Romaji secondary)",
     "titleLanguage_romaji": "Romaji (English secondary)",
+    "streamingSubscriptions": "Subscribed Streaming Services",
+    "streamingBoost": "Boost score for anime available on my streaming services (+0.3 pts)",
     "syncing": "⏳ Syncing with {{provider}}...",
     "sync": "🔄 Sync {{provider}}",
     "logout": "🚪 Switch account"
+  },
+  "decision": {
+    "title": "Choose for me",
+    "fab_aria": "Choose for me (Decision Mode)",
+    "mode_best": "🎯 Best Match",
+    "mode_best_desc": "The #1 anime with highest compatibility from your profile.",
+    "mode_surprise": "🎲 Surprise Me",
+    "mode_surprise_desc": "Weighted draw among your Top 20 recommendations.",
+    "mode_quick": "⚡ Start Today",
+    "mode_quick_desc": "Short anime (≤ 24 eps) available on your streaming services.",
+    "pick_another": "🎲 Pick another",
+    "watch_now": "Watch on {{service}}",
+    "no_streaming": "No direct streaming link",
+    "no_results": "No anime found for this strategy.",
+    "close": "Close",
+    "compatibility": "Compatibility: {{percent}}%"
   },
   "providers": {
     "anilist": "AniList",
@@ -99,6 +117,7 @@
     "noYear": "No Year",
     "allBadges": "All Highlights",
     "seasonOnly": "Season only",
+    "streamingOnly": "Subscribed only",
     "clearAll": "Clear all filters",
     "clear": "Clear Filters",
     "exportCSV": "Export recommendations as CSV"
