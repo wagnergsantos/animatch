@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { STREAMING_SERVICES } from '../logic/streaming.js'
 import styles from './SettingsMenu.module.css'
 
 export const LANG_OPTIONS = [
@@ -15,6 +16,10 @@ export default function SettingsMenu({
   onRefresh,
   isLoading,
   onLogout,
+  subscriptions = [],
+  onSubscriptionsChange,
+  streamingBoost = false,
+  onStreamingBoostChange,
 }) {
   const { t, i18n } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
@@ -87,6 +92,15 @@ export default function SettingsMenu({
     }
   }, [isOpen])
 
+  const toggleSubscription = (service) => {
+    if (!onSubscriptionsChange) return
+    if (subscriptions.includes(service)) {
+      onSubscriptionsChange(subscriptions.filter((s) => s !== service))
+    } else {
+      onSubscriptionsChange([...subscriptions, service])
+    }
+  }
+
   const providerLabel = t(`providers.${provider}`, provider === 'mal' ? 'MyAnimeList' : provider === 'kitsu' ? 'Kitsu' : 'AniList')
 
   return (
@@ -152,6 +166,47 @@ export default function SettingsMenu({
             >
               {theme === 'dark' ? `☀️ ${t('settings.theme_light')}` : `🌙 ${t('settings.theme_dark')}`}
             </button>
+          </div>
+
+          <div className={styles['settings-menu__divider']} />
+
+          <div className={styles['settings-menu__section']}>
+            <span className={styles['settings-menu__label']}>
+              {t('settings.streamingSubscriptions')}
+            </span>
+            <div className={styles['settings-menu__services-grid']}>
+              {STREAMING_SERVICES.map((service) => {
+                const isChecked = subscriptions.includes(service)
+                return (
+                  <label
+                    key={service}
+                    className={`${styles['settings-menu__checkbox-label']} ${isChecked ? styles['settings-menu__checkbox-label--active'] : ''}`}
+                  >
+                    <input
+                      type="checkbox"
+                      className={styles['settings-menu__checkbox-input']}
+                      checked={isChecked}
+                      onChange={() => toggleSubscription(service)}
+                    />
+                    <span>{service}</span>
+                  </label>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className={styles['settings-menu__section']}>
+            <label className={styles['settings-menu__boost-label']}>
+              <input
+                type="checkbox"
+                className={styles['settings-menu__checkbox-input']}
+                checked={Boolean(streamingBoost)}
+                onChange={(e) => onStreamingBoostChange && onStreamingBoostChange(e.target.checked)}
+              />
+              <span className={styles['settings-menu__boost-text']}>
+                {t('settings.streamingBoost')}
+              </span>
+            </label>
           </div>
 
           <div className={styles['settings-menu__divider']} />
