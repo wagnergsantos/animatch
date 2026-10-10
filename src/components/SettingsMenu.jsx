@@ -152,7 +152,7 @@ export default function SettingsMenu({
                 type="button"
                 className={styles['settings-menu__auth-btn']}
                 onClick={() => {
-                  onOpenAuthModal && onOpenAuthModal()
+                  onOpenAuthModal?.()
                 }}
               >
                 {t('auth.login')}
@@ -173,7 +173,7 @@ export default function SettingsMenu({
                 type="button"
                 className={`${styles['settings-menu__btn']} ${styles['settings-menu__btn--sm']}`}
                 onClick={() => {
-                  onSignOut && onSignOut()
+                  onSignOut?.()
                   setIsOpen(false)
                 }}
               >
