@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/AuthContext.jsx'
 import styles from './AuthModal.module.css'
@@ -170,7 +170,7 @@ export default function AuthModal({
         )}
 
         {successMessage && (
-          <div className={styles.successAlert}>
+          <div className={styles.successAlert} role="status">
             {successMessage}
           </div>
         )}
