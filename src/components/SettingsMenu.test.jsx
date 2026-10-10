@@ -88,5 +88,99 @@ describe('SettingsMenu', () => {
     )
     expect(boostCheckbox).toBeChecked()
   })
+
+  describe('Cloud Account & Auth', () => {
+    it('renders login prompt when user is not authenticated and opens modal on click', () => {
+      const onOpenAuthModal = vi.fn()
+      render(<SettingsMenu user={null} onOpenAuthModal={onOpenAuthModal} />)
+      fireEvent.click(screen.getByRole('button', { name: /configurações/i }))
+
+      const loginBtn = screen.getByRole('button', { name: /entrar|sincronização em nuvem/i })
+      expect(loginBtn).toBeInTheDocument()
+
+      fireEvent.click(loginBtn)
+      expect(onOpenAuthModal).toHaveBeenCalledTimes(1)
+    })
+
+    it('renders user email, sync status badge, and sign out button when logged in', () => {
+      const onSignOut = vi.fn()
+      const user = { email: 'otaku@example.com' }
+      const { rerender } = render(
+        <SettingsMenu
+          user={user}
+          syncStatus="synced"
+          onSignOut={onSignOut}
+        />
+      )
+      fireEvent.click(screen.getByRole('button', { name: /configurações/i }))
+
+      expect(screen.getByText('otaku@example.com')).toBeInTheDocument()
+      expect(screen.getByText(/sincronizado na nuvem/i)).toBeInTheDocument()
+
+      rerender(
+        <SettingsMenu
+          user={user}
+          syncStatus="syncing"
+          onSignOut={onSignOut}
+        />
+      )
+      expect(screen.getByText(/sincronizando/i)).toBeInTheDocument()
+
+      const signOutBtn = screen.getByRole('button', { name: /sair da conta/i })
+      expect(signOutBtn).toBeInTheDocument()
+
+      fireEvent.click(signOutBtn)
+      expect(onSignOut).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe('Linked Accounts', () => {
+    it('renders inputs for AniList, Kitsu, and MyAnimeList and triggers onLinkedUsernamesChange', () => {
+      const onLinkedUsernamesChange = vi.fn()
+      const linkedUsernames = {
+        anilist: 'ani_user',
+        kitsu: 'kitsu_user',
+        mal: 'mal_user',
+      }
+
+      render(
+        <SettingsMenu
+          linkedUsernames={linkedUsernames}
+          onLinkedUsernamesChange={onLinkedUsernamesChange}
+        />
+      )
+      fireEvent.click(screen.getByRole('button', { name: /configurações/i }))
+
+      const anilistInput = screen.getByLabelText(/usuário anilist/i)
+      const kitsuInput = screen.getByLabelText(/usuário kitsu/i)
+      const malInput = screen.getByLabelText(/usuário myanimelist/i)
+
+      expect(anilistInput).toHaveValue('ani_user')
+      expect(kitsuInput).toHaveValue('kitsu_user')
+      expect(malInput).toHaveValue('mal_user')
+
+      fireEvent.change(anilistInput, { target: { value: 'new_ani' } })
+      expect(onLinkedUsernamesChange).toHaveBeenCalledWith({
+        anilist: 'new_ani',
+        kitsu: 'kitsu_user',
+        mal: 'mal_user',
+      })
+
+      fireEvent.change(kitsuInput, { target: { value: 'new_kitsu' } })
+      expect(onLinkedUsernamesChange).toHaveBeenCalledWith({
+        anilist: 'ani_user',
+        kitsu: 'new_kitsu',
+        mal: 'mal_user',
+      })
+
+      fireEvent.change(malInput, { target: { value: 'new_mal' } })
+      expect(onLinkedUsernamesChange).toHaveBeenCalledWith({
+        anilist: 'ani_user',
+        kitsu: 'kitsu_user',
+        mal: 'new_mal',
+      })
+    })
+  })
 })
+
 

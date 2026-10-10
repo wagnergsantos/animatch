@@ -20,6 +20,12 @@ export default function SettingsMenu({
   onSubscriptionsChange,
   streamingBoost = false,
   onStreamingBoostChange,
+  user = null,
+  syncStatus = 'idle',
+  onOpenAuthModal,
+  onSignOut,
+  linkedUsernames = { anilist: '', kitsu: '', mal: '' },
+  onLinkedUsernamesChange,
 }) {
   const { t, i18n } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
@@ -101,7 +107,23 @@ export default function SettingsMenu({
     }
   }
 
+  const getSyncStatusBadge = () => {
+    switch (syncStatus) {
+      case 'syncing':
+        return { text: t('auth.sync_status_syncing'), icon: '⏳' }
+      case 'error':
+        return { text: t('auth.sync_status_error'), icon: '⚠️' }
+      case 'offline':
+        return { text: t('auth.sync_status_offline'), icon: '📴' }
+      case 'synced':
+      case 'idle':
+      default:
+        return { text: t('auth.sync_status_synced'), icon: '☁️' }
+    }
+  }
+
   const providerLabel = t(`providers.${provider}`, provider === 'mal' ? 'MyAnimeList' : provider === 'kitsu' ? 'Kitsu' : 'AniList')
+  const syncBadge = getSyncStatusBadge()
 
   return (
     <div className={styles['settings-menu']} ref={containerRef}>
@@ -119,6 +141,122 @@ export default function SettingsMenu({
 
       {isOpen && (
         <div className={styles['settings-menu__panel']} role="dialog" aria-label={t('settings.title')}>
+          {/* Cloud Account Status Section */}
+          {!user ? (
+            <div className={styles['settings-menu__auth-banner']}>
+              <div className={styles['settings-menu__auth-info']}>
+                <span className={styles['settings-menu__auth-title']}>☁️ {t('auth.sync_title')}</span>
+                <span className={styles['settings-menu__auth-desc']}>{t('auth.sync_desc')}</span>
+              </div>
+              <button
+                type="button"
+                className={styles['settings-menu__auth-btn']}
+                onClick={() => {
+                  onOpenAuthModal && onOpenAuthModal()
+                }}
+              >
+                {t('auth.login')}
+              </button>
+            </div>
+          ) : (
+            <div className={styles['settings-menu__auth-user']}>
+              <div className={styles['settings-menu__auth-user-header']}>
+                <span className={styles['settings-menu__auth-avatar']}>👤</span>
+                <div className={styles['settings-menu__auth-user-details']}>
+                  <span className={styles['settings-menu__auth-email']}>{user.email}</span>
+                  <span className={`${styles['settings-menu__sync-badge']} ${styles[`settings-menu__sync-badge--${syncStatus}`]}`}>
+                    {syncBadge.icon} {syncBadge.text}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                className={`${styles['settings-menu__btn']} ${styles['settings-menu__btn--sm']}`}
+                onClick={() => {
+                  onSignOut && onSignOut()
+                  setIsOpen(false)
+                }}
+              >
+                {t('auth.logout')}
+              </button>
+            </div>
+          )}
+
+          <div className={styles['settings-menu__divider']} />
+
+          {/* Linked Accounts Section */}
+          <div className={styles['settings-menu__section']}>
+            <span className={styles['settings-menu__label']}>
+              {t('settings.linkedAccounts')}
+            </span>
+            <span className={styles['settings-menu__sublabel']}>
+              {t('settings.linkedAccountsDesc')}
+            </span>
+            <div className={styles['settings-menu__inputs-stack']}>
+              <div className={styles['settings-menu__input-group']}>
+                <label className={styles['settings-menu__input-label']} htmlFor="linked-anilist-input">
+                  {t('settings.anilistUsername')}
+                </label>
+                <input
+                  id="linked-anilist-input"
+                  type="text"
+                  className={styles['settings-menu__input']}
+                  placeholder="AniList"
+                  value={linkedUsernames?.anilist || ''}
+                  onChange={(e) =>
+                    onLinkedUsernamesChange &&
+                    onLinkedUsernamesChange({
+                      ...linkedUsernames,
+                      anilist: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <div className={styles['settings-menu__input-group']}>
+                <label className={styles['settings-menu__input-label']} htmlFor="linked-kitsu-input">
+                  {t('settings.kitsuUsername')}
+                </label>
+                <input
+                  id="linked-kitsu-input"
+                  type="text"
+                  className={styles['settings-menu__input']}
+                  placeholder="Kitsu"
+                  value={linkedUsernames?.kitsu || ''}
+                  onChange={(e) =>
+                    onLinkedUsernamesChange &&
+                    onLinkedUsernamesChange({
+                      ...linkedUsernames,
+                      kitsu: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <div className={styles['settings-menu__input-group']}>
+                <label className={styles['settings-menu__input-label']} htmlFor="linked-mal-input">
+                  {t('settings.malUsername')}
+                </label>
+                <input
+                  id="linked-mal-input"
+                  type="text"
+                  className={styles['settings-menu__input']}
+                  placeholder="MyAnimeList"
+                  value={linkedUsernames?.mal || ''}
+                  onChange={(e) =>
+                    onLinkedUsernamesChange &&
+                    onLinkedUsernamesChange({
+                      ...linkedUsernames,
+                      mal: e.target.value,
+                    })
+                  }
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className={styles['settings-menu__divider']} />
+
           <div className={styles['settings-menu__section']}>
             <label className={styles['settings-menu__label']} htmlFor="language-select">
               {t('settings.language')}
