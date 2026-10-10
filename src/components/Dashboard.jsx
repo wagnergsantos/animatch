@@ -47,6 +47,18 @@ export default function Dashboard({
   onLogout,
   onRefresh,
   isLoading,
+  subscriptions: propsSubscriptions,
+  onSubscriptionsChange: propsOnSubscriptionsChange,
+  streamingBoost: propsStreamingBoost,
+  onStreamingBoostChange: propsOnStreamingBoostChange,
+  viewMode: propsViewMode,
+  onViewModeChange: propsOnViewModeChange,
+  user = null,
+  syncStatus = 'idle',
+  onOpenAuthModal,
+  onSignOut,
+  linkedUsernames = { anilist: '', kitsu: '', mal: '' },
+  onLinkedUsernamesChange,
 }) {
   const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState('recommendations')
@@ -56,9 +68,20 @@ export default function Dashboard({
   const [selectedYear, setSelectedYear] = useState('ALL')
   const [selectedBadge, setSelectedBadge] = useState('ALL')
   const [sortBy, setSortBy] = useState('predicted')
-  const [viewMode, setViewMode] = useLocalStorage('animatch_view_mode', 'grid')
-  const [subscriptions, setSubscriptions] = useLocalStorage('animatch_subscriptions', ['Crunchyroll', 'Netflix'])
-  const [streamingBoost, setStreamingBoost] = useLocalStorage('animatch_streaming_boost', false)
+
+  const [localViewMode, setLocalViewMode] = useLocalStorage('animatch_view_mode', 'grid')
+  const [localSubscriptions, setLocalSubscriptions] = useLocalStorage('animatch_subscriptions', ['Crunchyroll', 'Netflix'])
+  const [localStreamingBoost, setLocalStreamingBoost] = useLocalStorage('animatch_streaming_boost', false)
+
+  const viewMode = propsViewMode !== undefined ? propsViewMode : localViewMode
+  const setViewMode = propsOnViewModeChange || setLocalViewMode
+
+  const subscriptions = propsSubscriptions !== undefined ? propsSubscriptions : localSubscriptions
+  const setSubscriptions = propsOnSubscriptionsChange || setLocalSubscriptions
+
+  const streamingBoost = propsStreamingBoost !== undefined ? propsStreamingBoost : localStreamingBoost
+  const setStreamingBoost = propsOnStreamingBoostChange || setLocalStreamingBoost
+
   const [isStreamingOnly, setIsStreamingOnly] = useState(false)
   const [isDecisionModalOpen, setIsDecisionModalOpen] = useState(false)
   const [selectedAnimeDetail, setSelectedAnimeDetail] = useState(null)
@@ -247,6 +270,12 @@ export default function Dashboard({
             onSubscriptionsChange={setSubscriptions}
             streamingBoost={streamingBoost}
             onStreamingBoostChange={setStreamingBoost}
+            user={user}
+            syncStatus={syncStatus}
+            onOpenAuthModal={onOpenAuthModal}
+            onSignOut={onSignOut}
+            linkedUsernames={linkedUsernames}
+            onLinkedUsernamesChange={onLinkedUsernamesChange}
           />
         </div>
       </header>

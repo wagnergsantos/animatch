@@ -155,6 +155,70 @@ describe('App', () => {
     const input = await screen.findByDisplayValue('testuser')
     expect(input).toBeInTheDocument()
   })
+
+  it('opens AuthModal when cloud sync button is clicked on login screen and closes it', async () => {
+    render(<App />)
+
+    const syncBtn = screen.getByRole('button', { name: /entrar \/ sincronizar|sincronização em nuvem|entrar/i })
+    expect(syncBtn).toBeInTheDocument()
+
+    fireEvent.click(syncBtn)
+
+    expect(screen.getByRole('dialog', { name: /conta animatch/i })).toBeInTheDocument()
+    expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
+
+    const closeBtn = screen.getByRole('button', { name: /fechar/i })
+    fireEvent.click(closeBtn)
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: /conta animatch/i })).not.toBeInTheDocument()
+    })
+  })
+
+  it('pre-fills username from animatch_settings linked_usernames on login screen', async () => {
+    localStorage.setItem(
+      'animatch_settings',
+      JSON.stringify({
+        default_provider: 'anilist',
+        linked_usernames: { anilist: 'cloud_anilist_user', kitsu: '', mal: '' },
+      })
+    )
+
+    render(<App />)
+
+    const input = await screen.findByDisplayValue('cloud_anilist_user')
+    expect(input).toBeInTheDocument()
+  })
+
+  it('opens AuthModal from SettingsMenu on dashboard and allows closing', async () => {
+    fetchUserEntries.mockResolvedValueOnce(allData)
+
+    render(<App />)
+
+    fireEvent.change(screen.getByLabelText('Username do AniList'), {
+      target: { value: 'testuser' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /gerar recomendações/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText('testuser')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /configurações/i }))
+
+    const loginInSettingsBtn = screen.getAllByRole('button', { name: /entrar/i })[0]
+    fireEvent.click(loginInSettingsBtn)
+
+    expect(screen.getByRole('dialog', { name: /conta animatch/i })).toBeInTheDocument()
+
+    const closeBtn = screen.getByRole('button', { name: /fechar/i })
+    fireEvent.click(closeBtn)
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: /conta animatch/i })).not.toBeInTheDocument()
+    })
+  })
 })
+
 
 

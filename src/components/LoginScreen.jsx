@@ -4,14 +4,27 @@ import { useTranslation } from 'react-i18next'
 import useLocalStorage from '../hooks/useLocalStorage.js'
 import styles from './LoginScreen.module.css'
 
-export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = [], initialUsername = '' }) {
+export default function LoginScreen({
+  onSubmit,
+  isLoading,
+  error,
+  recentUsers = [],
+  initialUsername = '',
+  user = null,
+  syncStatus = 'idle',
+  onOpenAuthModal,
+  linkedUsernames = null,
+}) {
   const { t } = useTranslation()
-  const [username, setUsername] = useState(initialUsername)
   const [provider, setProvider] = useLocalStorage('animatch_provider', 'anilist')
+  const [username, setUsername] = useState(() => initialUsername || (linkedUsernames && linkedUsernames[provider]) || '')
   const inputRef = useRef(null)
 
   const handleProviderChange = (newProvider) => {
     setProvider(newProvider)
+    if (linkedUsernames && linkedUsernames[newProvider] && (!username || username === linkedUsernames[provider])) {
+      setUsername(linkedUsernames[newProvider])
+    }
     if (inputRef.current) {
       inputRef.current.focus()
     }
@@ -20,8 +33,10 @@ export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = 
   useEffect(() => {
     if (initialUsername) {
       setUsername(initialUsername)
+    } else if (linkedUsernames && linkedUsernames[provider]) {
+      setUsername((prev) => (prev ? prev : linkedUsernames[provider]))
     }
-  }, [initialUsername])
+  }, [initialUsername, linkedUsernames, provider])
 
   function handleSubmit(e) {
     e.preventDefault()
@@ -36,7 +51,35 @@ export default function LoginScreen({ onSubmit, isLoading, error, recentUsers = 
 
   return (
     <div className={styles['login-screen']}>
-      <div style={{ position: 'absolute', top: 'var(--space-4)', right: 'var(--space-4)' }}>
+      <div className={styles['login-header-actions']}>
+        {!user ? (
+          <button
+            type="button"
+            className={styles['cloud-auth-btn']}
+            onClick={() => onOpenAuthModal?.()}
+            aria-label={t('auth.login', 'Entrar / Sincronizar')}
+          >
+            ☁️ {t('auth.login', 'Entrar / Sincronizar')}
+          </button>
+        ) : (
+          <div className={styles['cloud-user-badge']}>
+            <span className={styles['cloud-user-email']}>👤 {user.email}</span>
+            <span
+              className={`${styles['cloud-sync-status']} ${styles[`cloud-sync-status--${syncStatus}`]}`}
+              title={
+                syncStatus === 'syncing'
+                  ? t('auth.sync_status_syncing', 'Sincronizando...')
+                  : syncStatus === 'error'
+                  ? t('auth.sync_status_error', 'Erro ao sincronizar')
+                  : syncStatus === 'offline'
+                  ? t('auth.sync_status_offline', 'Modo Offline (LocalStorage)')
+                  : t('auth.sync_status_synced', 'Sincronizado na nuvem')
+              }
+            >
+              {syncStatus === 'syncing' ? '⏳' : syncStatus === 'error' ? '⚠️' : syncStatus === 'offline' ? '📴' : '☁️'}
+            </span>
+          </div>
+        )}
         <ThemeToggle />
       </div>
       <div className={styles['login-container']}>

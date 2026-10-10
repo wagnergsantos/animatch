@@ -1,11 +1,20 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useContext } from 'react'
+import { useTranslation } from 'react-i18next'
 import { fetchUserEntries } from './api/index.js'
 import LoginScreen from './components/LoginScreen.jsx'
 import Dashboard from './components/Dashboard.jsx'
+import AuthModal from './components/AuthModal.jsx'
 import useLocalStorage from './hooks/useLocalStorage.js'
 import { useAsyncAction } from './hooks/useAsyncAction.js'
+import { AuthContext, AuthProvider, useAuth } from './auth/AuthContext.jsx'
+import useUserSettings from './hooks/useUserSettings.js'
 
-export default function App() {
+export function AppContent() {
+  const { user, signOut } = useAuth()
+  const { settings, updateSetting, syncStatus } = useUserSettings()
+  const { i18n } = useTranslation()
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
+
   const [screen, setScreen] = useState(() => {
     if (typeof window === 'undefined') return 'login'
     const params = new URLSearchParams(window.location.search)
@@ -26,10 +35,29 @@ export default function App() {
   })
   const [storedUsername, setStoredUsername] = useLocalStorage('animatch_username', null)
   const [username, setUsername] = useState('')
-  const [provider, setProvider] = useLocalStorage('animatch_provider', 'anilist')
-  const [titlePref, setTitlePref] = useLocalStorage('animatch_title_pref', 'english')
+  const [provider, setProvider] = useLocalStorage('animatch_provider', settings?.default_provider || 'anilist')
   const [allEntries, setAllEntries] = useState([])
   const [recentUsers, setRecentUsers] = useLocalStorage('animatch_recent_users', [])
+
+  // Sync theme to DOM
+  useEffect(() => {
+    if (settings?.theme) {
+      document.documentElement.setAttribute('data-theme', settings.theme)
+      try {
+        localStorage.setItem('animatch_theme', settings.theme)
+      } catch {}
+    }
+  }, [settings?.theme])
+
+  // Sync language to i18n
+  useEffect(() => {
+    if (settings?.language && i18n.language !== settings.language) {
+      i18n.changeLanguage(settings.language)
+      try {
+        localStorage.setItem('animatch_lang', settings.language)
+      } catch {}
+    }
+  }, [settings?.language, i18n])
 
   // Normalizar recentUsers de arrays legados
   const normalizedRecentUsers = (recentUsers || []).map((item) =>
@@ -128,43 +156,72 @@ export default function App() {
     }
   }
 
-  const handleTitlePrefChange = (newPref) => {
-    setTitlePref(newPref)
-  }
-
-  if (screen === 'loading') {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', flexDirection: 'column', gap: '1rem', color: '#fff' }}>
-        <div style={{ width: '40px', height: '40px', border: '4px solid rgba(255,255,255,0.2)', borderTopColor: '#6366f1', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-        <p>Carregando dados...</p>
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      </div>
-    )
-  }
-
-  if (screen === 'login') {
-    return (
-      <LoginScreen
-        onSubmit={(user, prov) => handleLogin(user, prov)}
-        isLoading={isLoading}
-        error={error}
-        recentUsers={normalizedRecentUsers}
-        initialUsername={username}
-      />
-    )
-  }
-
   return (
-    <Dashboard
-      allEntries={allEntries}
-      username={username}
-      provider={provider}
-      titlePref={titlePref}
-      onTitlePrefChange={handleTitlePrefChange}
-      onLogout={handleLogout}
-      onRefresh={handleRefresh}
-      isLoading={isLoading}
-    />
+    <>
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+      />
+
+      {screen === 'loading' && (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', flexDirection: 'column', gap: '1rem', color: '#fff' }}>
+          <div style={{ width: '40px', height: '40px', border: '4px solid rgba(255,255,255,0.2)', borderTopColor: '#6366f1', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+          <p>Carregando dados...</p>
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
+      )}
+
+      {screen === 'login' && (
+        <LoginScreen
+          onSubmit={(user, prov) => handleLogin(user, prov)}
+          isLoading={isLoading}
+          error={error}
+          recentUsers={normalizedRecentUsers}
+          initialUsername={username || settings?.linked_usernames?.[provider] || ''}
+          user={user}
+          syncStatus={syncStatus}
+          onOpenAuthModal={() => setIsAuthModalOpen(true)}
+          linkedUsernames={settings?.linked_usernames}
+        />
+      )}
+
+      {screen === 'dashboard' && (
+        <Dashboard
+          allEntries={allEntries}
+          username={username}
+          provider={provider}
+          titlePref={settings.title_pref}
+          onTitlePrefChange={(newPref) => updateSetting('title_pref', newPref)}
+          subscriptions={settings.subscriptions}
+          onSubscriptionsChange={(newSubs) => updateSetting('subscriptions', newSubs)}
+          streamingBoost={settings.streaming_boost}
+          onStreamingBoostChange={(newBoost) => updateSetting('streaming_boost', newBoost)}
+          viewMode={settings.view_mode}
+          onViewModeChange={(newMode) => updateSetting('view_mode', newMode)}
+          user={user}
+          syncStatus={syncStatus}
+          onOpenAuthModal={() => setIsAuthModalOpen(true)}
+          onSignOut={signOut}
+          linkedUsernames={settings.linked_usernames}
+          onLinkedUsernamesChange={(newUsernames) => updateSetting('linked_usernames', newUsernames)}
+          onLogout={handleLogout}
+          onRefresh={handleRefresh}
+          isLoading={isLoading}
+        />
+      )}
+    </>
+  )
+}
+
+export default function App() {
+  const existingAuth = useContext(AuthContext)
+  if (existingAuth) {
+    return <AppContent />
+  }
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   )
 }
 

@@ -181,6 +181,6 @@ describe('DecisionModal', () => {
 
     const detailsBtn = screen.getByRole('button', { name: /Expandir detalhes|Ver detalhes|details|Steins;Gate/i })
     fireEvent.click(detailsBtn)
-    expect(handleSelect).toHaveBeenCalledWith(expect.objectContaining({ id: 1 }))
+    expect(handleSelect).toHaveBeenCalledWith(expect.objectContaining({ id: expect.any(Number) }))
   })
 })

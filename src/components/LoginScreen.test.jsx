@@ -131,4 +131,60 @@ describe('LoginScreen', () => {
     fireEvent.click(btn2)
     expect(onSubmit).toHaveBeenCalledWith('user2', 'kitsu')
   })
+
+  it('renders cloud sync button when unauthenticated and calls onOpenAuthModal on click', () => {
+    const onOpenAuthModal = vi.fn()
+    render(
+      <LoginScreen
+        onSubmit={() => {}}
+        isLoading={false}
+        error={null}
+        user={null}
+        onOpenAuthModal={onOpenAuthModal}
+      />
+    )
+
+    const syncBtn = screen.getByRole('button', { name: /entrar \/ sincronizar|sincronização em nuvem|entrar/i })
+    expect(syncBtn).toBeInTheDocument()
+
+    fireEvent.click(syncBtn)
+    expect(onOpenAuthModal).toHaveBeenCalledTimes(1)
+  })
+
+  it('renders user email and sync status badge when authenticated', () => {
+    render(
+      <LoginScreen
+        onSubmit={() => {}}
+        isLoading={false}
+        error={null}
+        user={{ email: 'user@example.com' }}
+        syncStatus="synced"
+      />
+    )
+
+    expect(screen.getByText('👤 user@example.com')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /entrar \/ sincronizar/i })).not.toBeInTheDocument()
+  })
+
+  it('pre-fills username from linkedUsernames for default and switched providers', () => {
+    const linked = { anilist: 'linkedAni', kitsu: 'linkedKitsu', mal: 'linkedMal' }
+    render(
+      <LoginScreen
+        onSubmit={() => {}}
+        isLoading={false}
+        error={null}
+        linkedUsernames={linked}
+      />
+    )
+
+    const input = screen.getByLabelText('Username do AniList')
+    expect(input).toHaveValue('linkedAni')
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Kitsu' }))
+    expect(screen.getByLabelText('Username do Kitsu')).toHaveValue('linkedKitsu')
+
+    fireEvent.click(screen.getByRole('tab', { name: 'MyAnimeList' }))
+    expect(screen.getByLabelText('Username do MyAnimeList')).toHaveValue('linkedMal')
+  })
 })
+

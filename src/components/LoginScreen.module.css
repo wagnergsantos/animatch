@@ -1,9 +1,65 @@
 .login-screen {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
   padding: var(--space-4);
+}
+
+.login-header-actions {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  z-index: 10;
+}
+
+.cloud-auth-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  background: var(--surface-2, rgba(255, 255, 255, 0.05));
+  color: var(--color-primary);
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color var(--transition-default), border-color var(--transition-default);
+}
+
+.cloud-auth-btn:hover {
+  background: var(--color-border, rgba(255, 255, 255, 0.15));
+}
+
+.cloud-user-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--surface-2, rgba(255, 255, 255, 0.05));
+  color: var(--text-1, #fff);
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 500;
+}
+
+.cloud-user-email {
+  max-width: 160px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cloud-sync-status {
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
 }
 
 .login-container {
