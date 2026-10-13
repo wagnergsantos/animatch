@@ -119,7 +119,7 @@ Ao clicar ou expandir um card/modal de recomendação, apresentar a justificativ
 
 ---
 
-### B2. Modo Decisão & Descoberta ("Escolha pra mim")
+### [x] B2. Modo Decisão & Descoberta ("Escolha pra mim") (Concluído ✅)
 
 Em listas extensas (200+ itens no Planning), a ordenação tradicional gera **paralisia por análise**. O Modo Decisão resolve esse problema oferecendo um botão flutuante/destacado `✨ Escolher por mim` com suporte a 3 modos principais:
 
@@ -194,7 +194,7 @@ estender esse botão para gerar uma imagem visual, não só dado tabular.
 **Esforço:** médio. Requer lib de renderização (Canvas API ou
 `html-to-image`), mas o gatilho de UI já existe.
 
-### B6. Login Animatch + Sync de Configurações (Supabase Auth & Settings)
+### [x] B6. Login Animatch + Sync de Configurações (Supabase Auth & Settings) (Concluído ✅)
 
 **Reaproveita:** A infraestrutura do Supabase já está ativa no projeto (usada pela Edge Function `mal-proxy`).
 
@@ -273,10 +273,10 @@ Monitorar latência de APIs externas (AniList/Kitsu/MAL), taxas de erro de rende
 | 4 | A10 — Core Web Vitals & Bundle | Correção / Perf | 🔥 Alta | ✅ Concluído | Code-splitting Rollup (`manualChunks`) e LCP com `priority`. |
 | 5 | A5 — hook `useLocalStorage` | Correção | 🟡 Média | ✅ Concluído | Hook centralizado e limpo em `App.jsx`. |
 | 6 | A1 + A4 | Correção | 🟡 Média | ✅ Concluído | LRU cache com índice + desacoplamento de constantes e options. |
-| 7 | A6 — cleanup de artefatos legados | Correção | 🟢 Rápida | ✅ Concluído | Deletados `test-fetch-dub.js` e XML de scraping da raiz. |
-| 8 | B2 + B5 | Melhoria | 🚀 Features | ⏳ Pendente | Modo descoberta e exportação visual de perfil. |
-| 9 | B6 — Sync Supabase | Melhoria | 🚀 Features | ⏳ Pendente | Login e sincronização de configurações cross-device. |
-| 10 | B7 — Recomendação Multi-Provider | Melhoria | 🚀 Features | ⏳ Pendente | Fusão de perfis e deduplicação com multi-presence boost. |
+| 8 | B2 — Modo Decisão | Melhoria | 🚀 Features | ✅ Concluído | Sorteio ponderado Top 20, filtros de streaming e modo rápido (#9). |
+| 9 | B6 — Sync Supabase | Melhoria | 🚀 Features | ✅ Concluído | Login Supabase Auth, settings sync, multi-provider accounts e SettingsPage (#10). |
+| 10 | B5 — Exportação Visual ("Wrapped") | Melhoria | 🚀 Features | ⏳ Pendente | Exportação visual de perfil de gosto e top animes (#15). |
+| 11 | B7 — Recomendação Multi-Provider | Melhoria | 🚀 Features | ⏳ Pendente | Fusão de perfis e deduplicação com multi-presence boost. |
 | 11 | B3 — comparação entre usuários | Melhoria | 🚀 Features | ⏳ Pendente | Recomendações cruzadas entre dois perfis. |
 | 12 | A7 — Web Worker Performance | Correção/Infra | ⏸️ Baixa | 🛑 Arquivado | Ganho nulo (~2ms de CPU vs ~2ms de overhead de serialização). |
 | 13 | A8 — OpenTelemetry | Infra | ⏸️ Baixa | ⏳ Pendente | Telemetria e observabilidade client-side. |
