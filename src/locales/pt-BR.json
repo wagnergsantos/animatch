@@ -24,6 +24,15 @@
   },
   "settings": {
     "title": "Configurações",
+    "subtitle": "Gerencie sua conta, integrações, preferências de streaming e interface.",
+    "accountSection": "Conta & Sincronização em Nuvem",
+    "linkedAccounts": "Contas Vinculadas (Multi-Provider)",
+    "linkedAccountsDesc": "Cadastre seus usuários para unificar recomendações e históricos.",
+    "streamingSection": "Streaming & Assinaturas",
+    "uiSection": "Preferências de Interface",
+    "uiDesc": "Personalize o visual, idioma e padrão de nomenclatura dos títulos.",
+    "dataSection": "Dados da Lista",
+    "dataDesc": "Atualize os animes salvos ou troque de usuário/provedor.",
     "language": "Idioma",
     "lang": {
       "pt-BR": "Português (Brasil)",
@@ -41,8 +50,6 @@
     "syncing": "⏳ Sincronizando com {{provider}}...",
     "sync": "🔄 Sincronizar {{provider}}",
     "logout": "🚪 Trocar de conta",
-    "linkedAccounts": "Contas Vinculadas (Multi-Provider)",
-    "linkedAccountsDesc": "Cadastre seus usuários para unificar recomendações e históricos.",
     "anilistUsername": "Usuário AniList",
     "kitsuUsername": "Usuário Kitsu",
     "malUsername": "Usuário MyAnimeList",
@@ -187,6 +194,7 @@
   "dashboard": {
     "recommendationsTab": "Recomendações",
     "statisticsTab": "Estatísticas",
+    "settingsTab": "Configurações",
     "shareTitle": "Copiar link das suas recomendações",
     "share": "🔗 Compartilhar",
     "linkCopied": "✅ Link copiado!",

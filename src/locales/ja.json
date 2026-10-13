@@ -24,6 +24,15 @@
   },
   "settings": {
     "title": "設定",
+    "subtitle": "アカウント、連携、配信設定、インターフェースを管理します。",
+    "accountSection": "アカウントとクラウド同期",
+    "linkedAccounts": "連携アカウント（マルチプロバイダー）",
+    "linkedAccountsDesc": "ユーザー名を登録しておすすめと視聴履歴を統合します。",
+    "streamingSection": "配信サービスとサブスクリプション",
+    "uiSection": "表示設定",
+    "uiDesc": "外観、言語、アニメタイトルの表示形式をカスタマイズします。",
+    "dataSection": "リストデータ",
+    "dataDesc": "保存されたアニメを更新するか、ユーザー/プロバイダーを切り替えます。",
     "language": "言語",
     "lang": {
       "pt-BR": "Português (Brasil)",
@@ -41,8 +50,6 @@
     "syncing": "⏳ {{provider}} と同期中...",
     "sync": "🔄 {{provider}} と同期",
     "logout": "🚪 アカウント切替",
-    "linkedAccounts": "連携アカウント（マルチプロバイダー）",
-    "linkedAccountsDesc": "ユーザー名を登録しておすすめと視聴履歴を統合します。",
     "anilistUsername": "AniList ユーザー名",
     "kitsuUsername": "Kitsu ユーザー名",
     "malUsername": "MyAnimeList ユーザー名",
@@ -187,6 +194,7 @@
   "dashboard": {
     "recommendationsTab": "おすすめ",
     "statisticsTab": "統計",
+    "settingsTab": "設定",
     "shareTitle": "おすすめのリンクをコピー",
     "share": "🔗 共有",
     "linkCopied": "✅ リンクをコピーしました！",

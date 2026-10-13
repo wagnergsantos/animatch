@@ -24,6 +24,15 @@
   },
   "settings": {
     "title": "Settings",
+    "subtitle": "Manage your account, integrations, streaming preferences, and interface.",
+    "accountSection": "Account & Cloud Sync",
+    "linkedAccounts": "Linked Accounts (Multi-Provider)",
+    "linkedAccountsDesc": "Save your usernames to unify recommendations and watch history.",
+    "streamingSection": "Streaming & Subscriptions",
+    "uiSection": "Interface Preferences",
+    "uiDesc": "Customize appearance, language, and anime title display format.",
+    "dataSection": "List Data",
+    "dataDesc": "Refresh saved anime or switch user/provider.",
     "language": "Language",
     "lang": {
       "pt-BR": "Português (Brasil)",
@@ -41,8 +50,6 @@
     "syncing": "⏳ Syncing with {{provider}}...",
     "sync": "🔄 Sync {{provider}}",
     "logout": "🚪 Switch account",
-    "linkedAccounts": "Linked Accounts (Multi-Provider)",
-    "linkedAccountsDesc": "Save your usernames to unify recommendations and watch history.",
     "anilistUsername": "AniList Username",
     "kitsuUsername": "Kitsu Username",
     "malUsername": "MyAnimeList Username",
@@ -187,6 +194,7 @@
   "dashboard": {
     "recommendationsTab": "Recommendations",
     "statisticsTab": "Statistics",
+    "settingsTab": "Settings",
     "shareTitle": "Copy link to your recommendations",
     "share": "🔗 Share",
     "linkCopied": "✅ Link copied!",
