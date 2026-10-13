@@ -96,7 +96,7 @@ describe('Dashboard', () => {
     expect(window.open).toHaveBeenCalledWith('https://anilist.co/anime/10', '_blank', 'noopener,noreferrer')
   })
 
-  it('calls onLogout when the logout button is clicked in the settings menu', () => {
+  it('calls onLogout when the logout button is clicked in the settings tab', () => {
     const onLogout = vi.fn()
     render(
       <Dashboard
@@ -112,7 +112,7 @@ describe('Dashboard', () => {
     expect(onLogout).toHaveBeenCalled()
   })
 
-  it('renders force refresh button in settings menu and calls onRefresh when clicked', () => {
+  it('renders force refresh button in settings page and calls onRefresh when clicked', () => {
     const onRefresh = vi.fn()
     render(
       <Dashboard
@@ -150,9 +150,20 @@ describe('Dashboard', () => {
     expect(refreshButton).toBeDisabled()
   })
 
-  it('renders the settings gear button in the header', () => {
+  it('renders the settings tab in the navigation and allows switching between tabs', () => {
     render(<Dashboard allEntries={mockEntries} username="testuser" onLogout={() => {}} />)
-    expect(screen.getByRole('button', { name: /configurações/i })).toBeInTheDocument()
+    const settingsTabBtn = screen.getByRole('button', { name: /configurações/i })
+    expect(settingsTabBtn).toBeInTheDocument()
+
+    // Click settings tab -> SettingsPage sections rendered
+    fireEvent.click(settingsTabBtn)
+    expect(screen.getByRole('heading', { name: /Contas Vinculadas/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Streaming.*Assinaturas/i })).toBeInTheDocument()
+
+    // Click recommendations tab -> returns to recommendation view
+    const recTabBtn = screen.getByRole('button', { name: /recomendações/i })
+    fireEvent.click(recTabBtn)
+    expect(screen.queryByRole('heading', { name: /Contas Vinculadas/i })).not.toBeInTheDocument()
   })
 
 

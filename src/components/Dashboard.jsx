@@ -8,7 +8,7 @@ import RecommendationGrid from './RecommendationGrid.jsx'
 import FilterBar from './FilterBar.jsx'
 import StatisticsPage from './StatisticsPage.jsx'
 import GenreRecommendationModal from './GenreRecommendationModal.jsx'
-import SettingsMenu from './SettingsMenu.jsx'
+import SettingsPage from './SettingsPage.jsx'
 import FloatingRandomizerButton from './FloatingRandomizerButton.jsx'
 import DecisionModal from './DecisionModal.jsx'
 import AnimeDetailModal from './AnimeDetailModal.jsx'
@@ -240,6 +240,12 @@ export default function Dashboard({
             >
               {t('dashboard.statisticsTab')}
             </button>
+            <button
+              className={activeTab === 'settings' ? styles.active : ''}
+              onClick={() => setActiveTab('settings')}
+            >
+              {t('dashboard.settingsTab', 'Configurações')}
+            </button>
           </nav>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
@@ -259,24 +265,6 @@ export default function Dashboard({
           >
             {copied ? t('dashboard.linkCopied') : t('dashboard.share')}
           </button>
-          <SettingsMenu
-            provider={provider}
-            titlePref={titlePref}
-            onTitlePrefChange={onTitlePrefChange}
-            onRefresh={onRefresh}
-            isLoading={isLoading}
-            onLogout={onLogout}
-            subscriptions={subscriptions}
-            onSubscriptionsChange={setSubscriptions}
-            streamingBoost={streamingBoost}
-            onStreamingBoostChange={setStreamingBoost}
-            user={user}
-            syncStatus={syncStatus}
-            onOpenAuthModal={onOpenAuthModal}
-            onSignOut={onSignOut}
-            linkedUsernames={linkedUsernames}
-            onLinkedUsernamesChange={onLinkedUsernamesChange}
-          />
         </div>
       </header>
 
@@ -329,11 +317,30 @@ export default function Dashboard({
               />
             </div>
           </>
-        ) : (
+        ) : activeTab === 'statistics' ? (
           <StatisticsPage
             entries={allEntries}
             user={username}
             onSelectGenre={setModalGenre}
+          />
+        ) : (
+          <SettingsPage
+            provider={provider}
+            titlePref={titlePref}
+            onTitlePrefChange={onTitlePrefChange}
+            onRefresh={onRefresh}
+            isLoading={isLoading}
+            onLogout={onLogout}
+            subscriptions={subscriptions}
+            onSubscriptionsChange={setSubscriptions}
+            streamingBoost={streamingBoost}
+            onStreamingBoostChange={setStreamingBoost}
+            user={user}
+            syncStatus={syncStatus}
+            onOpenAuthModal={onOpenAuthModal}
+            onSignOut={onSignOut}
+            linkedUsernames={linkedUsernames}
+            onLinkedUsernamesChange={onLinkedUsernamesChange}
           />
         )}
       </main>
