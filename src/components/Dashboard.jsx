@@ -130,14 +130,14 @@ export default function Dashboard({
   }, [hasMultiAccounts, activeScope, linkedUsernames, provider])
 
   const currentEntries = useMemo(() => {
-    if (hasMultiAccounts && activeScope === 'ensemble') {
-      return consolidatedEntries
-    }
-    if (hasMultiAccounts && activeScope !== 'ensemble' && entriesByProvider[activeScope]) {
-      return entriesByProvider[activeScope]
+    if (hasMultiAccounts) {
+      if (activeScope === 'ensemble') {
+        return consolidatedEntries
+      }
+      return entriesByProvider[activeScope] || (activeScope === provider ? allEntries : [])
     }
     return allEntries
-  }, [hasMultiAccounts, activeScope, consolidatedEntries, entriesByProvider, allEntries])
+  }, [hasMultiAccounts, activeScope, consolidatedEntries, entriesByProvider, allEntries, provider])
 
   const tasteProfile = useMemo(() => {
     return buildTasteProfile(currentEntries)
@@ -256,6 +256,13 @@ export default function Dashboard({
         return isCurrentYear || isReleasing
       })
     }
+
+    recs.sort((a, b) => {
+      if (b.predictedScore !== a.predictedScore) {
+        return (b.predictedScore || 0) - (a.predictedScore || 0)
+      }
+      return (b.communityScore || 0) - (a.communityScore || 0)
+    })
 
     return recs
   }, [
@@ -514,7 +521,7 @@ export default function Dashboard({
         genre={modalGenre}
         planningEntries={planningEntries}
         tasteProfile={tasteProfile}
-        provider={provider}
+        provider={currentScopedProvider}
         titlePref={titlePref}
         onClose={() => setModalGenre(null)}
       />

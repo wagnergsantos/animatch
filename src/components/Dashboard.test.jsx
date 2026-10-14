@@ -705,4 +705,36 @@ describe('Dashboard', () => {
 
     expect(screen.getAllByTestId('skeleton').length).toBeGreaterThan(0)
   })
+
+  it('renders error banner and invokes retry callback when failedProviders has items', () => {
+    const linkedUsernames = { anilist: 'alice', kitsu: 'alice_kitsu', mal: '' }
+    const refetchEnsemble = vi.fn()
+
+    useEnsembleData.mockReturnValue({
+      entriesByProvider: { anilist: [] },
+      consolidatedEntries: [],
+      failedProviders: ['kitsu'],
+      isLoading: false,
+      refetch: refetchEnsemble,
+    })
+
+    render(
+      <Dashboard
+        username="alice"
+        provider="anilist"
+        linkedUsernames={linkedUsernames}
+      />
+    )
+
+    // Check alert banner
+    expect(screen.getByRole('alert')).toBeInTheDocument()
+    expect(screen.getByText(/Não foi possível carregar dados de Kitsu/i)).toBeInTheDocument()
+
+    // Click retry button
+    const retryBtn = screen.getByRole('button', { name: /Tentar novamente Kitsu/i })
+    expect(retryBtn).toBeInTheDocument()
+    fireEvent.click(retryBtn)
+
+    expect(refetchEnsemble).toHaveBeenCalledWith('kitsu')
+  })
 })
