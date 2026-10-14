@@ -4,7 +4,7 @@
 - [x] Task 2: complete (commits 309e17e..3ae1475, review clean)
 - [x] Task 3: complete (commits 3ae1475..5733b24, review clean)
 - [x] Task 4: complete (commits 5733b24..2cdad57, review clean)
-- [ ] Task 5: Componente `ProviderTabs.jsx` e Estilos
-- [ ] Task 6: Badges Multi-Provider nos Cards de Anime (`AnimeCard.jsx`)
-- [ ] Task 7: Integração Completa no `Dashboard.jsx`
-- [ ] Task 8: Verificação Final, Atualização de Roadmap e Fechamento
+- [x] Task 5: complete (commits 2cdad57..8c310c2, review clean)
+- [x] Task 6: complete (commits 8c310c2..9cd41d9, review clean)
+- [x] Task 7: complete (commits 9cd41d9..06ab368, review clean)
+- [x] Task 8: complete (commits 06ab368..8a189fa, review clean)
