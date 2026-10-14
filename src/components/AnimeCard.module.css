@@ -213,3 +213,51 @@
   white-space: nowrap;
 }
 
+.card-provider-badges {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 3;
+}
+
+.provider-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+  border-radius: var(--radius-sm);
+  color: #ffffff;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.provider-pill--anilist {
+  background: rgba(2, 169, 255, 0.9);
+  border-color: #02a9ff;
+  color: #ffffff;
+}
+
+.provider-pill--kitsu {
+  background: rgba(253, 117, 92, 0.9);
+  border-color: #fd755c;
+  color: #ffffff;
+}
+
+.provider-pill--mal {
+  background: rgba(46, 81, 162, 0.9);
+  border-color: #2e51a2;
+  color: #ffffff;
+}
+
+

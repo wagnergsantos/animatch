@@ -3,11 +3,27 @@ import { useTranslation } from 'react-i18next'
 import AnimeDetailModal from './AnimeDetailModal.jsx'
 import styles from './AnimeCard.module.css'
 
+const PROVIDER_SHORT_LABELS = {
+  mal: 'MAL',
+  kitsu: 'Kitsu',
+  anilist: 'AniList',
+}
+
+const PROVIDER_FULL_LABELS = {
+  mal: 'MyAnimeList',
+  kitsu: 'Kitsu',
+  anilist: 'AniList',
+}
+
 export default function AnimeCard({ anime, titlePref = 'english', priority = false, onCardClick }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const { t } = useTranslation()
 
   const genres = anime?.genres ?? []
+  const planningProviders = Array.isArray(anime?.planningProviders) ? anime.planningProviders : []
+  const hasMultiProviders = planningProviders.length > 1
+  const presenceMultiplier = typeof anime?.presenceMultiplier === 'number' ? anime.presenceMultiplier : 1
+  const presencePercent = Math.round((presenceMultiplier - 1) * 100)
 
   // Extrai titulo principal e secundario
   const rawTitleObj = anime?.titleObj || (typeof anime?.title === 'object' ? anime?.title : null) || anime?.media?.title || {}
@@ -29,7 +45,8 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
   const title = mainTitle
   const siteUrl = anime?.siteUrl || (anime?.id ? `https://anilist.co/anime/${anime.id}` : '#')
   const providerKey = anime?.provider || 'anilist'
-  const providerLabel = t(`providers.${providerKey}`, providerKey === 'mal' ? 'MyAnimeList' : providerKey === 'kitsu' ? 'Kitsu' : 'AniList')
+  const providerLabel = t(`providers.${providerKey}`, { defaultValue: PROVIDER_FULL_LABELS[providerKey] || 'AniList' })
+
   
   // Deduplicate streaming links by site
   const streamingLinks = []
@@ -115,6 +132,28 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
               })
             )}
           </div>
+          {hasMultiProviders && (
+            <div
+              className={styles['card-provider-badges']}
+              title={t('ensemble.presence_badge_tooltip', {
+                providers: planningProviders
+                  .map((p) => t(`providers.${p}`, { defaultValue: PROVIDER_FULL_LABELS[p] || p }))
+                  .join(', '),
+                percent: presencePercent,
+                defaultValue: `Presente no seu Planning em: ${planningProviders.map((p) => PROVIDER_FULL_LABELS[p] || p).join(', ')} (+${presencePercent}%)`,
+              })}
+              data-testid="card-provider-badges"
+            >
+              {planningProviders.map((p) => (
+                <span
+                  key={p}
+                  className={`${styles['provider-pill']} ${styles[`provider-pill--${p}`] || ''}`}
+                >
+                  {PROVIDER_SHORT_LABELS[p] || p}
+                </span>
+              ))}
+            </div>
+          )}
           <button
             className={styles['anime-card__anilist-quickbtn']}
             onClick={handleDirectAnilistClick}

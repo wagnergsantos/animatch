@@ -3,6 +3,18 @@ import { useTranslation } from 'react-i18next'
 import RecommendationReason from './RecommendationReason.jsx'
 import styles from './AnimeDetailModal.module.css'
 
+const PROVIDER_SHORT_LABELS = {
+  mal: 'MAL',
+  kitsu: 'Kitsu',
+  anilist: 'AniList',
+}
+
+const PROVIDER_FULL_LABELS = {
+  mal: 'MyAnimeList',
+  kitsu: 'Kitsu',
+  anilist: 'AniList',
+}
+
 export default function AnimeDetailModal({ anime, titlePref = 'english', onClose }) {
   const { t } = useTranslation()
 
@@ -37,7 +49,12 @@ export default function AnimeDetailModal({ anime, titlePref = 'english', onClose
   const siteUrl = anime?.siteUrl || (anime?.id ? `https://anilist.co/anime/${anime.id}` : '#')
   const genres = anime?.genres ?? []
   const providerKey = anime?.provider || 'anilist'
-  const providerLabel = t(`providers.${providerKey}`, providerKey === 'mal' ? 'MyAnimeList' : providerKey === 'kitsu' ? 'Kitsu' : 'AniList')
+  const providerLabel = t(`providers.${providerKey}`, { defaultValue: PROVIDER_FULL_LABELS[providerKey] || 'AniList' })
+  const planningProviders = Array.isArray(anime?.planningProviders) ? anime.planningProviders : []
+  const hasMultiProviders = planningProviders.length > 1
+  const presenceMultiplier = typeof anime?.presenceMultiplier === 'number' ? anime.presenceMultiplier : 1
+  const presencePercent = Math.round((presenceMultiplier - 1) * 100)
+
   
   const streamingLinks = []
   const seenSites = new Set()
@@ -83,6 +100,36 @@ export default function AnimeDetailModal({ anime, titlePref = 'english', onClose
               {statusLabel && <span className={styles['anime-modal__pill']}>{statusLabel}</span>}
               {anime?.format && <span className={styles['anime-modal__pill']}>{anime.format}</span>}
             </div>
+
+            {hasMultiProviders && (
+              <div
+                className={styles['anime-modal__presence']}
+                data-testid="modal-provider-badges"
+                title={t('ensemble.presence_badge_tooltip', {
+                  providers: planningProviders
+                    .map((p) => t(`providers.${p}`, { defaultValue: PROVIDER_FULL_LABELS[p] || p }))
+                    .join(', '),
+                  percent: presencePercent,
+                  defaultValue: `Presente no seu Planning em: ${planningProviders.map((p) => PROVIDER_FULL_LABELS[p] || p).join(', ')} (+${presencePercent}%)`,
+                })}
+              >
+                <div className={styles['anime-modal__presence-pills']}>
+                  {planningProviders.map((p) => (
+                    <span
+                      key={p}
+                      className={`${styles['provider-pill']} ${styles[`provider-pill--${p}`] || ''}`}
+                    >
+                      {PROVIDER_SHORT_LABELS[p] || p}
+                    </span>
+                  ))}
+                </div>
+                {presencePercent > 0 && (
+                  <span className={styles['anime-modal__presence-boost']}>
+                    +{presencePercent}%
+                  </span>
+                )}
+              </div>
+            )}
 
             <div className={styles['anime-modal__scores']}>
               {typeof anime?.predictedScore === 'number' && !isNaN(anime.predictedScore) && (
