@@ -223,5 +223,14 @@
       "none": "Nenhum anime na sua lista 'Planning' possui o gênero {{genre}}.",
       "prompt": "Adicione mais animes à sua lista no {{provider}} para ver recomendações aqui."
     }
+  },
+  "ensemble": {
+    "tab_consolidated": "Consolidado",
+    "tab_consolidated_count": "Consolidado ({{count}})",
+    "scope_label": "Fonte:",
+    "partial_failure": "Não foi possível carregar dados de {{providers}}. Mostrando dados disponíveis.",
+    "retry_provider": "Tentar novamente {{provider}}",
+    "presence_badge_tooltip": "Presente no seu Planning em: {{providers}} (+{{percent}}% de afinidade)",
+    "accounts_active": "{{count}} contas ativas"
   }
 }

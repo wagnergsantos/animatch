@@ -223,5 +223,14 @@
       "none": "No anime in your 'Planning' list with the genre {{genre}}.",
       "prompt": "Add more anime to your {{provider}} to see recommendations here."
     }
+  },
+  "ensemble": {
+    "tab_consolidated": "Consolidated",
+    "tab_consolidated_count": "Consolidated ({{count}})",
+    "scope_label": "Source:",
+    "partial_failure": "Could not load data from {{providers}}. Showing available data.",
+    "retry_provider": "Retry {{provider}}",
+    "presence_badge_tooltip": "Present in your Planning on: {{providers}} (+{{percent}}% boost)",
+    "accounts_active": "{{count}} active accounts"
   }
 }
