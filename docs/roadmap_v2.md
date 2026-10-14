@@ -5,7 +5,7 @@
 **Escopo:** Revisão de código existente + propostas de novas funcionalidades
 
 **Changelog desta revisão:**
-- **Débitos técnicos concluídos:** A1 (LRU Cache em `apiCache.js`), A2 (Erros tipados e retry), A3 (`predictionSource` e badges), A4 (Constantes desacopladas), A5 (Hook `useLocalStorage`), A6 (Remoção de scripts/XML legados), A9 (SEO/OpenGraph/a11y) e A10 (Rollup `manualChunks` e LCP `priority`).
+- **Débitos técnicos e features concluídas:** A1 (LRU Cache), A2 (Erros tipados), A3 (predictionSource/badges), A4 (Constantes), A5 (useLocalStorage), A6 (Cleanup legados), A9 (SEO/OG/a11y), A10 (Code-splitting/LCP), B1 (Justificativas), B2 (Modo Decisão), B6 (Supabase Auth & Settings) e B7 (Recomendação Unificada Multi-Provider / Ensemble Recommender com ProviderTabs #14).
 - **A7 (Web Worker):** Avaliado e arquivado/backlog — ganho imperceptível (~2-4ms para 2500 itens) com overhead de serialização `postMessage` consumindo tempo similar.
 - Seção 4: Tabela de prioridades atualizada com status de conclusão.
 
@@ -208,7 +208,7 @@ Sincronizar as preferências do usuário entre diferentes navegadores e disposit
 
 ---
 
-### B7. Recomendação Unificada Multi-Provider (Ensemble Recommender)
+### [x] B7. Recomendação Unificada Multi-Provider (Ensemble Recommender) (Concluído ✅)
 
 **Reaproveita:** `B6` (usernames vinculados na conta), providers existentes (`anilist.js`, `kitsu.js`, `mal.js`) e `recommender.js`.
 
@@ -275,9 +275,9 @@ Monitorar latência de APIs externas (AniList/Kitsu/MAL), taxas de erro de rende
 | 6 | A1 + A4 | Correção | 🟡 Média | ✅ Concluído | LRU cache com índice + desacoplamento de constantes e options. |
 | 8 | B2 — Modo Decisão | Melhoria | 🚀 Features | ✅ Concluído | Sorteio ponderado Top 20, filtros de streaming e modo rápido (#9). |
 | 9 | B6 — Sync Supabase | Melhoria | 🚀 Features | ✅ Concluído | Login Supabase Auth, settings sync, multi-provider accounts e SettingsPage (#10). |
-| 10 | B5 — Exportação Visual ("Wrapped") | Melhoria | 🚀 Features | ⏳ Pendente | Exportação visual de perfil de gosto e top animes (#15). |
-| 11 | B7 — Recomendação Multi-Provider | Melhoria | 🚀 Features | ⏳ Pendente | Fusão de perfis e deduplicação com multi-presence boost. |
-| 11 | B3 — comparação entre usuários | Melhoria | 🚀 Features | ⏳ Pendente | Recomendações cruzadas entre dois perfis. |
+| 10 | B7 — Recomendação Multi-Provider | Melhoria | 🚀 Features | ✅ Concluído | Fusão de perfis e deduplicação com multi-presence boost (#14). |
+| 11 | B5 — Exportação Visual ("Wrapped") | Melhoria | 🚀 Features | ⏳ Pendente | Exportação visual de perfil de gosto e top animes (#15). |
+| 12 | B3 — comparação entre usuários | Melhoria | 🚀 Features | ⏳ Pendente | Recomendações cruzadas entre dois perfis. |
 | 12 | A7 — Web Worker Performance | Correção/Infra | ⏸️ Baixa | 🛑 Arquivado | Ganho nulo (~2ms de CPU vs ~2ms de overhead de serialização). |
 | 13 | A8 — OpenTelemetry | Infra | ⏸️ Baixa | ⏳ Pendente | Telemetria e observabilidade client-side. |
 | 14 | B4 — novidades de temporada (v1 client-side) | Melhoria | 🚀 Features | ⏳ Pendente | Checagem de novas temporadas ao carregar a lista. |
