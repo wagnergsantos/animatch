@@ -1,0 +1,115 @@
+.provider-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 0.5rem);
+  margin-bottom: var(--space-4, 1rem);
+}
+
+.tabs-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+  overflow-x: auto;
+  padding: 4px;
+  background: var(--surface-2, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
+  border-radius: var(--radius-lg, 0.75rem);
+}
+
+.tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+  padding: 0.4rem 0.85rem;
+  font-family: var(--font-family, inherit);
+  font-size: var(--text-sm, 0.875rem);
+  font-weight: 500;
+  color: var(--text-2, rgba(255, 255, 255, 0.7));
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md, 0.5rem);
+  cursor: pointer;
+  transition: all var(--transition-default, 0.2s ease);
+  white-space: nowrap;
+}
+
+.tab-btn:hover {
+  color: var(--text-1, #fff);
+  background: var(--surface-3, rgba(255, 255, 255, 0.08));
+}
+
+.tab-btn.active,
+.active {
+  color: #fff;
+  background: var(--color-primary, #6366f1);
+  border-color: var(--color-primary, #6366f1);
+  font-weight: 600;
+  box-shadow: 0 2px 8px var(--color-primary-glow, rgba(99, 102, 241, 0.3));
+}
+
+.badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full, 50%);
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.badge-dot-anilist {
+  background: #02a9ff;
+}
+
+.badge-dot-kitsu {
+  background: #fd755c;
+}
+
+.badge-dot-mal {
+  background: #2e51a2;
+}
+
+.badge-dot-ensemble {
+  background: #a855f7;
+}
+
+.failed-indicator {
+  font-size: var(--text-xs, 0.75rem);
+  line-height: 1;
+}
+
+.failed-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3, 0.75rem);
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  padding: var(--space-2, 0.5rem) var(--space-3, 0.75rem);
+  border-radius: var(--radius-md, 0.5rem);
+  font-size: var(--text-xs, 0.75rem);
+}
+
+.failed-banner span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+}
+
+.retry-btn {
+  font-family: var(--font-family, inherit);
+  background: transparent;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm, 4px);
+  cursor: pointer;
+  font-size: var(--text-xs, 0.75rem);
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all var(--transition-default, 0.2s ease);
+}
+
+.retry-btn:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: rgba(239, 68, 68, 0.6);
+}
