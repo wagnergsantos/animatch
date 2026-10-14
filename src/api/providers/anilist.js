@@ -21,6 +21,7 @@ query ($userName: String) {
         score(format: POINT_10_DECIMAL)
         media {
           id
+          idMal
           title { romaji english }
           genres
           coverImage { large }
@@ -38,6 +39,7 @@ query ($userName: String) {
       entries {
         media {
           id
+          idMal
           title { romaji english }
           genres
           episodes
@@ -66,6 +68,7 @@ query ($userName: String) {
         score(format: POINT_10_DECIMAL)
         media {
           id
+          idMal
           title { romaji english }
           status
           format

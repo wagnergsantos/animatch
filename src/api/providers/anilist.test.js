@@ -54,6 +54,37 @@ describe('fetchCompletedList', () => {
     expect(result[1].score).toBe(0)
   })
 
+  it('requests idMal in COMPLETED_QUERY and preserves it in media objects', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({
+        data: {
+          MediaListCollection: {
+            lists: [
+              {
+                entries: [
+                  {
+                    score: 9.0,
+                    media: {
+                      id: 1,
+                      idMal: 16498,
+                      title: { romaji: 'Shingeki no Kyojin' },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      }),
+    })
+
+    const result = await fetchCompletedList('testuser')
+    const body = JSON.parse(mockFetch.mock.calls[0][1].body)
+    expect(body.query).toMatch(/media\s*\{[^}]*\bidMal\b/)
+    expect(result[0].media.idMal).toBe(16498)
+  })
+
   it('throws UserNotFoundError when user is not found', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,
@@ -168,6 +199,36 @@ describe('fetchPlanningList', () => {
     expect(result[0].media.siteUrl).toBe('https://anilist.co/anime/10')
   })
 
+  it('requests idMal in PLANNING_QUERY and preserves it in media objects', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({
+        data: {
+          MediaListCollection: {
+            lists: [
+              {
+                entries: [
+                  {
+                    media: {
+                      id: 10,
+                      idMal: 34599,
+                      title: { romaji: 'Made in Abyss' },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      }),
+    })
+
+    const result = await fetchPlanningList('testuser')
+    const body = JSON.parse(mockFetch.mock.calls[0][1].body)
+    expect(body.query).toMatch(/media\s*\{[^}]*\bidMal\b/)
+    expect(result[0].media.idMal).toBe(34599)
+  })
+
   it('returns empty array when user has no planning list', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -258,6 +319,38 @@ describe('fetchAllLists', () => {
     expect(result[0].media.startDate).toEqual({ year: 2023, month: 9, day: 29 })
     expect(result[1].status).toBe('PLANNING')
     expect(result[1].media.averageScore).toBe(86)
+  })
+
+  it('requests idMal in ALL_LISTS_QUERY and preserves it in media objects', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({
+        data: {
+          MediaListCollection: {
+            lists: [
+              {
+                entries: [
+                  {
+                    status: 'COMPLETED',
+                    score: 9.5,
+                    media: {
+                      id: 1,
+                      idMal: 52991,
+                      title: { romaji: 'Frieren' },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      }),
+    })
+
+    const result = await fetchAllLists('testuser')
+    const body = JSON.parse(mockFetch.mock.calls[0][1].body)
+    expect(body.query).toMatch(/media\s*\{[^}]*\bidMal\b/)
+    expect(result[0].media.idMal).toBe(52991)
   })
 
   it('throws an error when user is not found', async () => {
@@ -375,6 +468,25 @@ describe('flattenEntries', () => {
     const result = flattenEntries(data)
     expect(result).toHaveLength(3)
     expect(result.map(e => e.media.id)).toEqual([1, 2, 3])
+  })
+
+  it('preserves idMal in flattened media objects', () => {
+    const data = {
+      MediaListCollection: {
+        lists: [
+          {
+            entries: [
+              { media: { id: 1, idMal: 16498, title: { romaji: 'Anime 1' } } },
+              { media: { id: 2, idMal: 52991, title: { romaji: 'Anime 2' } } },
+            ],
+          },
+        ],
+      },
+    }
+    const result = flattenEntries(data)
+    expect(result).toHaveLength(2)
+    expect(result[0].media.idMal).toBe(16498)
+    expect(result[1].media.idMal).toBe(52991)
   })
 })
 
