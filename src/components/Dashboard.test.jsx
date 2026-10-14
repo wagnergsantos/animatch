@@ -1,6 +1,17 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import Dashboard from './Dashboard.jsx'
+import { useEnsembleData } from '../hooks/useEnsembleData.js'
+
+vi.mock('../hooks/useEnsembleData.js', () => ({
+  useEnsembleData: vi.fn(() => ({
+    entriesByProvider: {},
+    consolidatedEntries: [],
+    failedProviders: [],
+    isLoading: false,
+    refetch: vi.fn(),
+  })),
+}))
 
 
 
@@ -14,6 +25,16 @@ const mockEntries = [
 ]
 
 describe('Dashboard', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    useEnsembleData.mockReturnValue({
+      entriesByProvider: {},
+      consolidatedEntries: [],
+      failedProviders: [],
+      isLoading: false,
+      refetch: vi.fn(),
+    })
+  })
 
   it('renders the provider badge and profile link correctly', () => {
     render(<Dashboard username="testuser" provider="kitsu" />)
@@ -460,5 +481,228 @@ describe('Dashboard', () => {
 
     expect(screen.getByText('Crunchy Anime')).toBeInTheDocument()
     expect(screen.queryByText('Unstreamable Anime')).not.toBeInTheDocument()
+  })
+
+  it('renders ProviderTabs when linkedUsernames has >= 2 accounts', () => {
+    const linkedUsernames = { anilist: 'alice', mal: 'bob', kitsu: '' }
+    useEnsembleData.mockReturnValue({
+      entriesByProvider: { anilist: [], mal: [] },
+      consolidatedEntries: [],
+      failedProviders: [],
+      isLoading: false,
+      refetch: vi.fn(),
+    })
+
+    render(
+      <Dashboard
+        username="alice"
+        provider="anilist"
+        linkedUsernames={linkedUsernames}
+      />
+    )
+
+    const scopeRegion = screen.getByRole('region', { name: /Escopo de Provedor/i })
+    expect(scopeRegion).toBeInTheDocument()
+    expect(within(scopeRegion).getByRole('button', { name: /Consolidado \(2\)/i })).toBeInTheDocument()
+    expect(within(scopeRegion).getByRole('button', { name: 'AniList' })).toBeInTheDocument()
+    expect(within(scopeRegion).getByRole('button', { name: 'MyAnimeList' })).toBeInTheDocument()
+    expect(screen.getAllByText(/Consolidado/i).length).toBeGreaterThanOrEqual(1)
+    expect(screen.queryByRole('link', { name: /alice \(AniList\)/i })).not.toBeInTheDocument()
+  })
+
+  it('switching scope between ensemble and individual provider updates displayed recommendations', async () => {
+    const linkedUsernames = { anilist: 'alice', kitsu: 'alice_kitsu', mal: '' }
+    const anilistEntry = {
+      status: 'PLANNING',
+      media: {
+        id: 101,
+        title: { romaji: 'Anilist Only Anime' },
+        genres: ['Action'],
+        averageScore: 85,
+        siteUrl: 'https://anilist.co/anime/101',
+      },
+    }
+    const kitsuEntry = {
+      status: 'PLANNING',
+      media: {
+        id: 102,
+        title: { romaji: 'Kitsu Only Anime' },
+        genres: ['Action'],
+        averageScore: 80,
+        siteUrl: 'https://kitsu.app/anime/102',
+      },
+    }
+    const consolidated = [anilistEntry, kitsuEntry]
+
+    useEnsembleData.mockReturnValue({
+      entriesByProvider: {
+        anilist: [anilistEntry],
+        kitsu: [kitsuEntry],
+      },
+      consolidatedEntries: consolidated,
+      failedProviders: [],
+      isLoading: false,
+      refetch: vi.fn(),
+    })
+
+    render(
+      <Dashboard
+        username="alice"
+        provider="anilist"
+        linkedUsernames={linkedUsernames}
+      />
+    )
+
+    // Initial scope is ensemble: both recommendations are rendered
+    await waitFor(() => {
+      expect(screen.getByText('Anilist Only Anime')).toBeInTheDocument()
+      expect(screen.getByText('Kitsu Only Anime')).toBeInTheDocument()
+    })
+
+    const scopeRegion = screen.getByRole('region', { name: /Escopo de Provedor/i })
+
+    // Switch to Kitsu scope
+    const kitsuTab = within(scopeRegion).getByRole('button', { name: /Kitsu/i })
+    fireEvent.click(kitsuTab)
+
+    // Now only Kitsu recommendation should be rendered
+    expect(screen.getByText('Kitsu Only Anime')).toBeInTheDocument()
+    expect(screen.queryByText('Anilist Only Anime')).not.toBeInTheDocument()
+
+    // Header link reflects Kitsu scoped user
+    const kitsuLink = screen.getByRole('link', { name: /alice_kitsu \(Kitsu\)/i })
+    expect(kitsuLink).toHaveAttribute('href', 'https://kitsu.app/users/alice_kitsu')
+
+    // Switch to AniList scope
+    const anilistTab = within(scopeRegion).getByRole('button', { name: /AniList/i })
+    fireEvent.click(anilistTab)
+
+    expect(screen.getByText('Anilist Only Anime')).toBeInTheDocument()
+    expect(screen.queryByText('Kitsu Only Anime')).not.toBeInTheDocument()
+
+    // Switch back to ensemble scope
+    const ensembleTab = within(scopeRegion).getByRole('button', { name: /Consolidado \(2\)/i })
+    fireEvent.click(ensembleTab)
+
+    expect(screen.getByText('Anilist Only Anime')).toBeInTheDocument()
+    expect(screen.getByText('Kitsu Only Anime')).toBeInTheDocument()
+  })
+
+  it('applies multi-presence boost when activeScope is ensemble', async () => {
+    const linkedUsernames = { anilist: 'alice', mal: 'alice_mal', kitsu: '' }
+    const sharedAnime = {
+      id: 201,
+      status: 'PLANNING',
+      planningProviders: ['anilist', 'mal'],
+      sourceProviders: ['anilist', 'mal'],
+      media: {
+        id: 201,
+        title: { romaji: 'Cross-Platform Anime' },
+        genres: ['Sci-Fi'],
+        averageScore: 80, // community = 8.0, predicted = 8.0 -> boosted with k=0.05 (2-1=1) => 8.4
+      },
+    }
+    const singleAnime = {
+      id: 202,
+      status: 'PLANNING',
+      planningProviders: ['anilist'],
+      sourceProviders: ['anilist'],
+      media: {
+        id: 202,
+        title: { romaji: 'Single Provider Anime' },
+        genres: ['Sci-Fi'],
+        averageScore: 80, // community = 8.0, predicted = 8.0 -> no boost => 8.0
+      },
+    }
+
+    useEnsembleData.mockReturnValue({
+      entriesByProvider: {
+        anilist: [sharedAnime, singleAnime],
+        mal: [sharedAnime],
+      },
+      consolidatedEntries: [sharedAnime, singleAnime],
+      failedProviders: [],
+      isLoading: false,
+      refetch: vi.fn(),
+    })
+
+    render(
+      <Dashboard
+        username="alice"
+        provider="anilist"
+        linkedUsernames={linkedUsernames}
+      />
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Cross-Platform Anime')).toBeInTheDocument()
+      expect(screen.getByText('Single Provider Anime')).toBeInTheDocument()
+    })
+
+    // In ensemble mode, Cross-Platform Anime has higher score due to multi-presence boost (8.4 vs 8.0),
+    // and displays its presence badge with +5% in tooltip
+    const badgeContainer = screen.getByTestId('card-provider-badges')
+    expect(badgeContainer).toBeInTheDocument()
+    expect(badgeContainer).toHaveAttribute('title', expect.stringContaining('+5%'))
+    expect(within(badgeContainer).getByText('AniList')).toBeInTheDocument()
+    expect(within(badgeContainer).getByText('MAL')).toBeInTheDocument()
+
+    // Assert that Cross-Platform Anime has boosted score 8.40/10 and Single has 8.00/10
+    expect(screen.getByText(/(Match|Afinidade): 8\.40\/10/i)).toBeInTheDocument()
+    expect(screen.getByText(/(Match|Afinidade): 8\.00\/10/i)).toBeInTheDocument()
+  })
+
+  it('calls refetchEnsemble when refreshing while activeScope is ensemble', () => {
+    const linkedUsernames = { anilist: 'alice', mal: 'alice_mal', kitsu: '' }
+    const refetchEnsemble = vi.fn()
+    const onRefresh = vi.fn()
+
+    useEnsembleData.mockReturnValue({
+      entriesByProvider: { anilist: [], mal: [] },
+      consolidatedEntries: [],
+      failedProviders: [],
+      isLoading: false,
+      refetch: refetchEnsemble,
+    })
+
+    render(
+      <Dashboard
+        username="alice"
+        provider="anilist"
+        linkedUsernames={linkedUsernames}
+        onRefresh={onRefresh}
+      />
+    )
+
+    // Switch to settings tab
+    fireEvent.click(screen.getByRole('button', { name: /configurações/i }))
+
+    // Click refresh button in settings
+    const refreshButton = screen.getByRole('button', { name: /sincronizar/i })
+    fireEvent.click(refreshButton)
+
+    expect(refetchEnsemble).toHaveBeenCalled()
+    expect(onRefresh).not.toHaveBeenCalled()
+  })
+
+  it('displays loading skeleton in grid when isEnsembleLoading is true and currentEntries is empty', () => {
+    const linkedUsernames = { anilist: 'alice', mal: 'alice_mal', kitsu: '' }
+    useEnsembleData.mockReturnValue({
+      entriesByProvider: { anilist: [], mal: [] },
+      consolidatedEntries: [],
+      failedProviders: [],
+      isLoading: true,
+      refetch: vi.fn(),
+    })
+
+    render(
+      <Dashboard
+        username="alice"
+        provider="anilist"
+        linkedUsernames={linkedUsernames}
+      />
+    )
+
+    expect(screen.getAllByTestId('skeleton').length).toBeGreaterThan(0)
   })
 })

@@ -1,8 +1,11 @@
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocalStorage } from '../hooks/useLocalStorage.js'
+import { useEnsembleData } from '../hooks/useEnsembleData.js'
 import { buildTasteProfile, scoreRecommendations, resolveYear } from '../logic/recommender.js'
 import { applyStreamingBoost, matchesUserSubscriptions } from '../logic/streaming.js'
+import { applyMultiPresenceBoost } from '../logic/ensemble.js'
+import ProviderTabs from './ProviderTabs.jsx'
 import TasteProfile from './TasteProfile.jsx'
 import RecommendationGrid from './RecommendationGrid.jsx'
 import FilterBar from './FilterBar.jsx'
@@ -91,13 +94,58 @@ export default function Dashboard({
   const currentYear = new Date().getFullYear()
   const gridRef = useRef(null)
 
+  const activeAccountsCount = useMemo(() => {
+    return Object.values(linkedUsernames || {}).filter(
+      (name) => typeof name === 'string' && name.trim().length > 0
+    ).length
+  }, [linkedUsernames])
+
+  const hasMultiAccounts = activeAccountsCount >= 2
+
+  const {
+    entriesByProvider,
+    consolidatedEntries,
+    failedProviders,
+    isLoading: isEnsembleLoading,
+    refetch: refetchEnsemble,
+  } = useEnsembleData(linkedUsernames, { enabled: Boolean(hasMultiAccounts) })
+
+  const [activeScope, setActiveScope] = useState(() => (hasMultiAccounts ? 'ensemble' : provider))
+  const prevHasMultiRef = useRef(hasMultiAccounts)
+
+  useEffect(() => {
+    if (!prevHasMultiRef.current && hasMultiAccounts) {
+      setActiveScope('ensemble')
+    } else if (!hasMultiAccounts && activeScope !== provider) {
+      setActiveScope(provider)
+    } else if (hasMultiAccounts) {
+      const validProviders = Object.entries(linkedUsernames || {})
+        .filter(([, name]) => typeof name === 'string' && name.trim().length > 0)
+        .map(([p]) => p)
+      if (activeScope !== 'ensemble' && !validProviders.includes(activeScope)) {
+        setActiveScope('ensemble')
+      }
+    }
+    prevHasMultiRef.current = hasMultiAccounts
+  }, [hasMultiAccounts, activeScope, linkedUsernames, provider])
+
+  const currentEntries = useMemo(() => {
+    if (hasMultiAccounts && activeScope === 'ensemble') {
+      return consolidatedEntries
+    }
+    if (hasMultiAccounts && activeScope !== 'ensemble' && entriesByProvider[activeScope]) {
+      return entriesByProvider[activeScope]
+    }
+    return allEntries
+  }, [hasMultiAccounts, activeScope, consolidatedEntries, entriesByProvider, allEntries])
+
   const tasteProfile = useMemo(() => {
-    return buildTasteProfile(allEntries)
-  }, [allEntries])
+    return buildTasteProfile(currentEntries)
+  }, [currentEntries])
 
   const planningEntries = useMemo(() => {
-    return allEntries.filter((e) => e.status === 'PLANNING')
-  }, [allEntries])
+    return currentEntries.filter((e) => e.status === 'PLANNING')
+  }, [currentEntries])
 
   const availableGenres = useMemo(() => {
     const genreCounts = new Map()
@@ -125,7 +173,11 @@ export default function Dashboard({
 
   const recommendations = useMemo(() => {
     let recs = scoreRecommendations(planningEntries, tasteProfile, selectedFilterGenre)
-    const planningMap = new Map(planningEntries.map((e) => [e.media?.id ?? e.id, e]))
+    const planningMap = new Map()
+    for (const e of planningEntries) {
+      if (e.media?.id != null) planningMap.set(e.media.id, e)
+      if (e.id != null) planningMap.set(e.id, e)
+    }
 
     // Map year, seasonYear, startDate, streamingLinks to recs from planningEntries if not present
     recs = recs.map((r) => {
@@ -137,8 +189,25 @@ export default function Dashboard({
       const titleObj = r.titleObj ?? match?.media?.title ?? match?.titleObj
       const title = r.title ?? match?.media?.title?.english ?? match?.media?.title?.romaji
       const streamingLinks = r.streamingLinks ?? match?.streamingLinks ?? match?.media?.streamingLinks
-      return { ...r, seasonYear, startDate, year, status, titleObj, title, streamingLinks }
+      const planningProviders = r.planningProviders ?? match?.planningProviders ?? []
+      const sourceProviders = r.sourceProviders ?? match?.sourceProviders ?? []
+      return {
+        ...r,
+        seasonYear,
+        startDate,
+        year,
+        status,
+        titleObj,
+        title,
+        streamingLinks,
+        planningProviders,
+        sourceProviders,
+      }
     })
+
+    if (activeScope === 'ensemble') {
+      recs = applyMultiPresenceBoost(recs)
+    }
 
     if (streamingBoost) {
       recs = applyStreamingBoost(recs, subscriptions)
@@ -189,19 +258,55 @@ export default function Dashboard({
     }
 
     return recs
-  }, [planningEntries, tasteProfile, selectedFilterGenre, streamingBoost, subscriptions, isStreamingOnly, searchQuery, selectedFormat, selectedYear, selectedBadge, isSeasonOnly, currentYear])
+  }, [
+    planningEntries,
+    tasteProfile,
+    selectedFilterGenre,
+    activeScope,
+    streamingBoost,
+    subscriptions,
+    isStreamingOnly,
+    searchQuery,
+    selectedFormat,
+    selectedYear,
+    selectedBadge,
+    isSeasonOnly,
+    currentYear,
+  ])
 
   const handleTasteProfileGenreClick = (genre) => {
     setSelectedFilterGenre(genre)
     gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
-  const providerLabel = t(`providers.${provider}`, provider === 'mal' ? 'MyAnimeList' : provider === 'kitsu' ? 'Kitsu' : 'AniList')
-  const providerProfileUrl = provider === 'kitsu'
-    ? `https://kitsu.app/users/${username}`
-    : provider === 'mal'
-    ? `https://myanimelist.net/profile/${username}`
-    : `https://anilist.co/user/${username}`
+  const currentScopedProvider = activeScope !== 'ensemble' ? activeScope : provider
+  const currentScopedUsername =
+    activeScope !== 'ensemble' && linkedUsernames[activeScope]?.trim()
+      ? linkedUsernames[activeScope].trim()
+      : username
+
+  const scopedProviderLabel = t(
+    `providers.${currentScopedProvider}`,
+    currentScopedProvider === 'mal' ? 'MyAnimeList' : currentScopedProvider === 'kitsu' ? 'Kitsu' : 'AniList'
+  )
+
+  const scopedProfileUrl =
+    currentScopedProvider === 'kitsu'
+      ? `https://kitsu.app/users/${currentScopedUsername}`
+      : currentScopedProvider === 'mal'
+      ? `https://myanimelist.net/profile/${currentScopedUsername}`
+      : `https://anilist.co/user/${currentScopedUsername}`
+
+  const handleRefresh = () => {
+    if (activeScope === 'ensemble') {
+      return refetchEnsemble()
+    }
+    return onRefresh?.()
+  }
+
+  const isGridLoading = Boolean(
+    isLoading || (hasMultiAccounts && isEnsembleLoading && currentEntries.length === 0)
+  )
 
   const handleShare = () => {
     if (typeof window !== 'undefined' && navigator.clipboard) {
@@ -218,15 +323,38 @@ export default function Dashboard({
     <div className={styles.dashboard}>
       <header className={styles.dashboard__header}>
         <div className={styles['dashboard__header-left']}>
-          <a
-            href={providerProfileUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles['dashboard__username-link']}
-            title={`Abrir perfil no ${providerLabel}`}
-          >
-            <span className={styles.dashboard__username}>{username} <span className="dashboard__provider-badge">({providerLabel})</span></span>
-          </a>
+          {hasMultiAccounts && activeScope === 'ensemble' ? (
+            <span
+              className={styles['dashboard__username-link']}
+              title={t('ensemble.accounts_active', {
+                count: activeAccountsCount,
+                defaultValue: `${activeAccountsCount} contas ativas`,
+              })}
+            >
+              <span className={styles.dashboard__username}>
+                🌐 {t('ensemble.tab_consolidated', 'Consolidado')}{' '}
+                <span className="dashboard__provider-badge">
+                  ({t('ensemble.accounts_active', {
+                    count: activeAccountsCount,
+                    defaultValue: `${activeAccountsCount} contas ativas`,
+                  })})
+                </span>
+              </span>
+            </span>
+          ) : (
+            <a
+              href={scopedProfileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles['dashboard__username-link']}
+              title={`Abrir perfil no ${scopedProviderLabel}`}
+            >
+              <span className={styles.dashboard__username}>
+                {currentScopedUsername}{' '}
+                <span className="dashboard__provider-badge">({scopedProviderLabel})</span>
+              </span>
+            </a>
+          )}
           <nav className={styles.dashboard__nav}>
             <button
               className={activeTab === 'recommendations' ? styles.active : ''}
@@ -269,6 +397,15 @@ export default function Dashboard({
       </header>
 
       <main className={styles.dashboard__main}>
+        {(activeTab === 'recommendations' || activeTab === 'statistics') && (
+          <ProviderTabs
+            linkedUsernames={linkedUsernames}
+            activeScope={activeScope}
+            onScopeChange={setActiveScope}
+            failedProviders={failedProviders}
+            onRetryProvider={(p) => refetchEnsemble(p)}
+          />
+        )}
         {activeTab === 'recommendations' ? (
           <>
             {tasteProfile.size > 0 && (
@@ -309,9 +446,9 @@ export default function Dashboard({
             <div ref={gridRef}>
               <RecommendationGrid
                 recommendations={recommendations}
-                isLoading={false}
+                isLoading={isGridLoading}
                 sortBy={sortBy}
-                provider={provider}
+                provider={currentScopedProvider}
                 titlePref={titlePref}
                 viewMode={viewMode}
               />
@@ -319,8 +456,12 @@ export default function Dashboard({
           </>
         ) : activeTab === 'statistics' ? (
           <StatisticsPage
-            entries={allEntries}
-            user={username}
+            entries={currentEntries}
+            user={
+              hasMultiAccounts && activeScope === 'ensemble'
+                ? t('ensemble.tab_consolidated', 'Consolidado')
+                : currentScopedUsername || username
+            }
             onSelectGenre={setModalGenre}
           />
         ) : (
@@ -328,8 +469,8 @@ export default function Dashboard({
             provider={provider}
             titlePref={titlePref}
             onTitlePrefChange={onTitlePrefChange}
-            onRefresh={onRefresh}
-            isLoading={isLoading}
+            onRefresh={handleRefresh}
+            isLoading={Boolean(isLoading || (hasMultiAccounts && isEnsembleLoading))}
             onLogout={onLogout}
             subscriptions={subscriptions}
             onSubscriptionsChange={setSubscriptions}
