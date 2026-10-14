@@ -450,6 +450,115 @@ describe('ensemble logic', () => {
       expect(merged[0].media.genres).toEqual([])
       expect(merged[0].media.streamingLinks).toEqual([])
     })
+
+    it('uses canonicalTitle in normalizeAnimeKey when other title fields are absent', () => {
+      const entry = { media: { id: 700, title: { canonicalTitle: 'Baccano!' }, seasonYear: 2007 } }
+      expect(normalizeAnimeKey(entry)).toBe('title:baccano_2007')
+
+      const direct = { id: 700, title: { canonicalTitle: 'Durarara!!' }, seasonYear: 2010 }
+      expect(normalizeAnimeKey(direct)).toBe('title:durarara_2010')
+    })
+
+    it('guards against string "0" in idMal and mal provider id in normalizeAnimeKey', () => {
+      const entryWithStringZeroIdMal = {
+        media: { id: 1, idMal: '0', title: { english: 'Haikyuu!!' }, seasonYear: 2014 },
+      }
+      expect(normalizeAnimeKey(entryWithStringZeroIdMal)).toBe('title:haikyuu_2014')
+
+      const entryWithStringZeroMalId = {
+        media: { id: '0', provider: 'mal', title: { english: 'Haikyuu!!' }, seasonYear: 2014 },
+      }
+      expect(normalizeAnimeKey(entryWithStringZeroMalId)).toBe('title:haikyuu_2014')
+    })
+
+    it('aggregates streaming links from AniList externalLinks with type STREAMING', () => {
+      const entriesByProvider = {
+        anilist: [
+          {
+            status: 'PLANNING',
+            media: {
+              id: 1,
+              idMal: 500,
+              title: { english: 'Jujutsu Kaisen' },
+              externalLinks: [
+                { site: 'Crunchyroll', url: 'https://crunchyroll.com/jjk', type: 'STREAMING' },
+                { site: 'Twitter', url: 'https://twitter.com/jjk', type: 'INFO' },
+              ],
+            },
+          },
+        ],
+        kitsu: [
+          {
+            status: 'PLANNING',
+            media: {
+              id: 2,
+              title: { english: 'Jujutsu Kaisen' },
+              seasonYear: 2020,
+              streamingLinks: [
+                { site: 'Crunchyroll', url: 'https://crunchyroll.com/jjk-kitsu' },
+                { site: 'Netflix', url: 'https://netflix.com/jjk' },
+              ],
+            },
+          },
+        ],
+      }
+
+      const merged = mergeAnimeEntries(entriesByProvider)
+      expect(merged).toHaveLength(1)
+      const sites = merged[0].media.streamingLinks.map((l) => l.site)
+      expect(sites).toEqual(['Crunchyroll', 'Netflix'])
+      expect(merged[0].media.streamingLinks[0].url).toBe('https://crunchyroll.com/jjk')
+    })
+
+    it('merges title.english and title.romaji subfields across providers when bestEntry lacks one', () => {
+      const entriesByProvider = {
+        kitsu: [
+          {
+            status: 'PLANNING',
+            media: {
+              id: 1,
+              title: { romaji: 'Kimetsu no Yaiba' },
+              seasonYear: 2019,
+              description: 'Rich description making it bestEntry',
+            },
+          },
+        ],
+        anilist: [
+          {
+            status: 'PLANNING',
+            media: {
+              id: 101302,
+              idMal: 38000,
+              title: { english: 'Demon Slayer: Kimetsu no Yaiba', romaji: 'Kimetsu no Yaiba' },
+              seasonYear: 2019,
+            },
+          },
+        ],
+      }
+
+      const merged = mergeAnimeEntries(entriesByProvider)
+      expect(merged).toHaveLength(1)
+      expect(merged[0].media.title.romaji).toBe('Kimetsu no Yaiba')
+      expect(merged[0].media.title.english).toBe('Demon Slayer: Kimetsu no Yaiba')
+    })
+
+    it('recognizes PLANNED status as PLANNING and records it in planningProviders', () => {
+      const entriesByProvider = {
+        kitsu: [
+          {
+            status: 'PLANNED',
+            score: 0,
+            media: { id: 1, title: { english: 'Solo Leveling' }, seasonYear: 2024 },
+          },
+        ],
+      }
+
+      const merged = mergeAnimeEntries(entriesByProvider)
+      expect(merged).toHaveLength(1)
+      expect(merged[0].status).toBe('PLANNING')
+      expect(merged[0].planningProviders).toEqual(['kitsu'])
+    })
   })
 })
+
 

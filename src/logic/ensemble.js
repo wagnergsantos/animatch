@@ -11,6 +11,7 @@ const STATUS_PRIORITY = {
   DROPPED: 2,
   PLANNING: 1,
   PLAN_TO_WATCH: 1,
+  PLANNED: 1,
 }
 
 const CANONICAL_STATUS = {
@@ -22,6 +23,7 @@ const CANONICAL_STATUS = {
   DROPPED: 'DROPPED',
   PLANNING: 'PLANNING',
   PLAN_TO_WATCH: 'PLANNING',
+  PLANNED: 'PLANNING',
 }
 
 /**
@@ -36,13 +38,13 @@ export function normalizeAnimeKey(anime) {
   const media = anime.media || anime
   const idMal = media?.idMal ?? anime?.idMal
 
-  if (idMal != null && idMal !== '' && idMal !== 0) {
+  if (idMal != null && Number(idMal) > 0) {
     return `mal:${idMal}`
   }
 
   const provider = media?.provider ?? anime?.provider
   const id = media?.id ?? anime?.id
-  if (provider === 'mal' && id != null && id !== '' && id !== 0) {
+  if (provider === 'mal' && id != null && Number(id) > 0) {
     return `mal:${id}`
   }
 
@@ -50,9 +52,12 @@ export function normalizeAnimeKey(anime) {
     media?.title?.english ||
     media?.title?.romaji ||
     media?.title?.userPreferred ||
+    media?.title?.canonicalTitle ||
     (typeof media?.title === 'string' ? media?.title : '') ||
     anime?.title?.english ||
     anime?.title?.romaji ||
+    anime?.title?.userPreferred ||
+    anime?.title?.canonicalTitle ||
     (typeof anime?.title === 'string' ? anime?.title : '') ||
     ''
 
@@ -111,10 +116,13 @@ function extractAnimeMeta(entry) {
   const idMal = media?.idMal ?? entry?.idMal
 
   let malId = null
-  if (idMal != null && idMal !== '' && idMal !== 0) {
+  if (idMal != null && Number(idMal) > 0) {
     malId = String(idMal)
   } else if ((media?.provider === 'mal' || entry?.provider === 'mal') && (media?.id || entry?.id)) {
-    malId = String(media?.id ?? entry?.id)
+    const rawId = media?.id ?? entry?.id
+    if (rawId != null && Number(rawId) > 0) {
+      malId = String(rawId)
+    }
   }
 
   const titles = extractTitles(entry)
@@ -229,7 +237,7 @@ export function mergeAnimeEntries(entriesByProvider = {}) {
       group.providers.add(provider)
 
       const statusUpper = (entry.status || '').toUpperCase()
-      if (statusUpper === 'PLANNING' || statusUpper === 'PLAN_TO_WATCH') {
+      if (statusUpper === 'PLANNING' || statusUpper === 'PLAN_TO_WATCH' || statusUpper === 'PLANNED') {
         group.planningProviders.add(provider)
       }
     }
@@ -276,6 +284,27 @@ export function mergeAnimeEntries(entriesByProvider = {}) {
 
     const baseMedia = bestEntry.media || bestEntry || {}
 
+    // Title fusion: merge title.english and title.romaji across entries
+    let mergedTitle = {}
+    if (typeof baseMedia.title === 'object' && baseMedia.title !== null) {
+      mergedTitle = { ...baseMedia.title }
+    } else if (typeof baseMedia.title === 'string' && baseMedia.title) {
+      mergedTitle = { english: baseMedia.title, romaji: baseMedia.title }
+    }
+
+    for (const { entry } of group.items) {
+      const m = entry.media || entry || {}
+      if (typeof m.title === 'object' && m.title !== null) {
+        if (!mergedTitle.english && m.title.english) mergedTitle.english = m.title.english
+        if (!mergedTitle.romaji && m.title.romaji) mergedTitle.romaji = m.title.romaji
+        if (!mergedTitle.userPreferred && m.title.userPreferred) mergedTitle.userPreferred = m.title.userPreferred
+        if (!mergedTitle.canonicalTitle && m.title.canonicalTitle) mergedTitle.canonicalTitle = m.title.canonicalTitle
+      } else if (typeof m.title === 'string' && m.title) {
+        if (!mergedTitle.english) mergedTitle.english = m.title
+        if (!mergedTitle.romaji) mergedTitle.romaji = m.title
+      }
+    }
+
     // Deduplicated genres
     const genresSet = new Set()
     for (const { entry } of group.items) {
@@ -289,7 +318,7 @@ export function mergeAnimeEntries(entriesByProvider = {}) {
       }
     }
 
-    // Deduplicated streaming links by site
+    // Deduplicated streaming links by site (from streamingLinks and externalLinks)
     const streamingMap = new Map()
     for (const { entry } of group.items) {
       const links = entry.media?.streamingLinks || entry.streamingLinks || []
@@ -300,10 +329,20 @@ export function mergeAnimeEntries(entriesByProvider = {}) {
           }
         }
       }
+
+      const externalLinks = entry.media?.externalLinks || entry.externalLinks || []
+      if (Array.isArray(externalLinks)) {
+        for (const link of externalLinks) {
+          if (link?.site && link?.type === 'STREAMING' && !streamingMap.has(link.site)) {
+            streamingMap.set(link.site, { site: link.site, url: link.url })
+          }
+        }
+      }
     }
 
     const mergedMedia = {
       ...baseMedia,
+      title: mergedTitle,
       genres: Array.from(genresSet),
       streamingLinks: Array.from(streamingMap.values()),
     }
