@@ -39,20 +39,27 @@ export default function ProviderTabs({
     return null
   }
 
+  const safeFailedProviders = Array.isArray(failedProviders) ? failedProviders : []
+
   const getProviderDisplayName = (provider) => {
     return t(`providers.${provider}`, PROVIDER_NAMES[provider] || provider)
   }
 
-  const failedDisplayNames = failedProviders
+  const failedDisplayNames = safeFailedProviders
     .map((p) => getProviderDisplayName(p))
     .join(', ')
 
   return (
-    <div className={styles['provider-tabs']} role="region" aria-label="Escopo de Provedor">
+    <div
+      className={styles['provider-tabs']}
+      role="region"
+      aria-label={t('ensemble.scope_region_label', { defaultValue: 'Escopo de Provedor' })}
+    >
       <div className={styles['tabs-bar']}>
         <button
           type="button"
           className={`${styles['tab-btn']} ${activeScope === 'ensemble' ? `${styles.active} active` : ''}`}
+          aria-pressed={activeScope === 'ensemble'}
           onClick={() => onScopeChange?.('ensemble')}
         >
           <span className={`${styles['badge-dot']} ${styles['badge-dot-ensemble']}`} />
@@ -63,7 +70,7 @@ export default function ProviderTabs({
         </button>
 
         {configuredProviders.map(({ provider, username }) => {
-          const isFailed = failedProviders.includes(provider)
+          const isFailed = safeFailedProviders.includes(provider)
           const displayName = getProviderDisplayName(provider)
           const dotClass = styles[`badge-dot-${provider}`] || ''
 
@@ -72,6 +79,7 @@ export default function ProviderTabs({
               key={provider}
               type="button"
               className={`${styles['tab-btn']} ${activeScope === provider ? `${styles.active} active` : ''}`}
+              aria-pressed={activeScope === provider}
               onClick={() => onScopeChange?.(provider)}
               title={`@${username} (${displayName})`}
             >
