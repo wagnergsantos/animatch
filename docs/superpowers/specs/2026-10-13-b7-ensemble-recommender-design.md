@@ -1,22 +1,24 @@
 # Especificação Técnica — B7: Recomendação Unificada Multi-Provider (Ensemble Recommender)
 
 **Issue:** #14  
-**Data:** 13/10/2026  
+**Data:** 13/10/2026 (Atualizado: 14/10/2026)  
 **Status:** Aprovado para Planejamento  
 
 ---
 
 ## 1. Visão Geral
 
-Permitir que usuários com contas em múltiplos serviços de anime (AniList, Kitsu, MyAnimeList) consolidem suas bibliotecas em uma visão integrada no AniMatch, gerando recomendações com maior densidade estatística e priorização inteligente.
+Permitir que usuários com contas em múltiplos serviços de anime (AniList, Kitsu, MyAnimeList) consolidem suas bibliotecas em uma visão integrada no AniMatch, gerando recomendações com maior densidade estatística e priorização inteligente, ou naveguem fluidamente entre as bibliotecas de cada serviço conectado através de uma barra de abas de provedores.
 
 ### Objetivos:
 1. **Deduplicação & Identidade Canônica:** Mapear e agrupar animes usando `idMal` preferencialmente, com fallback em título normalizado e ano.
 2. **Perfil de Gosto Bayesiano Consolidado:** Unir históricos de `Completed` dos serviços cadastrados, calculando a média aritmética de notas pessoais para cada obra.
-3. **Planning Agregado & Resolução de Conflitos:** Se uma obra já foi concluída em qualquer plataforma, ela prevalece como assistida e não é sugerida no Planning.
+3. **Planning Agregado & Resolução de Conflitos:** Se uma obra já foi concluída em qualquer plataforma, ela prevalece como assistida e não é sugerida no Planning unificado.
 4. **Multi-Presence Boost:** Conceder bonificação percentual de 5% por serviço adicional onde a obra constar no Planning ($\text{Score} \times [1 + 0.05 \cdot (n - 1)]$).
 5. **Degradação Suave de Rede:** Consolidar resultados dos provedores bem-sucedidos mesmo se algum falhar, sinalizando o ocorrido na interface.
-6. **Experiência de Uso (UX):** Toggle no Dashboard permitindo alternar fluidamente entre o provedor ativo individual e a visão consolidada "Ensemble".
+6. **Experiência de Uso (UX em Abas de Provedor):** Substituir o toggle binário por um componente de abas de provedor (`ProviderTabs.jsx`):
+   - Se 1 conta configurada: exibe apenas o provedor atual.
+   - Se $\ge 2$ contas configuradas em `linked_usernames`: exibe a aba `[ 🌐 Consolidado (Ensemble) ]` junto com as abas de cada serviço conectado (`[ 🔵 AniList ]`, `[ 🟠 Kitsu ]`, `[ 🔷 MAL ]`), permitindo inspecionar cada biblioteca isoladamente ou a união das três.
 
 ---
 
@@ -26,7 +28,7 @@ Permitir que usuários com contas em múltiplos serviços de anime (AniList, Kit
 flowchart TD
     subgraph UI ["Camada de Apresentação"]
         DASH["Dashboard.jsx"]
-        TOGGLE["EnsembleToggle.jsx"]
+        PTABS["ProviderTabs.jsx (Abas de Provedor & Consolidado)"]
         CARDS["AnimeCard.jsx (Badges Multi-Provider)"]
         MODAL["AnimeDetailModal.jsx"]
     end
@@ -47,7 +49,7 @@ flowchart TD
         MAL["mal.js"]
     end
 
-    DASH --> TOGGLE
+    DASH --> PTABS
     DASH --> CARDS
     DASH --> MODAL
     DASH --> HOOK
@@ -96,38 +98,52 @@ flowchart TD
 
 ---
 
-### 3.2. `src/hooks/useEnsembleData.js` (Gestão de Fetch e Cache)
+### 3.2. `src/hooks/useEnsembleData.js` (Gestão de Fetch e Cache Multi-Provider)
 
 - Recebe: `linkedUsernames = { anilist, kitsu, mal }`, `enabled = boolean`.
-- Dispara requisições simultâneas via `Promise.allSettled(providers.map(p => fetchUserEntries(username, p)))`.
+- Dispara requisições simultâneas via `Promise.allSettled(activeProviders.map(p => fetchUserEntries(username, p)))`.
+- Mantém em cache os dados crus por provedor (`entriesByProvider`), permitindo chaveamento instantâneo entre a visão consolidada e as visões individuais de cada provedor sem re-fetch de rede.
 - Separa respostas em:
-  - `successfulEntries`: repassadas para `mergeAnimeEntries`.
+  - `entriesByProvider`: dicionário `{ [provider]: entries[] }` com os dados isolados de cada provedor.
+  - `consolidatedEntries`: resultado de `mergeAnimeEntries(entriesByProvider)`.
   - `failedProviders`: lista de provedores com falha (ex: `['mal']`).
 - Retorna:
-  - `allEntries`: lista unificada consolidada.
-  - `planningEntries`: subconjunto com status `PLANNING`.
-  - `isLoading`: booleano indicando carregamento paralelo.
-  - `failedProviders`: array de strings com provedores que falharam.
-  - `refresh()`: função para forçar recarregamento ignorando caches.
+  - `entriesByProvider`: dados por provedor individual.
+  - `consolidatedEntries`: dados unificados.
+  - `isLoading`: booleano de carregamento.
+  - `failedProviders`: array com provedores com falha.
+  - `refresh(provider?)`: força recarregamento ignorando caches.
 
 ---
 
 ### 3.3. Integração na Interface (UI / UX)
 
-#### `Dashboard.jsx`
-- Exibe o toggle **Modo Ensemble** na `FilterBar` ou topo do dashboard caso `linkedUsernames` contenha 2 ou mais contas preenchidas.
-- Quando ativado:
-  - Substitui `allEntries` pelo retorno de `useEnsembleData`.
-  - Exibe banner de aviso sutil caso `failedProviders.length > 0`: *"Não foi possível conectar ao MyAnimeList. Exibindo dados consolidados de AniList e Kitsu."*
-  - Exibe no cabeçalho o resumo das fontes: *"Consolidando 3 plataformas: AniList (@user), Kitsu (@user), MyAnimeList (@user)"*.
+#### `ProviderTabs.jsx` (Novo Componente)
+- Renderizado no cabeçalho secundário do Dashboard (abaixo da navegação principal `Recomendações | Estatísticas | Configurações`).
+- Condição de exibição:
+  - Se o usuário possui $\ge 2$ provedores configurados em `linkedUsernames`:
+    - Exibe abas: `[ 🌐 Consolidado (N) ]` | `[ 🔵 AniList (@user) ]` | `[ 🟠 Kitsu (@user) ]` | `[ 🔷 MAL (@user) ]`.
+  - Se possui apenas 1 provedor configurado:
+    - Oculta a barra de abas ou exibe apenas a indicação sutil do provedor ativo.
+- Estado de escopo ativo: `activeScope: 'ensemble' | 'anilist' | 'kitsu' | 'mal'` (armazenado em estado ou persistido).
+- Quando `activeScope === 'ensemble'`:
+  - Utiliza `consolidatedEntries`.
+  - Aplica `applyMultiPresenceBoost` nas recomendações.
+- Quando `activeScope === 'anilist'` (ou outro):
+  - Utiliza estritamente os dados daquele provedor específico (`entriesByProvider[activeScope]`).
+  - Sem boost de presença (visão purista do provedor selecionado).
 
 #### `AnimeCard.jsx` e `AnimeDetailModal.jsx`
-- Quando `item.planningProviders?.length > 1`:
+- Na visão consolidada (`activeScope === 'ensemble'`) e quando `item.planningProviders?.length > 1`:
   - Exibe mini badges no canto superior do card:
     - 🔵 AniList
     - 🟠 Kitsu
     - 🔷 MAL
-  - Tooltip informativo: *"Presente no seu Planning em AniList e MyAnimeList (+5% afinidade)"*.
+  - Tooltip: *"Presente no seu Planning em AniList e MyAnimeList (+5% afinidade)"*.
+
+#### Degradação Suave & Alertas
+- Se `failedProviders.length > 0`:
+  - Exibe barra de aviso sutil no topo do Dashboard com botão de retry específico para o provedor com falha.
 
 ---
 
@@ -138,9 +154,11 @@ Adicionar chaves aos arquivos `src/locales/{pt-BR,en,ja}.json`:
 ```json
 {
   "ensemble": {
-    "toggle_label": "Visão Unificada (Ensemble)",
-    "toggle_subtitle": "Consolidando {{count}} plataformas",
+    "tab_consolidated": "Consolidado",
+    "tab_consolidated_count": "Consolidado ({{count}})",
+    "scope_label": "Fonte:",
     "partial_failure": "Não foi possível carregar dados de {{providers}}. Mostrando dados disponíveis.",
+    "retry_provider": "Tentar novamente {{provider}}",
     "presence_badge_tooltip": "Presente no seu Planning em: {{providers}} (+{{percent}}% de afinidade)",
     "accounts_active": "{{count}} contas ativas"
   }
@@ -156,8 +174,13 @@ Adicionar chaves aos arquivos `src/locales/{pt-BR,en,ja}.json`:
    - `mergeAnimeEntries`: precedência de `COMPLETED` sobre `PLANNING`, média aritmética de notas, fusão de metadados e deduplicação.
    - `applyMultiPresenceBoost`: 1 provedor (1.0x), 2 provedores (1.05x), 3 provedores (1.10x), teto de 10.0.
 2. **`src/hooks/useEnsembleData.test.js`**:
-   - Sucesso total com 3 provedores.
+   - Sucesso total com múltiplos provedores.
    - Degradação suave com 1 falha e 2 sucessos.
    - Falha de todos os provedores disparando erro unificado.
-3. **`AnimeCard.test.jsx`**:
-   - Renderização correta dos badges de provedor quando `planningProviders` estiver presente.
+   - Separação correta de `entriesByProvider` e `consolidatedEntries`.
+3. **`ProviderTabs.test.jsx`**:
+   - Não renderiza abas extras quando houver apenas 1 provedor configurado.
+   - Renderiza aba `Consolidado` e abas individuais quando houver $\ge 2$ contas.
+   - Dispara callback ao trocar de aba de escopo.
+4. **`AnimeCard.test.jsx`**:
+   - Renderização correta dos badges de provedor quando `planningProviders` estiver presente na visão consolidada.
