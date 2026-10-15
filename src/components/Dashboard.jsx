@@ -477,6 +477,8 @@ export default function Dashboard({
             titlePref={titlePref}
             onTitlePrefChange={onTitlePrefChange}
             onRefresh={handleRefresh}
+            onRefreshProvider={(p) => (hasMultiAccounts ? refetchEnsemble(p) : handleRefresh())}
+            hasMultiAccounts={hasMultiAccounts}
             isLoading={Boolean(isLoading || (hasMultiAccounts && isEnsembleLoading))}
             onLogout={onLogout}
             subscriptions={subscriptions}

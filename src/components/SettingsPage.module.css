@@ -195,6 +195,49 @@
   box-shadow: 0 0 0 2px var(--color-primary-subtle, rgba(59, 130, 246, 0.2));
 }
 
+.settings-page__field-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: 2px;
+}
+
+.settings-page__btn-subtle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 3px var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  border: 1px solid var(--color-border);
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.settings-page__btn-subtle:hover:not(:disabled) {
+  background: var(--surface-3, var(--surface-2));
+  color: var(--text-1);
+  border-color: var(--color-primary);
+}
+
+.settings-page__btn-subtle:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.settings-page__btn-subtle--danger {
+  color: var(--color-danger, #ef4444);
+}
+
+.settings-page__btn-subtle--danger:hover:not(:disabled) {
+  border-color: var(--color-danger, #ef4444);
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-danger, #ef4444);
+}
+
 /* Streaming Services */
 .settings-page__services-grid {
   display: grid;

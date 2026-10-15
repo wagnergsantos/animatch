@@ -104,6 +104,39 @@ describe('SettingsPage', () => {
         mal: 'mal_hero',
       })
     })
+
+    it('allows syncing and unlinking individual providers', () => {
+      const onRefreshProvider = vi.fn()
+      const onLinkedUsernamesChange = vi.fn()
+      render(
+        <SettingsPage
+          {...defaultProps}
+          linkedUsernames={{ anilist: 'ani_hero', kitsu: 'kitsu_hero', mal: '' }}
+          onRefreshProvider={onRefreshProvider}
+          onLinkedUsernamesChange={onLinkedUsernamesChange}
+        />
+      )
+
+      // Sync button for AniList
+      const aniSyncBtn = screen.getByTitle('Sincronizar AniList')
+      expect(aniSyncBtn).not.toBeDisabled()
+      fireEvent.click(aniSyncBtn)
+      expect(onRefreshProvider).toHaveBeenCalledWith('anilist')
+
+      // Sync button for empty MAL should be disabled
+      const malSyncBtn = screen.getByTitle('Sincronizar MyAnimeList')
+      expect(malSyncBtn).toBeDisabled()
+
+      // Unlink button for Kitsu
+      const kitsuUnlinkBtn = screen.getByTitle('Desvincular conta do Kitsu')
+      expect(kitsuUnlinkBtn).toBeInTheDocument()
+      fireEvent.click(kitsuUnlinkBtn)
+      expect(onLinkedUsernamesChange).toHaveBeenCalledWith({
+        anilist: 'ani_hero',
+        kitsu: '',
+        mal: '',
+      })
+    })
   })
 
   describe('Streaming & Subscriptions', () => {
@@ -187,12 +220,13 @@ describe('SettingsPage', () => {
   })
 
   describe('List Data & Actions', () => {
-    it('renders sync list button and logout button', () => {
+    it('renders single-provider sync button and logout button when 1 account is active', () => {
       const onRefresh = vi.fn()
       const onLogout = vi.fn()
       const { rerender } = render(
         <SettingsPage
           {...defaultProps}
+          linkedUsernames={{ anilist: 'ani_hero', kitsu: '', mal: '' }}
           provider="anilist"
           isLoading={false}
           onRefresh={onRefresh}
@@ -214,6 +248,7 @@ describe('SettingsPage', () => {
       rerender(
         <SettingsPage
           {...defaultProps}
+          linkedUsernames={{ anilist: 'ani_hero', kitsu: '', mal: '' }}
           provider="anilist"
           isLoading={true}
           onRefresh={onRefresh}
@@ -222,6 +257,43 @@ describe('SettingsPage', () => {
       )
       const syncingBtn = screen.getByRole('button', { name: /sincronizando com anilist/i })
       expect(syncingBtn).toBeDisabled()
+    })
+
+    it('renders sync all button and disconnect session button when multi-provider is active', () => {
+      const onRefresh = vi.fn()
+      const onLogout = vi.fn()
+      const { rerender } = render(
+        <SettingsPage
+          {...defaultProps}
+          linkedUsernames={{ anilist: 'ani_hero', kitsu: 'kitsu_hero', mal: 'mal_hero' }}
+          isLoading={false}
+          onRefresh={onRefresh}
+          onLogout={onLogout}
+        />
+      )
+
+      const syncAllBtn = screen.getByRole('button', { name: /sincronizar todos os provedores/i })
+      expect(syncAllBtn).toBeInTheDocument()
+      expect(syncAllBtn).not.toBeDisabled()
+      fireEvent.click(syncAllBtn)
+      expect(onRefresh).toHaveBeenCalledTimes(1)
+
+      const disconnectBtn = screen.getByRole('button', { name: /desconectar sessão atual/i })
+      expect(disconnectBtn).toBeInTheDocument()
+      fireEvent.click(disconnectBtn)
+      expect(onLogout).toHaveBeenCalledTimes(1)
+
+      rerender(
+        <SettingsPage
+          {...defaultProps}
+          linkedUsernames={{ anilist: 'ani_hero', kitsu: 'kitsu_hero', mal: 'mal_hero' }}
+          isLoading={true}
+          onRefresh={onRefresh}
+          onLogout={onLogout}
+        />
+      )
+      const syncingAllBtn = screen.getByRole('button', { name: /sincronizando todos os provedores/i })
+      expect(syncingAllBtn).toBeDisabled()
     })
   })
 })

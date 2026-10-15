@@ -23,6 +23,8 @@ export default function SettingsPage({
   titlePref = 'english',
   onTitlePrefChange,
   onRefresh,
+  onRefreshProvider,
+  hasMultiAccounts,
   isLoading = false,
   onLogout,
   provider = 'anilist',
@@ -88,6 +90,11 @@ export default function SettingsPage({
 
   const providerLabel = t(`providers.${provider}`, provider === 'mal' ? 'MyAnimeList' : provider === 'kitsu' ? 'Kitsu' : 'AniList')
   const syncBadge = getSyncStatusBadge()
+
+  const activeAccountsCount = Object.values(linkedUsernames || {}).filter(
+    (v) => typeof v === 'string' && v.trim().length > 0
+  ).length
+  const isMultiProvider = hasMultiAccounts ?? activeAccountsCount >= 2
 
   return (
     <div className={styles['settings-page']}>
@@ -161,6 +168,7 @@ export default function SettingsPage({
         </div>
 
         <div className={styles['settings-page__inputs-grid']}>
+          {/* AniList */}
           <div className={styles['settings-page__field']}>
             <label className={styles['settings-page__field-label']} htmlFor="page-linked-anilist">
               {t('settings.anilistUsername', { defaultValue: 'Usuário AniList' })}
@@ -178,8 +186,35 @@ export default function SettingsPage({
                 })
               }
             />
+            <div className={styles['settings-page__field-actions']}>
+              <button
+                type="button"
+                className={styles['settings-page__btn-subtle']}
+                disabled={!linkedUsernames?.anilist?.trim() || isLoading}
+                onClick={() => (onRefreshProvider ? onRefreshProvider('anilist') : onRefresh?.())}
+                title={t('settings.sync_provider_title', { provider: 'AniList', defaultValue: 'Sincronizar AniList' })}
+              >
+                🔄 {t('settings.sync_short', { defaultValue: 'Sincronizar' })}
+              </button>
+              {Boolean(linkedUsernames?.anilist?.trim()) && (
+                <button
+                  type="button"
+                  className={`${styles['settings-page__btn-subtle']} ${styles['settings-page__btn-subtle--danger']}`}
+                  onClick={() =>
+                    onLinkedUsernamesChange?.({
+                      ...linkedUsernames,
+                      anilist: '',
+                    })
+                  }
+                  title={t('settings.unlink_provider_title', { provider: 'AniList', defaultValue: 'Desvincular conta do AniList' })}
+                >
+                  ✕ {t('settings.unlink_provider', { defaultValue: 'Desvincular' })}
+                </button>
+              )}
+            </div>
           </div>
 
+          {/* Kitsu */}
           <div className={styles['settings-page__field']}>
             <label className={styles['settings-page__field-label']} htmlFor="page-linked-kitsu">
               {t('settings.kitsuUsername', { defaultValue: 'Usuário Kitsu' })}
@@ -197,8 +232,35 @@ export default function SettingsPage({
                 })
               }
             />
+            <div className={styles['settings-page__field-actions']}>
+              <button
+                type="button"
+                className={styles['settings-page__btn-subtle']}
+                disabled={!linkedUsernames?.kitsu?.trim() || isLoading}
+                onClick={() => (onRefreshProvider ? onRefreshProvider('kitsu') : onRefresh?.())}
+                title={t('settings.sync_provider_title', { provider: 'Kitsu', defaultValue: 'Sincronizar Kitsu' })}
+              >
+                🔄 {t('settings.sync_short', { defaultValue: 'Sincronizar' })}
+              </button>
+              {Boolean(linkedUsernames?.kitsu?.trim()) && (
+                <button
+                  type="button"
+                  className={`${styles['settings-page__btn-subtle']} ${styles['settings-page__btn-subtle--danger']}`}
+                  onClick={() =>
+                    onLinkedUsernamesChange?.({
+                      ...linkedUsernames,
+                      kitsu: '',
+                    })
+                  }
+                  title={t('settings.unlink_provider_title', { provider: 'Kitsu', defaultValue: 'Desvincular conta do Kitsu' })}
+                >
+                  ✕ {t('settings.unlink_provider', { defaultValue: 'Desvincular' })}
+                </button>
+              )}
+            </div>
           </div>
 
+          {/* MyAnimeList */}
           <div className={styles['settings-page__field']}>
             <label className={styles['settings-page__field-label']} htmlFor="page-linked-mal">
               {t('settings.malUsername', { defaultValue: 'Usuário MyAnimeList' })}
@@ -216,6 +278,32 @@ export default function SettingsPage({
                 })
               }
             />
+            <div className={styles['settings-page__field-actions']}>
+              <button
+                type="button"
+                className={styles['settings-page__btn-subtle']}
+                disabled={!linkedUsernames?.mal?.trim() || isLoading}
+                onClick={() => (onRefreshProvider ? onRefreshProvider('mal') : onRefresh?.())}
+                title={t('settings.sync_provider_title', { provider: 'MyAnimeList', defaultValue: 'Sincronizar MyAnimeList' })}
+              >
+                🔄 {t('settings.sync_short', { defaultValue: 'Sincronizar' })}
+              </button>
+              {Boolean(linkedUsernames?.mal?.trim()) && (
+                <button
+                  type="button"
+                  className={`${styles['settings-page__btn-subtle']} ${styles['settings-page__btn-subtle--danger']}`}
+                  onClick={() =>
+                    onLinkedUsernamesChange?.({
+                      ...linkedUsernames,
+                      mal: '',
+                    })
+                  }
+                  title={t('settings.unlink_provider_title', { provider: 'MyAnimeList', defaultValue: 'Desvincular conta do MyAnimeList' })}
+                >
+                  ✕ {t('settings.unlink_provider', { defaultValue: 'Desvincular' })}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </section>
@@ -346,7 +434,11 @@ export default function SettingsPage({
               disabled={isLoading}
             >
               {isLoading
-                ? t('settings.syncing', { provider: providerLabel })
+                ? isMultiProvider
+                  ? t('settings.syncing_all', { defaultValue: '⏳ Sincronizando todos os provedores...' })
+                  : t('settings.syncing', { provider: providerLabel })
+                : isMultiProvider
+                ? t('settings.sync_all', { defaultValue: '🌐 Sincronizar todos os provedores' })
                 : t('settings.sync', { provider: providerLabel })}
             </button>
           )}
@@ -356,8 +448,18 @@ export default function SettingsPage({
               type="button"
               className={`${styles['settings-page__btn']} ${styles['settings-page__btn--danger']}`}
               onClick={onLogout}
+              title={
+                isMultiProvider
+                  ? t('settings.logout_session_title', {
+                      defaultValue:
+                        'Desconecta os animes exibidos e volta à tela inicial. As contas vinculadas salvas permanecem seguras.',
+                    })
+                  : undefined
+              }
             >
-              {t('settings.logout', 'Trocar de conta')}
+              {isMultiProvider
+                ? t('settings.logout_session', { defaultValue: '🚪 Desconectar sessão atual' })
+                : t('settings.logout', { defaultValue: 'Trocar de conta' })}
             </button>
           )}
         </div>

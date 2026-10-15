@@ -677,12 +677,17 @@ describe('Dashboard', () => {
     // Switch to settings tab
     fireEvent.click(screen.getByRole('button', { name: /configurações/i }))
 
-    // Click refresh button in settings
-    const refreshButton = screen.getByRole('button', { name: /sincronizar/i })
+    // Click refresh all button in settings
+    const refreshButton = screen.getByRole('button', { name: /sincronizar todos os provedores/i })
     fireEvent.click(refreshButton)
 
     expect(refetchEnsemble).toHaveBeenCalled()
     expect(onRefresh).not.toHaveBeenCalled()
+
+    // Click per-provider sync button
+    const malSyncBtn = screen.getByTitle('Sincronizar MyAnimeList')
+    fireEvent.click(malSyncBtn)
+    expect(refetchEnsemble).toHaveBeenCalledWith('mal')
   })
 
   it('displays loading skeleton in grid when isEnsembleLoading is true and currentEntries is empty', () => {
