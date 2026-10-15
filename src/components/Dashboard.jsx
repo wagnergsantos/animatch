@@ -446,7 +446,6 @@ export default function Dashboard({
               onSeasonOnlyChange={setIsSeasonOnly}
               isStreamingOnly={isStreamingOnly}
               onStreamingOnlyChange={setIsStreamingOnly}
-              onOpenDecisionModal={() => setIsDecisionModalOpen(true)}
               onExportCSV={() => exportRecommendationsToCSV(recommendations, t, t('dashboard.exportFilenamePrefix'))}
               viewMode={viewMode}
               onViewModeChange={setViewMode}

@@ -204,20 +204,6 @@ describe('FilterBar', () => {
     expect(handleSeasonChange).toHaveBeenCalledWith(false)
     expect(handleStreamingChange).toHaveBeenCalledWith(false)
   })
-
-  it('renders shortcut button when onOpenDecisionModal is provided and triggers callback', () => {
-    const onOpenDecisionModal = vi.fn()
-    render(
-      <FilterBar
-        onOpenDecisionModal={onOpenDecisionModal}
-      />
-    )
-
-    const decisionButton = screen.getByRole('button', { name: /Escolha pra mim/i })
-    expect(decisionButton).toBeInTheDocument()
-    fireEvent.click(decisionButton)
-    expect(onOpenDecisionModal).toHaveBeenCalledTimes(1)
-  })
 })
 
 

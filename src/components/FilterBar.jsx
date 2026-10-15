@@ -57,7 +57,6 @@ export default function FilterBar({
   onSeasonOnlyChange,
   isStreamingOnly = false,
   onStreamingOnlyChange,
-  onOpenDecisionModal,
   onExportCSV,
   viewMode = 'grid',
   onViewModeChange,
@@ -220,17 +219,6 @@ export default function FilterBar({
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-          {onOpenDecisionModal && (
-            <button
-              type="button"
-              className={styles['export-csv-btn']}
-              onClick={onOpenDecisionModal}
-              title={t('decision.title')}
-            >
-              🎲 {t('decision.title')}
-            </button>
-          )}
-
           {onViewModeChange && (
             <div className={styles['view-mode-toggle']} role="group" aria-label="Modo de visualização">
               <button
