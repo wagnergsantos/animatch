@@ -107,6 +107,7 @@ export default function Dashboard({
     consolidatedEntries,
     failedProviders,
     isLoading: isEnsembleLoading,
+    loadingProviders = [],
     refetch: refetchEnsemble,
   } = useEnsembleData(linkedUsernames, { enabled: Boolean(hasMultiAccounts) })
 
@@ -480,6 +481,7 @@ export default function Dashboard({
             onRefreshProvider={(p) => (hasMultiAccounts ? refetchEnsemble(p) : handleRefresh())}
             hasMultiAccounts={hasMultiAccounts}
             isLoading={Boolean(isLoading || (hasMultiAccounts && isEnsembleLoading))}
+            loadingProviders={loadingProviders}
             onLogout={onLogout}
             subscriptions={subscriptions}
             onSubscriptionsChange={setSubscriptions}

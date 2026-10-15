@@ -52,6 +52,7 @@
     "sync_all": "🌐 Sincronizar todos os provedores",
     "syncing_all": "⏳ Sincronizando todos os provedores...",
     "sync_short": "Sincronizar",
+    "syncing_short": "Sincronizando...",
     "sync_provider_title": "Sincronizar {{provider}}",
     "unlink_provider": "Desvincular",
     "unlink_provider_title": "Desvincular conta do {{provider}}",

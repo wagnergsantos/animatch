@@ -52,6 +52,7 @@
     "sync_all": "🌐 Sync all providers",
     "syncing_all": "⏳ Syncing all providers...",
     "sync_short": "Sync",
+    "syncing_short": "Syncing...",
     "sync_provider_title": "Sync {{provider}}",
     "unlink_provider": "Unlink",
     "unlink_provider_title": "Unlink {{provider}} account",

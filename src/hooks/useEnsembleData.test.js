@@ -241,5 +241,52 @@ describe('useEnsembleData', () => {
     expect(result.current.consolidatedEntries).toEqual([])
     expect(result.current.failedProviders).toEqual([])
   })
+
+  it('tracks granular loadingProviders when refetching a single provider', async () => {
+    let resolveMal
+    api.fetchUserEntries.mockImplementation((username, provider) => {
+      if (provider === 'mal') {
+        return new Promise((resolve) => {
+          resolveMal = resolve
+        })
+      }
+      return Promise.resolve([])
+    })
+
+    const { result } = renderHook(() =>
+      useEnsembleData({ anilist: 'alice', mal: 'alice_mal' }, { enabled: true })
+    )
+
+    expect(result.current.loadingProviders).toEqual(expect.arrayContaining(['anilist', 'mal']))
+
+    await act(async () => {
+      resolveMal([])
+    })
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    expect(result.current.loadingProviders).toEqual([])
+
+    let resolveMal2
+    api.fetchUserEntries.mockImplementation((username, provider) => {
+      if (provider === 'mal') {
+        return new Promise((resolve) => {
+          resolveMal2 = resolve
+        })
+      }
+      return Promise.resolve([])
+    })
+
+    act(() => {
+      result.current.refetch('mal')
+    })
+
+    expect(result.current.loadingProviders).toEqual(['mal'])
+    expect(result.current.isLoading).toBe(true)
+
+    await act(async () => {
+      resolveMal2([])
+    })
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    expect(result.current.loadingProviders).toEqual([])
+  })
 })
 

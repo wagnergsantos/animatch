@@ -137,6 +137,31 @@ describe('SettingsPage', () => {
         mal: '',
       })
     })
+
+    it('only disables and shows loading state on the syncing provider button', () => {
+      render(
+        <SettingsPage
+          {...defaultProps}
+          linkedUsernames={{ anilist: 'ani_hero', kitsu: 'kitsu_hero', mal: 'mal_hero' }}
+          loadingProviders={['kitsu']}
+        />
+      )
+
+      // Kitsu is syncing
+      const kitsuSyncBtn = screen.getByTitle('Sincronizar Kitsu')
+      expect(kitsuSyncBtn).toBeDisabled()
+      expect(kitsuSyncBtn).toHaveTextContent(/sincronizando/i)
+
+      // AniList is NOT syncing -> stays enabled
+      const aniSyncBtn = screen.getByTitle('Sincronizar AniList')
+      expect(aniSyncBtn).not.toBeDisabled()
+      expect(aniSyncBtn).toHaveTextContent(/sincronizar/i)
+      expect(aniSyncBtn).not.toHaveTextContent(/sincronizando/i)
+
+      // MAL is NOT syncing -> stays enabled
+      const malSyncBtn = screen.getByTitle('Sincronizar MyAnimeList')
+      expect(malSyncBtn).not.toBeDisabled()
+    })
   })
 
   describe('Streaming & Subscriptions', () => {

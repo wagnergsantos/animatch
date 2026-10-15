@@ -52,6 +52,7 @@
     "sync_all": "🌐 すべてのサービスを同期",
     "syncing_all": "⏳ すべてのサービスを同期中...",
     "sync_short": "同期",
+    "syncing_short": "同期中...",
     "sync_provider_title": "{{provider}} を同期",
     "unlink_provider": "連携解除",
     "unlink_provider_title": "{{provider}} の連携を解除",

@@ -22,6 +22,7 @@ export function useEnsembleData(linkedUsernames = {}, { enabled = true } = {}) {
   const [consolidatedEntries, setConsolidatedEntries] = useState([])
   const [failedProviders, setFailedProviders] = useState([])
   const [isLoading, setIsLoading] = useState(false)
+  const [loadingProviders, setLoadingProviders] = useState([])
 
   const isMountedRef = useRef(true)
   const entriesByProviderRef = useRef({})
@@ -61,6 +62,7 @@ export function useEnsembleData(linkedUsernames = {}, { enabled = true } = {}) {
           setConsolidatedEntries([])
           setFailedProviders([])
           setIsLoading(false)
+          setLoadingProviders([])
         }
         return
       }
@@ -82,6 +84,11 @@ export function useEnsembleData(linkedUsernames = {}, { enabled = true } = {}) {
 
       if (isMountedRef.current) {
         setIsLoading(true)
+        if (targetProvider) {
+          setLoadingProviders((prev) => Array.from(new Set([...prev, targetProvider])))
+        } else {
+          setLoadingProviders(entriesToFetch.map(([p]) => p))
+        }
       }
 
       const fetchOpts = options.forceRefresh ? { forceRefresh: true } : {}
@@ -94,6 +101,18 @@ export function useEnsembleData(linkedUsernames = {}, { enabled = true } = {}) {
       const results = await Promise.allSettled(promises)
 
       if (!isMountedRef.current || fetchId !== fetchIdRef.current) {
+        if (isMountedRef.current) {
+          if (targetProvider) {
+            setLoadingProviders((prev) => {
+              const next = prev.filter((p) => p !== targetProvider)
+              if (next.length === 0) setIsLoading(false)
+              return next
+            })
+          } else {
+            setLoadingProviders([])
+            setIsLoading(false)
+          }
+        }
         return
       }
 
@@ -121,7 +140,13 @@ export function useEnsembleData(linkedUsernames = {}, { enabled = true } = {}) {
         setEntriesByProvider(newEntriesByProvider)
         setConsolidatedEntries(consolidated)
         setFailedProviders(newFailedProviders)
-        setIsLoading(false)
+        setLoadingProviders((prev) => {
+          const next = prev.filter((p) => p !== targetProvider)
+          if (next.length === 0) {
+            setIsLoading(false)
+          }
+          return next
+        })
       } else {
         const successfulMap = {}
         const failedList = []
@@ -143,6 +168,7 @@ export function useEnsembleData(linkedUsernames = {}, { enabled = true } = {}) {
         setEntriesByProvider(successfulMap)
         setConsolidatedEntries(consolidated)
         setFailedProviders(failedList)
+        setLoadingProviders([])
         setIsLoading(false)
       }
     },
@@ -170,6 +196,7 @@ export function useEnsembleData(linkedUsernames = {}, { enabled = true } = {}) {
     consolidatedEntries,
     failedProviders,
     isLoading,
+    loadingProviders,
     refetch,
   }
 }
