@@ -74,6 +74,12 @@ export default function GenreOriginModal({ genre, stats, onClose, onFilterGenre 
         </div>
 
         <div className={styles['genre-origin-modal__summary']}>
+          {(stats.lowerBound != null || stats.adjustedAverage != null) && (
+            <p>{t('modals.genreOrigin.lowerBound', { score: (stats.lowerBound ?? stats.adjustedAverage).toFixed(2) })}</p>
+          )}
+          {stats.bayesianAverage != null && (
+            <p>{t('modals.genreOrigin.bayesianAverage', { avg: stats.bayesianAverage.toFixed(2) })}</p>
+          )}
           <p>{t('modals.genreOrigin.average', { avg: (stats.average ?? 0).toFixed(2) })}</p>
           <p>{t('modals.genreOrigin.scoredCount', { count: stats.scoredCount ?? sourceAnimes.length })}</p>
         </div>

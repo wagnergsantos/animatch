@@ -37,11 +37,11 @@ describe('TasteProfile Component', () => {
 
     // Action (7.80), Drama (7.20), Sci-Fi (7.00), Horror (6.80), Comedy (6.50) should be shown (5 total)
     // Romance (6.00) should be sliced out (6th)
-    expect(screen.getByText('Action ★ 8.00 (10)')).toBeInTheDocument()
-    expect(screen.getByText('Drama ★ 7.50 (5)')).toBeInTheDocument()
+    expect(screen.getByText('Action ★ 7.80 (10)')).toBeInTheDocument()
+    expect(screen.getByText('Drama ★ 7.20 (5)')).toBeInTheDocument()
     expect(screen.getByText('Sci-Fi ★ 7.00 (4)')).toBeInTheDocument()
     expect(screen.getByText('Horror ★ 6.80 (3)')).toBeInTheDocument()
-    expect(screen.getByText('Comedy ★ 9.00 (2)')).toBeInTheDocument()
+    expect(screen.getByText('Comedy ★ 6.50 (2)')).toBeInTheDocument()
     expect(screen.queryByText(/Romance/)).not.toBeInTheDocument()
   })
 

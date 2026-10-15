@@ -220,6 +220,8 @@
     "genreOrigin": {
       "title": "スコアの由来：{{genre}}",
       "close": "モーダルを閉じる",
+      "lowerBound": "スコア (下限信頼区間)：{{score}}",
+      "bayesianAverage": "ベイズ平均：{{avg}}",
       "average": "実平均：{{avg}}",
       "scoredCount": "評価済みアニメ：{{count}}",
       "yourScore": "あなたの評価：{{score}}",

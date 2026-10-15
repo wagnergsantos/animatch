@@ -223,6 +223,8 @@
     "genreOrigin": {
       "title": "Score origin: {{genre}}",
       "close": "Close modal",
+      "lowerBound": "Score (Lower Bound): {{score}}",
+      "bayesianAverage": "Bayesian Average: {{avg}}",
       "average": "Real Average: {{avg}}",
       "scoredCount": "Animes scored: {{count}}",
       "yourScore": "Your Score: {{score}}",
