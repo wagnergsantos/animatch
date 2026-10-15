@@ -362,12 +362,33 @@ export function mergeAnimeEntries(entriesByProvider = {}) {
       if (!mergedMedia.idMal && m.idMal) mergedMedia.idMal = m.idMal
     }
 
+    const providerUrls = {}
+    for (const { entry, provider } of group.items) {
+      const m = entry.media || entry || {}
+      const url = m.siteUrl || entry.siteUrl
+      if (url) {
+        providerUrls[provider] = url
+      } else if (provider === 'anilist' && (m.id || entry.id)) {
+        providerUrls[provider] = `https://anilist.co/anime/${m.id || entry.id}`
+      } else if (provider === 'kitsu' && (m.id || entry.id)) {
+        providerUrls[provider] = `https://kitsu.io/anime/${m.id || entry.id}`
+      } else if (provider === 'mal' && (m.id || entry.id || m.idMal || entry.idMal)) {
+        providerUrls[provider] = `https://myanimelist.net/anime/${m.id || entry.id || m.idMal || entry.idMal}`
+      }
+    }
+    if (!providerUrls.mal && mergedMedia.idMal) {
+      providerUrls.mal = `https://myanimelist.net/anime/${mergedMedia.idMal}`
+    }
+
+    mergedMedia.providerUrls = providerUrls
+
     const mergedEntry = {
       ...bestEntry,
       status: bestStatus,
       score: finalScore,
       planningProviders: Array.from(group.planningProviders),
       sourceProviders: Array.from(group.providers),
+      providerUrls,
       media: mergedMedia,
     }
 

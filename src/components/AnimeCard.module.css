@@ -213,51 +213,77 @@
   white-space: nowrap;
 }
 
+.card-provider-actions,
 .card-provider-badges {
   position: absolute;
-  top: var(--space-2);
+  bottom: var(--space-2);
   right: var(--space-2);
   display: flex;
   align-items: center;
   gap: 4px;
   z-index: 3;
+  max-width: calc(100% - var(--space-4));
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
-.provider-pill {
+.provider-pill,
+.provider-pill-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 2px 6px;
-  font-size: 10px;
+  gap: 4px;
+  padding: 3px 8px;
+  font-size: 11px;
   font-weight: 700;
   line-height: 1.2;
   border-radius: var(--radius-sm);
   color: #ffffff;
-  background: rgba(15, 23, 42, 0.85);
+  background: rgba(15, 23, 42, 0.9);
   border: 1px solid rgba(255, 255, 255, 0.25);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
+  text-decoration: none;
 }
 
-.provider-pill--anilist {
-  background: rgba(2, 169, 255, 0.9);
+.provider-pill-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.2);
+}
+
+.provider-pill-btn__label {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.provider-pill-btn__icon {
+  font-size: 10px;
+  opacity: 0.85;
+}
+
+.provider-pill--anilist,
+.provider-pill-btn--anilist {
+  background: rgba(2, 169, 255, 0.92);
   border-color: #02a9ff;
   color: #ffffff;
 }
 
-.provider-pill--kitsu {
-  background: rgba(253, 117, 92, 0.9);
+.provider-pill--kitsu,
+.provider-pill-btn--kitsu {
+  background: rgba(253, 117, 92, 0.92);
   border-color: #fd755c;
   color: #ffffff;
 }
 
-.provider-pill--mal {
-  background: rgba(46, 81, 162, 0.9);
+.provider-pill--mal,
+.provider-pill-btn--mal {
+  background: rgba(46, 81, 162, 0.92);
   border-color: #2e51a2;
   color: #ffffff;
 }
+
 
 

@@ -192,6 +192,7 @@ export default function Dashboard({
       const streamingLinks = r.streamingLinks ?? match?.streamingLinks ?? match?.media?.streamingLinks
       const planningProviders = r.planningProviders ?? match?.planningProviders ?? []
       const sourceProviders = r.sourceProviders ?? match?.sourceProviders ?? []
+      const providerUrls = r.providerUrls ?? match?.providerUrls ?? match?.media?.providerUrls ?? {}
       return {
         ...r,
         seasonYear,
@@ -203,6 +204,7 @@ export default function Dashboard({
         streamingLinks,
         planningProviders,
         sourceProviders,
+        providerUrls,
       }
     })
 

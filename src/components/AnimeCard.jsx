@@ -21,9 +21,37 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
 
   const genres = anime?.genres ?? []
   const planningProviders = Array.isArray(anime?.planningProviders) ? anime.planningProviders : []
+  const sourceProviders = Array.isArray(anime?.sourceProviders) ? anime.sourceProviders : []
   const hasMultiProviders = planningProviders.length > 1
   const presenceMultiplier = typeof anime?.presenceMultiplier === 'number' ? anime.presenceMultiplier : 1
   const presencePercent = Math.round((presenceMultiplier - 1) * 100)
+
+  // Determina provedores a exibir no card
+  const activeProviders = planningProviders.length > 0
+    ? planningProviders
+    : (sourceProviders.length > 0 ? sourceProviders : (anime?.provider ? [anime.provider] : ['anilist']))
+
+  const getProviderUrl = (providerKey) => {
+    if (anime?.providerUrls && anime.providerUrls[providerKey]) {
+      return anime.providerUrls[providerKey]
+    }
+    if (anime?.provider === providerKey && anime?.siteUrl) {
+      return anime.siteUrl
+    }
+    if (providerKey === 'anilist') {
+      const id = (anime?.provider === 'anilist' ? anime?.id : null) || anime?.media?.id || anime?.id
+      return id ? `https://anilist.co/anime/${id}` : (anime?.siteUrl || '#')
+    }
+    if (providerKey === 'mal') {
+      const malId = anime?.idMal || anime?.media?.idMal || (anime?.provider === 'mal' ? (anime?.id || anime?.media?.id) : null)
+      return malId ? `https://myanimelist.net/anime/${malId}` : (anime?.siteUrl || '#')
+    }
+    if (providerKey === 'kitsu') {
+      const kitsuId = (anime?.provider === 'kitsu' ? (anime?.id || anime?.media?.id) : null)
+      return kitsuId ? `https://kitsu.io/anime/${kitsuId}` : (anime?.siteUrl || '#')
+    }
+    return anime?.siteUrl || '#'
+  }
 
   // Extrai titulo principal e secundario
   const rawTitleObj = anime?.titleObj || (typeof anime?.title === 'object' ? anime?.title : null) || anime?.media?.title || {}
@@ -43,11 +71,7 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
   }
 
   const title = mainTitle
-  const siteUrl = anime?.siteUrl || (anime?.id ? `https://anilist.co/anime/${anime.id}` : '#')
-  const providerKey = anime?.provider || 'anilist'
-  const providerLabel = t(`providers.${providerKey}`, { defaultValue: PROVIDER_FULL_LABELS[providerKey] || 'AniList' })
 
-  
   // Deduplicate streaming links by site
   const streamingLinks = []
   const seenSites = new Set()
@@ -77,9 +101,12 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
     }
   }
 
-  const handleDirectAnilistClick = (e) => {
+  const handleProviderLinkClick = (e, providerKey) => {
     e.stopPropagation()
-    window.open(siteUrl, '_blank', 'noopener,noreferrer')
+    const url = getProviderUrl(providerKey)
+    if (url && url !== '#') {
+      window.open(url, '_blank', 'noopener,noreferrer')
+    }
   }
 
   return (
@@ -132,37 +159,36 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
               })
             )}
           </div>
-          {hasMultiProviders && (
-            <div
-              className={styles['card-provider-badges']}
-              title={t('ensemble.presence_badge_tooltip', {
-                providers: planningProviders
-                  .map((p) => t(`providers.${p}`, { defaultValue: PROVIDER_FULL_LABELS[p] || p }))
-                  .join(', '),
-                percent: presencePercent,
-                defaultValue: `Presente no seu Planning em: ${planningProviders.map((p) => PROVIDER_FULL_LABELS[p] || p).join(', ')} (+${presencePercent}%)`,
-              })}
-              data-testid="card-provider-badges"
-            >
-              {planningProviders.map((p) => (
-                <span
-                  key={p}
-                  className={`${styles['provider-pill']} ${styles[`provider-pill--${p}`] || ''}`}
-                >
-                  {PROVIDER_SHORT_LABELS[p] || p}
-                </span>
-              ))}
-            </div>
-          )}
-          <button
-            className={styles['anime-card__anilist-quickbtn']}
-            onClick={handleDirectAnilistClick}
-            title={t('labels.openProvider', { provider: providerLabel })}
-            aria-label={t('labels.openProvider', { provider: providerLabel })}
-            data-testid="anime-card-quick-link"
+          <div
+            className={styles['card-provider-actions']}
+            {...(hasMultiProviders ? { 'data-testid': 'card-provider-badges' } : {})}
+            title={hasMultiProviders ? t('ensemble.presence_badge_tooltip', {
+              providers: planningProviders
+                .map((p) => t(`providers.${p}`, { defaultValue: PROVIDER_FULL_LABELS[p] || p }))
+                .join(', '),
+              percent: presencePercent,
+              defaultValue: `Presente no seu Planning em: ${planningProviders.map((p) => PROVIDER_FULL_LABELS[p] || p).join(', ')} (+${presencePercent}%)`,
+            }) : undefined}
           >
-            🔗 {providerLabel} ↗
-          </button>
+            {activeProviders.map((p) => {
+              const fullLabel = t(`providers.${p}`, { defaultValue: PROVIDER_FULL_LABELS[p] || p })
+              const shortLabel = PROVIDER_SHORT_LABELS[p] || p
+              return (
+                <button
+                  key={p}
+                  type="button"
+                  className={`${styles['provider-pill-btn']} ${styles[`provider-pill-btn--${p}`] || ''}`}
+                  onClick={(e) => handleProviderLinkClick(e, p)}
+                  title={t('labels.openProvider', { provider: fullLabel })}
+                  aria-label={t('labels.openProvider', { provider: fullLabel })}
+                  data-testid="anime-card-quick-link"
+                >
+                  <span className={styles['provider-pill-btn__label']}>{shortLabel}</span>
+                  <span className={styles['provider-pill-btn__icon']}>↗</span>
+                </button>
+              )
+            })}
+          </div>
         </div>
         <div className={styles['anime-card__body']}>
           <h3 className={styles['anime-card__title']}>{mainTitle}</h3>

@@ -229,24 +229,44 @@
   border-top: 1px solid var(--color-border);
   display: flex;
   justify-content: flex-end;
+  gap: var(--space-2);
+  flex-wrap: wrap;
 }
 
-.anime-modal__anilist-btn {
+.anime-modal__anilist-btn,
+.anime-modal__provider-btn {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
   background: var(--color-primary);
-  color: var(--color-bg);
+  color: #ffffff;
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-md);
   font-weight: 600;
   font-size: var(--text-sm);
   text-decoration: none;
-  transition: opacity 0.2s;
+  transition: opacity 0.2s, transform 0.15s;
 }
 
-.anime-modal__anilist-btn:hover {
+.anime-modal__anilist-btn:hover,
+.anime-modal__provider-btn:hover {
   opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.anime-modal__provider-btn--anilist {
+  background: #02a9ff;
+  color: #ffffff;
+}
+
+.anime-modal__provider-btn--kitsu {
+  background: #fd755c;
+  color: #ffffff;
+}
+
+.anime-modal__provider-btn--mal {
+  background: #2e51a2;
+  color: #ffffff;
 }
 
 @keyframes fadeIn {

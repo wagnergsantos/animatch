@@ -301,6 +301,9 @@ describe('scoreRecommendations', () => {
       siteUrl: 'https://anilist.co/anime/10',
       streamingLinks: [],
       provider: 'anilist',
+      planningProviders: [],
+      sourceProviders: [],
+      providerUrls: {},
     })
 
     const entry11Result = result.find((r) => r.id === 11)
@@ -329,6 +332,9 @@ describe('scoreRecommendations', () => {
       siteUrl: 'https://anilist.co/anime/11',
       streamingLinks: [],
       provider: 'anilist',
+      planningProviders: [],
+      sourceProviders: [],
+      providerUrls: {},
     })
   })
 

@@ -558,6 +558,45 @@ describe('ensemble logic', () => {
       expect(merged[0].status).toBe('PLANNING')
       expect(merged[0].planningProviders).toEqual(['kitsu'])
     })
+
+    it('populates and consolidates providerUrls from entries across providers', () => {
+      const entriesByProvider = {
+        anilist: [
+          {
+            status: 'PLANNING',
+            score: 0,
+            media: {
+              id: 101,
+              idMal: 501,
+              title: { english: 'Frieren' },
+              siteUrl: 'https://anilist.co/anime/101',
+            },
+          },
+        ],
+        mal: [
+          {
+            status: 'PLANNING',
+            score: 0,
+            media: {
+              id: 501,
+              title: { english: 'Frieren' },
+              siteUrl: 'https://myanimelist.net/anime/501',
+            },
+          },
+        ],
+      }
+
+      const merged = mergeAnimeEntries(entriesByProvider)
+      expect(merged).toHaveLength(1)
+      expect(merged[0].providerUrls).toEqual({
+        anilist: 'https://anilist.co/anime/101',
+        mal: 'https://myanimelist.net/anime/501',
+      })
+      expect(merged[0].media.providerUrls).toEqual({
+        anilist: 'https://anilist.co/anime/101',
+        mal: 'https://myanimelist.net/anime/501',
+      })
+    })
   })
 })
 

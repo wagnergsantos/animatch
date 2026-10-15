@@ -221,6 +221,9 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
       siteUrl: media.siteUrl || (media.id ? `https://anilist.co/anime/${media.id}` : '#'),
       streamingLinks: media.streamingLinks || streamingLinks,
       provider: media.provider || 'anilist',
+      planningProviders: entry.planningProviders || media.planningProviders || [],
+      sourceProviders: entry.sourceProviders || media.sourceProviders || [],
+      providerUrls: entry.providerUrls || media.providerUrls || (media.siteUrl ? { [media.provider || 'anilist']: media.siteUrl } : {}),
     }
   })
 

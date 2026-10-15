@@ -46,14 +46,38 @@ export default function AnimeDetailModal({ anime, titlePref = 'english', onClose
   }
 
   const title = mainTitle
-  const siteUrl = anime?.siteUrl || (anime?.id ? `https://anilist.co/anime/${anime.id}` : '#')
   const genres = anime?.genres ?? []
-  const providerKey = anime?.provider || 'anilist'
-  const providerLabel = t(`providers.${providerKey}`, { defaultValue: PROVIDER_FULL_LABELS[providerKey] || 'AniList' })
   const planningProviders = Array.isArray(anime?.planningProviders) ? anime.planningProviders : []
+  const sourceProviders = Array.isArray(anime?.sourceProviders) ? anime.sourceProviders : []
   const hasMultiProviders = planningProviders.length > 1
   const presenceMultiplier = typeof anime?.presenceMultiplier === 'number' ? anime.presenceMultiplier : 1
   const presencePercent = Math.round((presenceMultiplier - 1) * 100)
+
+  const activeProviders = planningProviders.length > 0
+    ? planningProviders
+    : (sourceProviders.length > 0 ? sourceProviders : (anime?.provider ? [anime.provider] : ['anilist']))
+
+  const getProviderUrl = (providerKey) => {
+    if (anime?.providerUrls && anime.providerUrls[providerKey]) {
+      return anime.providerUrls[providerKey]
+    }
+    if (anime?.provider === providerKey && anime?.siteUrl) {
+      return anime.siteUrl
+    }
+    if (providerKey === 'anilist') {
+      const id = (anime?.provider === 'anilist' ? anime?.id : null) || anime?.media?.id || anime?.id
+      return id ? `https://anilist.co/anime/${id}` : (anime?.siteUrl || '#')
+    }
+    if (providerKey === 'mal') {
+      const malId = anime?.idMal || anime?.media?.idMal || (anime?.provider === 'mal' ? (anime?.id || anime?.media?.id) : null)
+      return malId ? `https://myanimelist.net/anime/${malId}` : (anime?.siteUrl || '#')
+    }
+    if (providerKey === 'kitsu') {
+      const kitsuId = (anime?.provider === 'kitsu' ? (anime?.id || anime?.media?.id) : null)
+      return kitsuId ? `https://kitsu.io/anime/${kitsuId}` : (anime?.siteUrl || '#')
+    }
+    return anime?.siteUrl || '#'
+  }
 
   
   const streamingLinks = []
@@ -184,14 +208,21 @@ export default function AnimeDetailModal({ anime, titlePref = 'english', onClose
         </div>
 
         <div className={styles['anime-modal__footer']}>
-          <a
-            href={siteUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles['anime-modal__anilist-btn']}
-          >
-            🔗 {t('labels.viewMoreOn', { provider: providerLabel })} ↗
-          </a>
+          {activeProviders.map((p) => {
+            const label = t(`providers.${p}`, { defaultValue: PROVIDER_FULL_LABELS[p] || p })
+            const url = getProviderUrl(p)
+            return (
+              <a
+                key={p}
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`${styles['anime-modal__provider-btn']} ${styles[`anime-modal__provider-btn--${p}`] || ''}`}
+              >
+                🔗 {t('labels.viewMoreOn', { provider: label })} ↗
+              </a>
+            )
+          })}
         </div>
       </div>
     </div>

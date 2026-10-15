@@ -118,7 +118,7 @@ describe('AnimeCard', () => {
     render(<AnimeCard anime={anime} />)
     const quickBtn = screen.getByRole('button', { name: /Abrir no Kitsu/i })
     expect(quickBtn).toBeInTheDocument()
-    expect(quickBtn).toHaveTextContent('🔗 Kitsu ↗')
+    expect(quickBtn).toHaveTextContent(/Kitsu/i)
   })
 
   it('renders anchor anime reason synthesis when anchorAnimes are available', () => {
