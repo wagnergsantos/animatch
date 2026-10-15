@@ -208,6 +208,12 @@
 }
 
 .genre-table__bayesian {
-  font-weight: 700;
-  color: var(--text-1);
+  font-weight: 500;
+  color: var(--text-2);
 }
+
+.genre-table__lower-bound {
+  font-weight: 700;
+  color: var(--accent);
+}
+

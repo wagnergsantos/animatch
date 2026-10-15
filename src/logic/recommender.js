@@ -1,5 +1,7 @@
 export const DEFAULT_MIN_GENRE_COUNT = 2
-export const DEFAULT_CONFIDENCE_CONSTANT = 15
+export const DEFAULT_CONFIDENCE_CONSTANT = 25
+export const DEFAULT_SCORE_STD_DEV = 1.2
+export const CONFIDENCE_Z = 1.96
 export const WATCHING_SCORE_WEIGHT = 0.7
 
 export function resolveYear(item) {
@@ -19,6 +21,8 @@ export function buildTasteProfile(entries = [], options = {}) {
   const {
     minGenreCount = DEFAULT_MIN_GENRE_COUNT,
     confidenceConstant = DEFAULT_CONFIDENCE_CONSTANT,
+    scoreStdDev = DEFAULT_SCORE_STD_DEV,
+    confidenceZ = CONFIDENCE_Z,
   } = options
   const genreStats = new Map()
   let globalWeightedTotal = 0
@@ -89,13 +93,21 @@ export function buildTasteProfile(entries = [], options = {}) {
   for (const [genre, stats] of genreStats) {
     if (stats.scoredCount >= minGenreCount) {
       const realAverage = stats.total / stats.weightTotal
-      const adjustedAverage =
+      const bayesianAverage =
         (confidenceConstant * userGlobalAverage + stats.total) /
         (confidenceConstant + stats.weightTotal)
+      const standardError = scoreStdDev / Math.sqrt(confidenceConstant + stats.weightTotal)
+      const lowerBound = Math.max(0, bayesianAverage - confidenceZ * standardError)
+
+      const roundedAverage = Math.round(realAverage * 100) / 100
+      const roundedBayesianAverage = Math.round(bayesianAverage * 100) / 100
+      const roundedLowerBound = Math.round(lowerBound * 100) / 100
 
       profile.set(genre, {
-        average: Math.round(realAverage * 100) / 100,
-        adjustedAverage: Math.round(adjustedAverage * 100) / 100,
+        average: roundedAverage,
+        bayesianAverage: roundedBayesianAverage,
+        lowerBound: roundedLowerBound,
+        adjustedAverage: roundedLowerBound,
         count: stats.count,
         scoredCount: stats.scoredCount,
         sourceAnimes: stats.sourceAnimes,

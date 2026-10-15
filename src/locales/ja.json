@@ -20,6 +20,7 @@
     "planned": "計画中",
     "realAverage": "実平均",
     "bayesianAverage": "ベイズ平均",
+    "lowerBound": "スコア (下限信頼区間)",
     "viewRecommendationsFor": "{{genre}} のおすすめを見る"
   },
   "settings": {

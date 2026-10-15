@@ -57,7 +57,7 @@ describe('analytics logic', () => {
     ])
   })
 
-  it('computes bayesian genre stats filtered by min 2 scored entries including plannedCount', () => {
+  it('computes bayesian genre stats filtered by min 2 scored entries including plannedCount and lowerBound', () => {
     const genreStats = computeBayesianGenreStats(sampleEntries, 15)
     // Only Action has 2 scored entries in sample
     expect(genreStats).toHaveLength(1)
@@ -66,5 +66,41 @@ describe('analytics logic', () => {
     expect(genreStats[0].scoredCount).toBe(2)
     expect(genreStats[0].plannedCount).toBe(0)
     expect(genreStats[0].realAverage).toBe(9.0)
+    expect(genreStats[0].bayesianAverage).toBeDefined()
+    expect(genreStats[0].lowerBound).toBeDefined()
+    expect(genreStats[0].lowerBound).toBeLessThan(genreStats[0].bayesianAverage)
+  })
+
+  it('ranks high-volume solid genres above low-volume inflated genres using lowerBound and C=25', () => {
+    const testEntries = [
+      ...Array.from({ length: 4 }, () => ({
+        status: 'COMPLETED',
+        score: 9.75,
+        media: { genres: ['China'] },
+      })),
+      ...Array.from({ length: 129 }, () => ({
+        status: 'COMPLETED',
+        score: 8.26,
+        media: { genres: ['Drama'] },
+      })),
+      ...Array.from({ length: 159 }, () => ({
+        status: 'COMPLETED',
+        score: 8.07,
+        media: { genres: ['Fantasy'] },
+      })),
+      ...Array.from({ length: 100 }, () => ({
+        status: 'COMPLETED',
+        score: 7.5,
+        media: { genres: ['Sci-Fi'] },
+      })),
+    ]
+
+    const stats = computeBayesianGenreStats(testEntries)
+    // By default C=25 and sorted by lowerBound descending
+    expect(stats[0].genre).toBe('Drama')
+    const fantasy = stats.find((s) => s.genre === 'Fantasy')
+    const china = stats.find((s) => s.genre === 'China')
+
+    expect(fantasy.lowerBound).toBeGreaterThan(china.lowerBound)
   })
 })

@@ -226,7 +226,7 @@ Permitir consolidar os dados de múltiplas plataformas (AniList, Kitsu, MyAnimeL
 
 ---
 
-### B8. Persistência Offline-First e Sincronização em Nuvem (IndexedDB + Supabase Sync)
+### B8. Persistência Offline-First e Sincronização em Nuvem (IndexedDB + Supabase Sync) (#16)
 
 **Reaproveita:** `apiCache.js` (substituição/evolução), `useEnsembleData.js`, Supabase Auth (`useAuth`) e banco Supabase Postgres.
 
@@ -297,7 +297,7 @@ Monitorar latência de APIs externas (AniList/Kitsu/MAL), taxas de erro de rende
 | 8 | B2 — Modo Decisão | Melhoria | 🚀 Features | ✅ Concluído | Sorteio ponderado Top 20, filtros de streaming e modo rápido (#9). |
 | 9 | B6 — Sync Supabase | Melhoria | 🚀 Features | ✅ Concluído | Login Supabase Auth, settings sync, multi-provider accounts e SettingsPage (#10). |
 | 10 | B7 — Recomendação Multi-Provider | Melhoria | 🚀 Features | ✅ Concluído | Fusão de perfis e deduplicação com multi-presence boost (#14). |
-| 11 | B8 — Offline-First & Supabase Sync | Melhoria / Infra | 🚀 Features | ⏳ Pendente | IndexedDB (offline real) + persistência multi-dispositivo no Supabase. |
+| 11 | B8 — Offline-First & Supabase Sync | Melhoria / Infra | 🚀 Features | ⏳ Pendente | IndexedDB (offline real) + persistência multi-dispositivo no Supabase (#16). |
 | 12 | B5 — Exportação Visual ("Wrapped") | Melhoria | 🚀 Features | ⏳ Pendente | Exportação visual de perfil de gosto e top animes (#15). |
 | 13 | B3 — comparação entre usuários | Melhoria | 🚀 Features | ⏳ Pendente | Recomendações cruzadas entre dois perfis. |
 | 14 | A7 — Web Worker Performance | Correção/Infra | ⏸️ Baixa | 🛑 Arquivado | Ganho nulo (~2ms de CPU vs ~2ms de overhead de serialização). |

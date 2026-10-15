@@ -20,6 +20,7 @@
     "planned": "Planned",
     "realAverage": "Real Average",
     "bayesianAverage": "Bayesian Average",
+    "lowerBound": "Score (Lower Bound)",
     "viewRecommendationsFor": "View recommendations for {{genre}}"
   },
   "settings": {

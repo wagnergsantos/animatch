@@ -61,8 +61,8 @@ describe('buildTasteProfile', () => {
 
     const profile = buildTasteProfile(entries)
 
-    expect(profile.get('Action')).toMatchObject({ average: 7, adjustedAverage: 7.59, count: 3, scoredCount: 2 })
-    expect(profile.get('Adventure')).toMatchObject({ average: 8.5, adjustedAverage: 7.76, count: 2, scoredCount: 2 })
+    expect(profile.get('Action')).toMatchObject({ average: 7, count: 3, scoredCount: 2 })
+    expect(profile.get('Adventure')).toMatchObject({ average: 8.5, count: 2, scoredCount: 2 })
   })
 
   it('excludes genres with fewer than 2 scored anime', () => {
@@ -109,10 +109,12 @@ describe('buildTasteProfile', () => {
 
     const profile = buildTasteProfile(entries)
 
-    expect(profile.get('Action')).toMatchObject({ average: 8.5, adjustedAverage: 8.35, count: 2, scoredCount: 2 })
+    expect(profile.get('Action')).toMatchObject({ average: 8.5, count: 2, scoredCount: 2 })
+    expect(profile.get('Action').adjustedAverage).toBeDefined()
+    expect(profile.get('Action').lowerBound).toBeDefined()
   })
 
-  it('calculates Bayesian adjustedAverage using user global average and C=15', () => {
+  it('calculates Bayesian adjustedAverage using Lower Bound with C=25', () => {
     // Genre Action: 15 entries, sum = 124.95 -> real average = 8.33
     // Genre Fantasy: 114 entries, sum = 931.38 -> real average = 8.17
     // Genre Drama: 129 entries, sum = 752.07 -> overall user global average = 7.0
@@ -124,10 +126,10 @@ describe('buildTasteProfile', () => {
 
     const profile = buildTasteProfile(entries)
 
-    expect(profile.get('Action').adjustedAverage).toBe(7.67)
-    expect(profile.get('Fantasy').adjustedAverage).toBe(8.04)
-    // Fantasy has higher adjustedAverage than Action because of volume!
+    // Fantasy has higher adjustedAverage than Action because of volume and Lower Bound!
     expect(profile.get('Fantasy').adjustedAverage).toBeGreaterThan(profile.get('Action').adjustedAverage)
+    expect(profile.get('Fantasy').lowerBound).toBeDefined()
+    expect(profile.get('Fantasy').bayesianAverage).toBeDefined()
   })
 
 
@@ -172,16 +174,18 @@ describe('buildTasteProfile', () => {
       status: "COMPLETED"
     })
   })
-  it('calculates Bayesian adjustedAverage using C=15 and 2 decimal precision', () => {
+  it('ranks high-volume genres with solid scores higher in adjustedAverage than low-volume genres with slightly higher scores', () => {
     const entries = [
-      ...Array.from({ length: 15 }, () => ({ score: 8.33, media: { genres: ['Action'] } })),
-      ...Array.from({ length: 114 }, () => ({ score: 8.17, media: { genres: ['Fantasy'] } })),
+      ...Array.from({ length: 4 }, () => ({ score: 9.75, media: { genres: ['China'] } })),
+      ...Array.from({ length: 159 }, () => ({ score: 8.07, media: { genres: ['Fantasy'] } })),
+      ...Array.from({ length: 129 }, () => ({ score: 8.26, media: { genres: ['Drama'] } })),
+      ...Array.from({ length: 100 }, () => ({ score: 7.5, media: { genres: ['Sci-Fi'] } })),
     ]
 
     const profile = buildTasteProfile(entries)
 
-    expect(profile.get('Action').adjustedAverage).toBe(8.26)
-    expect(profile.get('Fantasy').adjustedAverage).toBe(8.17)
+    expect(profile.get('Fantasy').adjustedAverage).toBeGreaterThan(profile.get('China').adjustedAverage)
+    expect(profile.get('Drama').adjustedAverage).toBeGreaterThan(profile.get('Fantasy').adjustedAverage)
   })
 
   it('includes CURRENT/WATCHING entries with score > 0 weighted by 0.7', () => {
@@ -198,8 +202,10 @@ describe('buildTasteProfile', () => {
     // real average: (10*1.0 + 10*0.7) / (1.0 + 0.7) = 17 / 1.7 = 10
     expect(action.average).toBe(10)
     // userGlobalAverage = 17 / 1.7 = 10
-    // adjusted = (15*10 + 17) / (15 + 1.7) = 167 / 16.7 = 10
-    expect(action.adjustedAverage).toBe(10)
+    expect(action.bayesianAverage).toBe(10)
+    // lowerBound penalizes small sample size (n=2)
+    expect(action.lowerBound).toBeLessThan(10)
+    expect(action.adjustedAverage).toBe(action.lowerBound)
   })
 
   it('ignores CURRENT/WATCHING entries with score <= 0', () => {
@@ -534,7 +540,7 @@ describe('scoreRecommendations', () => {
 
   it('respects custom minGenreCount and confidenceConstant options', () => {
     expect(DEFAULT_MIN_GENRE_COUNT).toBe(2)
-    expect(DEFAULT_CONFIDENCE_CONSTANT).toBe(15)
+    expect(DEFAULT_CONFIDENCE_CONSTANT).toBe(25)
 
     const entries = [
       { score: 9, media: { genres: ['Sci-Fi'] } },

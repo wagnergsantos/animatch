@@ -1,3 +1,9 @@
+import {
+  DEFAULT_CONFIDENCE_CONSTANT,
+  DEFAULT_SCORE_STD_DEV,
+  CONFIDENCE_Z,
+} from './recommender.js'
+
 export function computeOverviewStats(entries = []) {
   let totalAnimes = 0
   let totalEpisodes = 0
@@ -63,7 +69,16 @@ export function computeYearDistribution(entries = []) {
   return sortedYears
 }
 
-export function computeBayesianGenreStats(entries = [], confidenceC = 15) {
+export function computeBayesianGenreStats(
+  entries = [],
+  confidenceC = DEFAULT_CONFIDENCE_CONSTANT,
+  options = {}
+) {
+  const {
+    scoreStdDev = DEFAULT_SCORE_STD_DEV,
+    confidenceZ = CONFIDENCE_Z,
+  } = options
+
   const completedEntries = entries.filter((e) => e?.status === 'COMPLETED')
   const planningEntries = entries.filter((e) => e?.status === 'PLANNING')
 
@@ -114,6 +129,8 @@ export function computeBayesianGenreStats(entries = [], confidenceC = 15) {
       const realAverage = stats.total / stats.scoredCount
       const bayesianAverage =
         (confidenceC * userGlobalAverage + stats.total) / (confidenceC + stats.scoredCount)
+      const standardError = scoreStdDev / Math.sqrt(confidenceC + stats.scoredCount)
+      const lowerBound = Math.max(0, bayesianAverage - confidenceZ * standardError)
 
       result.push({
         genre,
@@ -122,11 +139,13 @@ export function computeBayesianGenreStats(entries = [], confidenceC = 15) {
         plannedCount: stats.plannedCount,
         realAverage: Math.round(realAverage * 100) / 100,
         bayesianAverage: Math.round(bayesianAverage * 100) / 100,
+        lowerBound: Math.round(lowerBound * 100) / 100,
       })
     }
   }
 
-  result.sort((a, b) => b.bayesianAverage - a.bayesianAverage)
+  result.sort((a, b) => b.lowerBound - a.lowerBound || b.bayesianAverage - a.bayesianAverage)
 
   return result
 }
+

@@ -9,7 +9,7 @@ import {
 import styles from './StatisticsView.module.css'
 
 export default function StatisticsView({ entries = [], onSelectGenre }) {
-  const [sortBy, setSortBy] = useState('bayesian')
+  const [sortBy, setSortBy] = useState('lowerBound')
   const [sortDir, setSortDir] = useState('desc')
 
   const toggleSort = (key) => {
@@ -20,7 +20,7 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
       setSortDir('desc')
     }
   }
-  const [confidenceC, setConfidenceC] = useState(15)
+  const [confidenceC, setConfidenceC] = useState(25)
   const { t } = useTranslation()
 
   const overview = useMemo(() => computeOverviewStats(entries), [entries])
@@ -47,8 +47,10 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
         case 'realAverage':
           return dir * ((a.realAverage || 0) - (b.realAverage || 0))
         case 'bayesian':
-        default:
           return dir * ((a.bayesianAverage || 0) - (b.bayesianAverage || 0))
+        case 'lowerBound':
+        default:
+          return dir * ((a.lowerBound || 0) - (b.lowerBound || 0))
       }
     })
     return arr
@@ -129,7 +131,7 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
               id="confidence-c"
               type="range"
               min="1"
-              max="50"
+              max="100"
               value={confidenceC}
               onChange={(e) => setConfidenceC(Number(e.target.value))}
             />
@@ -146,6 +148,7 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
                 <th onClick={() => toggleSort('planned')} role="button">{t('stats.planned')} {sortBy === 'planned' ? (sortDir === 'desc' ? '▼' : '▲') : ''}</th>
                 <th onClick={() => toggleSort('realAverage')} role="button">{t('stats.realAverage')} {sortBy === 'realAverage' ? (sortDir === 'desc' ? '▼' : '▲') : ''}</th>
                 <th onClick={() => toggleSort('bayesian')} role="button">{t('stats.bayesianAverage')} {sortBy === 'bayesian' ? (sortDir === 'desc' ? '▼' : '▲') : ''}</th>
+                <th onClick={() => toggleSort('lowerBound')} role="button">{t('stats.lowerBound')} {sortBy === 'lowerBound' ? (sortDir === 'desc' ? '▼' : '▲') : ''}</th>
               </tr>
             </thead>
             <tbody>
@@ -170,6 +173,7 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
                   <td>{item.plannedCount}</td>
                   <td>{typeof item.realAverage === 'number' ? item.realAverage.toFixed(2) : '—'}</td>
                   <td className={styles['genre-table__bayesian']}>{typeof item.bayesianAverage === 'number' ? item.bayesianAverage.toFixed(2) : '—'}</td>
+                  <td className={styles['genre-table__lower-bound']}>{typeof item.lowerBound === 'number' ? item.lowerBound.toFixed(2) : '—'}</td>
                 </tr>
               ))}
             </tbody>
