@@ -7,6 +7,7 @@
 **Changelog desta revisão:**
 - **Débitos técnicos e features concluídas:** A1 (LRU Cache), A2 (Erros tipados), A3 (predictionSource/badges), A4 (Constantes), A5 (useLocalStorage), A6 (Cleanup legados), A9 (SEO/OG/a11y), A10 (Code-splitting/LCP), B1 (Justificativas), B2 (Modo Decisão), B6 (Supabase Auth & Settings) e B7 (Recomendação Unificada Multi-Provider / Ensemble Recommender com ProviderTabs #14).
 - **A7 (Web Worker):** Avaliado e arquivado/backlog — ganho imperceptível (~2-4ms para 2500 itens) com overhead de serialização `postMessage` consumindo tempo similar.
+- **B8 (Persistência Offline-First & Supabase Sync):** Proposta técnica detalhada adicionada à Frente B para migração do `localStorage` para IndexedDB com sincronização e backup em nuvem no Supabase.
 - Seção 4: Tabela de prioridades atualizada com status de conclusão.
 
 ---
@@ -225,6 +226,26 @@ Permitir consolidar os dados de múltiplas plataformas (AniList, Kitsu, MyAnimeL
 
 ---
 
+### B8. Persistência Offline-First e Sincronização em Nuvem (IndexedDB + Supabase Sync)
+
+**Reaproveita:** `apiCache.js` (substituição/evolução), `useEnsembleData.js`, Supabase Auth (`useAuth`) e banco Supabase Postgres.
+
+Transformar o armazenamento transitório de 5 minutos do `localStorage` em uma arquitetura offline-first resiliente, complementada por sincronização em nuvem para usuários autenticados.
+
+- **Problema atual:** O `localStorage` tem cota estreita (~5MB) e TTL rígido de 5 minutos (`CACHE_TTL = 300.000ms`). Se o usuário ficar offline ou o TTL expirar sem internet, `readCache()` retorna `null`, o fetch de rede falha e o app quebra, impedindo uso offline.
+- **Camada 1 — Armazenamento Local (IndexedDB / Stale-While-Revalidate):**
+  - Armazenar payloads completos de animes e recomendações consolidadas no IndexedDB do navegador (assíncrono, sem bloqueio de thread da UI, cota de centenas de MBs/GBs).
+  - Estratégia de cache *Stale-While-Revalidate*: na ausência de rede (`navigator.onLine === false` ou timeout de fetch), carregar imediatamente os dados salvos localmente mesmo se expirados.
+  - Indicador de status na interface: exibir badge discreto *"Modo Offline (dados locais)"*.
+- **Camada 2 — Sincronização em Nuvem (Supabase Sync):**
+  - Tabela `user_synced_entries` / `user_anime_lists` no Supabase Postgres vinculada a `auth.uid()`, protegida por Row Level Security (RLS).
+  - Backup contínuo das listas sincronizadas na nuvem, permitindo sincronização instantânea entre múltiplos dispositivos (PC, celular, tablet) sem reconsultar as APIs externas em cada aparelho.
+  - Sincronização em segundo plano (*background sync*) com debounce e estratégia de reconciliação simples (*last-write-wins* por timestamp).
+
+**Esforço:** Médio-Alto (1–2 dias). Requer wrapper de IndexedDB (ex.: `idb` ou API nativa), migration/tabela com RLS no Supabase e reconciliação transparente no `useEnsembleData`.
+
+---
+
 ### [⏸️] A7. Web Worker para processamento estatístico pesado (Arquivado / Backlog)
 
 **Onde:** `src/logic/analytics.js` e `src/logic/recommender.js`
@@ -276,12 +297,13 @@ Monitorar latência de APIs externas (AniList/Kitsu/MAL), taxas de erro de rende
 | 8 | B2 — Modo Decisão | Melhoria | 🚀 Features | ✅ Concluído | Sorteio ponderado Top 20, filtros de streaming e modo rápido (#9). |
 | 9 | B6 — Sync Supabase | Melhoria | 🚀 Features | ✅ Concluído | Login Supabase Auth, settings sync, multi-provider accounts e SettingsPage (#10). |
 | 10 | B7 — Recomendação Multi-Provider | Melhoria | 🚀 Features | ✅ Concluído | Fusão de perfis e deduplicação com multi-presence boost (#14). |
-| 11 | B5 — Exportação Visual ("Wrapped") | Melhoria | 🚀 Features | ⏳ Pendente | Exportação visual de perfil de gosto e top animes (#15). |
-| 12 | B3 — comparação entre usuários | Melhoria | 🚀 Features | ⏳ Pendente | Recomendações cruzadas entre dois perfis. |
-| 12 | A7 — Web Worker Performance | Correção/Infra | ⏸️ Baixa | 🛑 Arquivado | Ganho nulo (~2ms de CPU vs ~2ms de overhead de serialização). |
-| 13 | A8 — OpenTelemetry | Infra | ⏸️ Baixa | ⏳ Pendente | Telemetria e observabilidade client-side. |
-| 14 | B4 — novidades de temporada (v1 client-side) | Melhoria | 🚀 Features | ⏳ Pendente | Checagem de novas temporadas ao carregar a lista. |
-| 15 | B4 — Web Push completo (v2) | Backlog | ⏸️ Baixa | ⏳ Pendente | Exige infra persistente (cron, VAPID, tabela de subscriptions). |
+| 11 | B8 — Offline-First & Supabase Sync | Melhoria / Infra | 🚀 Features | ⏳ Pendente | IndexedDB (offline real) + persistência multi-dispositivo no Supabase. |
+| 12 | B5 — Exportação Visual ("Wrapped") | Melhoria | 🚀 Features | ⏳ Pendente | Exportação visual de perfil de gosto e top animes (#15). |
+| 13 | B3 — comparação entre usuários | Melhoria | 🚀 Features | ⏳ Pendente | Recomendações cruzadas entre dois perfis. |
+| 14 | A7 — Web Worker Performance | Correção/Infra | ⏸️ Baixa | 🛑 Arquivado | Ganho nulo (~2ms de CPU vs ~2ms de overhead de serialização). |
+| 15 | A8 — OpenTelemetry | Infra | ⏸️ Baixa | ⏳ Pendente | Telemetria e observabilidade client-side. |
+| 16 | B4 — novidades de temporada (v1 client-side) | Melhoria | 🚀 Features | ⏳ Pendente | Checagem de novas temporadas ao carregar a lista. |
+| 17 | B4 — Web Push completo (v2) | Backlog | ⏸️ Baixa | ⏳ Pendente | Exige infra persistente (cron, VAPID, tabela de subscriptions). |
 
 P = pequeno, M = médio, A = alto.
 

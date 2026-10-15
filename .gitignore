@@ -18,6 +18,9 @@ supabase/functions/.env
 supabase/functions/.env.*
 supabase/.temp/
 
+# Data exports
+*.csv
+
 
 # Editor directories and files
 .vscode/*
