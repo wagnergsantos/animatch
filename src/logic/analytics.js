@@ -2,6 +2,7 @@ import {
   DEFAULT_CONFIDENCE_CONSTANT,
   DEFAULT_SCORE_STD_DEV,
   CONFIDENCE_Z,
+  WATCHING_SCORE_WEIGHT,
 } from './recommender.js'
 
 export function computeOverviewStats(entries = []) {
@@ -79,57 +80,78 @@ export function computeBayesianGenreStats(
     confidenceZ = CONFIDENCE_Z,
   } = options
 
-  const completedEntries = entries.filter((e) => e?.status === 'COMPLETED')
-  const planningEntries = entries.filter((e) => e?.status === 'PLANNING')
-
   const genreStats = new Map()
-  let globalTotal = 0
-  let globalScoredCount = 0
+  let globalWeightedTotal = 0
+  let globalTotalWeight = 0
 
-  for (const entry of completedEntries) {
+  for (const entry of entries) {
     if (!entry?.media) continue
-    const genres = entry.media.genres ?? []
-    const score = entry.score ?? 0
 
-    if (score > 0) {
-      globalTotal += score
-      globalScoredCount += 1
+    const rawStatus = (entry.status || 'COMPLETED').toUpperCase()
+
+    if (
+      rawStatus === 'DROPPED' ||
+      rawStatus === 'PAUSED' ||
+      rawStatus === 'PLANNING' ||
+      rawStatus === 'PLAN_TO_WATCH' ||
+      rawStatus === 'ON_HOLD'
+    ) {
+      continue
+    }
+
+    const isWatching = rawStatus === 'CURRENT' || rawStatus === 'WATCHING'
+    const rawScore = entry.score ?? 0
+
+    if (isWatching && rawScore <= 0) {
+      continue
+    }
+
+    const weight = isWatching ? WATCHING_SCORE_WEIGHT : 1.0
+    const genres = entry.media.genres ?? []
+
+    if (rawScore > 0) {
+      globalWeightedTotal += rawScore * weight
+      globalTotalWeight += weight
     }
 
     for (const genre of genres) {
       if (!genreStats.has(genre)) {
-        genreStats.set(genre, { total: 0, count: 0, scoredCount: 0, plannedCount: 0 })
+        genreStats.set(genre, { total: 0, weightTotal: 0, count: 0, scoredCount: 0, plannedCount: 0 })
       }
       const stats = genreStats.get(genre)
       stats.count += 1
 
-      if (score > 0) {
-        stats.total += score
+      if (rawScore > 0) {
+        stats.total += rawScore * weight
+        stats.weightTotal += weight
         stats.scoredCount += 1
       }
     }
   }
 
-  for (const entry of planningEntries) {
+  for (const entry of entries) {
     if (!entry?.media) continue
-    const genres = entry.media.genres ?? []
-    for (const genre of genres) {
-      if (genreStats.has(genre)) {
-        const stats = genreStats.get(genre)
-        stats.plannedCount += 1
+    const rawStatus = (entry.status || '').toUpperCase()
+    if (rawStatus === 'PLANNING' || rawStatus === 'PLAN_TO_WATCH') {
+      const genres = entry.media.genres ?? []
+      for (const genre of genres) {
+        if (genreStats.has(genre)) {
+          const stats = genreStats.get(genre)
+          stats.plannedCount += 1
+        }
       }
     }
   }
 
-  const userGlobalAverage = globalScoredCount > 0 ? globalTotal / globalScoredCount : 7.0
+  const userGlobalAverage = globalTotalWeight > 0 ? globalWeightedTotal / globalTotalWeight : 7.0
   const result = []
 
   for (const [genre, stats] of genreStats) {
     if (stats.scoredCount >= 2) {
-      const realAverage = stats.total / stats.scoredCount
+      const realAverage = stats.total / stats.weightTotal
       const bayesianAverage =
-        (confidenceC * userGlobalAverage + stats.total) / (confidenceC + stats.scoredCount)
-      const standardError = scoreStdDev / Math.sqrt(confidenceC + stats.scoredCount)
+        (confidenceC * userGlobalAverage + stats.total) / (confidenceC + stats.weightTotal)
+      const standardError = scoreStdDev / Math.sqrt(confidenceC + stats.weightTotal)
       const lowerBound = Math.max(0, bayesianAverage - confidenceZ * standardError)
 
       result.push({

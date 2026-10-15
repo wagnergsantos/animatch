@@ -103,4 +103,17 @@ describe('analytics logic', () => {
 
     expect(fantasy.lowerBound).toBeGreaterThan(china.lowerBound)
   })
+
+  it('includes scored CURRENT/WATCHING entries with 0.7 weight matching recommender logic', () => {
+    const entries = [
+      { status: 'COMPLETED', score: 10, media: { genres: ['Action'] } },
+      { status: 'CURRENT', score: 10, media: { genres: ['Action'] } },
+    ]
+
+    const stats = computeBayesianGenreStats(entries)
+    expect(stats).toHaveLength(1)
+    expect(stats[0].genre).toBe('Action')
+    expect(stats[0].realAverage).toBe(10)
+    expect(stats[0].scoredCount).toBe(2)
+  })
 })
