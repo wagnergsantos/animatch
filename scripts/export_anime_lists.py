@@ -12,6 +12,11 @@ import urllib.request
 import urllib.parse
 import json
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 STATUS_MAP_ANILIST = {
     "CURRENT": "watching",
     "COMPLETED": "completed",
@@ -184,9 +189,10 @@ def fetch_kitsu(username: str, kitsu_token: str = ""):
     
     # 1. Aumentamos o limit para 500 (busca toda a sua lista de uma vez só)
     # 2. Ordenamos por id fixo para evitar inconsistências
+    # 3. Incluímos anime.mappings para resolver mal_id direto do Kitsu
     url = (
         f"https://kitsu.io/api/edge/library-entries?"
-        f"filter[userId]={user_id}&filter[kind]=anime&include=anime&"
+        f"filter[userId]={user_id}&filter[kind]=anime&include=anime,anime.mappings&"
         f"page[limit]=500&sort=id"
     )
 
@@ -200,7 +206,9 @@ def fetch_kitsu(username: str, kitsu_token: str = ""):
             break
 
         entries = res.get("data", [])
-        included = {item["id"]: item for item in res.get("included", []) if item.get("type") == "anime"}
+        included_list = res.get("included", [])
+        included = {item["id"]: item for item in included_list if item.get("type") == "anime"}
+        mappings = {item["id"]: item for item in included_list if item.get("type") == "mappings"}
 
         if not entries:
             break
@@ -221,8 +229,10 @@ def fetch_kitsu(username: str, kitsu_token: str = ""):
             kitsu_anime_id = anime_rel.get("id") if anime_rel else ""
 
             name = ""
+            mal_id = ""
             if kitsu_anime_id and kitsu_anime_id in included:
-                anime_attr = included[kitsu_anime_id].get("attributes", {})
+                anime_obj = included[kitsu_anime_id]
+                anime_attr = anime_obj.get("attributes", {})
                 titles = anime_attr.get("titles", {})
                 name = (
                     anime_attr.get("canonicalTitle")
@@ -231,11 +241,22 @@ def fetch_kitsu(username: str, kitsu_token: str = ""):
                     or titles.get("ja_jp")
                     or ""
                 )
+                mapping_rels = (
+                    anime_obj.get("relationships", {})
+                    .get("mappings", {})
+                    .get("data", [])
+                )
+                for m_ref in mapping_rels:
+                    m_obj = mappings.get(str(m_ref.get("id", "")), {})
+                    m_attr = m_obj.get("attributes", {})
+                    if m_attr.get("externalSite") == "myanimelist/anime" and m_attr.get("externalId"):
+                        mal_id = str(m_attr["externalId"])
+                        break
 
             items.append({
                 "source": "kitsu",
                 "id": str(kitsu_anime_id or entry.get("id", "")),
-                "mal_id": "",
+                "mal_id": mal_id,
                 "nome": name,
                 "minha_nota": score,
                 "status": status
