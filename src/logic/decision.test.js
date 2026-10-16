@@ -3,6 +3,7 @@ import {
   DECISION_MODES,
   pickBestRecommendation,
   pickWeightedTop20,
+  pickSurpriseRecommendation,
   pickQuickStart,
   makeDecision,
 } from './decision.js'
@@ -70,6 +71,43 @@ describe('decision engine logic', () => {
       ]
       expect(pickWeightedTop20(smallList, () => 0.0001)?.id).toBe(101)
       expect(pickWeightedTop20(smallList, () => 0.9999)?.id).toBe(103)
+    })
+  })
+
+  describe('pickSurpriseRecommendation', () => {
+    it('prioritizes candidates with DISCOVERY badge over regular recommendations', () => {
+      const recs = [
+        { id: 1, title: 'Comfort 1', predictedScore: 9.5, badges: ['STRONG_CONSENSUS'] },
+        { id: 2, title: 'Discovery 1', predictedScore: 8.1, badges: ['DISCOVERY'] },
+        { id: 3, title: 'Discovery 2', predictedScore: 7.9, badges: ['ACCLAIMED', 'DISCOVERY'] },
+      ]
+
+      const firstPick = pickSurpriseRecommendation(recs, () => 0.0001)
+      expect(firstPick?.id).toBe(2)
+
+      const secondPick = pickSurpriseRecommendation(recs, () => 0.9999)
+      expect(secondPick?.id).toBe(3)
+    })
+
+    it('falls back to general pickWeightedTop20 when no anime has DISCOVERY badge', () => {
+      const recs = [
+        { id: 10, title: 'Comfort 1', predictedScore: 9.5, badges: [] },
+        { id: 11, title: 'Comfort 2', predictedScore: 9.0, badges: ['STRONG_CONSENSUS'] },
+      ]
+
+      const pick = pickSurpriseRecommendation(recs, () => 0.0001)
+      expect(pick?.id).toBe(10)
+    })
+
+    it('respects excludeId within DISCOVERY pool', () => {
+      const recs = [
+        { id: 1, title: 'Comfort 1', predictedScore: 9.5, badges: [] },
+        { id: 2, title: 'Discovery 1', predictedScore: 8.1, badges: ['DISCOVERY'] },
+        { id: 3, title: 'Discovery 2', predictedScore: 7.9, badges: ['DISCOVERY'] },
+      ]
+
+      const pick = pickSurpriseRecommendation(recs, () => 0.0001, 2)
+      expect(pick?.id).toBe(3)
     })
   })
 

@@ -27,6 +27,7 @@ const BADGES = [
   { id: 'ACCLAIMED', key: 'labels.badge_ACCLAIMED' },
   { id: 'PERSONAL_BET', key: 'labels.badge_PERSONAL_BET' },
   { id: 'STRONG_CONSENSUS', key: 'labels.badge_STRONG_CONSENSUS' },
+  { id: 'DISCOVERY', key: 'labels.badge_DISCOVERY' },
 ]
 
 const SORT_OPTIONS = [

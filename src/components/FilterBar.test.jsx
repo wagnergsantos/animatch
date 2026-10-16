@@ -204,6 +204,21 @@ describe('FilterBar', () => {
     expect(handleSeasonChange).toHaveBeenCalledWith(false)
     expect(handleStreamingChange).toHaveBeenCalledWith(false)
   })
+
+  it('renders DISCOVERY badge option in badge selector and triggers onSelectBadge', () => {
+    const handleBadgeChange = vi.fn()
+    render(
+      <FilterBar
+        selectedBadge="ALL"
+        onSelectBadge={handleBadgeChange}
+      />
+    )
+
+    expect(screen.getByText('🧭 Fora da Zona')).toBeInTheDocument()
+    const badgeSelect = screen.getByDisplayValue('Todos os Destaques')
+    fireEvent.change(badgeSelect, { target: { value: 'DISCOVERY' } })
+    expect(handleBadgeChange).toHaveBeenCalledWith('DISCOVERY')
+  })
 })
 
 

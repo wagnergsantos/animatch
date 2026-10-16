@@ -167,6 +167,12 @@
   color: #ffffff;
 }
 
+.anime-card__badge-floating--discovery {
+  border-color: #2dd4bf;
+  background: rgba(13, 148, 136, 0.88);
+  color: #ffffff;
+}
+
 .anime-card__badge-floating--community {
   border-color: #9ca3af;
   background: rgba(31, 41, 55, 0.9);

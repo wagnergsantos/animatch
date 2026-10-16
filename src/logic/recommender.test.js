@@ -615,5 +615,108 @@ describe('scoreRecommendations', () => {
       { id: 102, title: 'Psycho-Pass', score: 8, coverImage: 'pp.jpg' },
     ])
   })
+
+  describe('DISCOVERY badge (Out of Comfort Zone)', () => {
+    const discoveryProfile = new Map([
+      ['Action', { average: 8.5, adjustedAverage: 8.2, count: 60, scoredCount: 50 }],
+      ['Fantasy', { average: 8.3, adjustedAverage: 8.0, count: 45, scoredCount: 40 }],
+      ['Mystery', { average: 8.8, adjustedAverage: 7.4, count: 6, scoredCount: 5 }],
+      ['Sports', { average: 7.2, adjustedAverage: 6.8, count: 4, scoredCount: 4 }],
+    ])
+
+    it('assigns DISCOVERY when anime has >=1 promising genre (scoredCount <= 15, average >= 8.0), >=50% low-watched genres, and communityScore >= 7.5', () => {
+      const planning = [
+        {
+          media: {
+            id: 201,
+            title: { english: 'Odd Taxi' },
+            genres: ['Mystery', 'Psychological'],
+            averageScore: 86,
+          },
+        },
+        {
+          media: {
+            id: 202,
+            title: { english: 'Action Mystery Mix' },
+            genres: ['Action', 'Mystery'],
+            averageScore: 78,
+          },
+        },
+      ]
+
+      const result = scoreRecommendations(planning, discoveryProfile)
+      const oddTaxi = result.find((r) => r.id === 201)
+      const mix = result.find((r) => r.id === 202)
+
+      expect(oddTaxi.badges).toContain('DISCOVERY')
+      expect(mix.badges).toContain('DISCOVERY')
+    })
+
+    it('does NOT assign DISCOVERY when majority (>50%) of genres are high-watched comfort zone genres', () => {
+      const planning = [
+        {
+          media: {
+            id: 203,
+            title: { english: 'Comfort Zone Heavy' },
+            genres: ['Action', 'Fantasy', 'Mystery'],
+            averageScore: 85,
+          },
+        },
+      ]
+
+      const result = scoreRecommendations(planning, discoveryProfile)
+      expect(result[0].badges).not.toContain('DISCOVERY')
+    })
+
+    it('does NOT assign DISCOVERY when low-watched genre has real average < 8.0 or communityScore < 7.5', () => {
+      const planning = [
+        {
+          media: {
+            id: 204,
+            title: { english: 'Low Real Average' },
+            genres: ['Sports'],
+            averageScore: 85,
+          },
+        },
+        {
+          media: {
+            id: 205,
+            title: { english: 'Low Community Score' },
+            genres: ['Mystery'],
+            averageScore: 70,
+          },
+        },
+      ]
+
+      const result = scoreRecommendations(planning, discoveryProfile)
+      expect(result.find((r) => r.id === 204).badges).not.toContain('DISCOVERY')
+      expect(result.find((r) => r.id === 205).badges).not.toContain('DISCOVERY')
+    })
+
+    it('assigns DISCOVERY via fallback when predictionSource is community, genres is non-empty, and communityScore >= 8.0', () => {
+      const planning = [
+        {
+          media: {
+            id: 206,
+            title: { english: 'Acclaimed Unexplored' },
+            genres: ['Mecha', 'Music'],
+            averageScore: 82,
+          },
+        },
+        {
+          media: {
+            id: 207,
+            title: { english: 'Mediocre Unexplored' },
+            genres: ['Mecha'],
+            averageScore: 78,
+          },
+        },
+      ]
+
+      const result = scoreRecommendations(planning, discoveryProfile)
+      expect(result.find((r) => r.id === 206).badges).toContain('DISCOVERY')
+      expect(result.find((r) => r.id === 207).badges).not.toContain('DISCOVERY')
+    })
+  })
 })
 

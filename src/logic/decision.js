@@ -72,6 +72,34 @@ export function pickWeightedTop20(recommendations, randomFn = Math.random, exclu
 }
 
 /**
+ * Draws an out-of-comfort-zone recommendation from items carrying the DISCOVERY badge.
+ * Falls back to pickWeightedTop20 across all recommendations when no DISCOVERY items exist.
+ * @param {Array<Object>} recommendations
+ * @param {Function} [randomFn=Math.random]
+ * @param {number|string|null} [excludeId=null]
+ * @returns {Object|null}
+ */
+export function pickSurpriseRecommendation(
+  recommendations = [],
+  randomFn = Math.random,
+  excludeId = null
+) {
+  if (!recommendations || recommendations.length === 0) {
+    return null
+  }
+
+  const discoveryCandidates = recommendations.filter(
+    (anime) => Array.isArray(anime?.badges) && anime.badges.includes('DISCOVERY')
+  )
+
+  if (discoveryCandidates.length > 0) {
+    return pickWeightedTop20(discoveryCandidates, randomFn, excludeId)
+  }
+
+  return pickWeightedTop20(recommendations, randomFn, excludeId)
+}
+
+/**
  * Returns a quick start recommendation (short series matching subscriptions).
  * Fallbacks cleanly to short series or general recommendations if no candidates match.
  * @param {Array<Object>} recommendations
@@ -139,10 +167,10 @@ export function makeDecision(
     case DECISION_MODES.BEST:
       return pickBestRecommendation(recommendations, excludeId)
     case DECISION_MODES.SURPRISE:
-      return pickWeightedTop20(recommendations, randomFn, excludeId)
+      return pickSurpriseRecommendation(recommendations, randomFn, excludeId)
     case DECISION_MODES.QUICK:
       return pickQuickStart(recommendations, userSubscriptions, 24, randomFn, excludeId)
     default:
-      return pickWeightedTop20(recommendations, randomFn, excludeId)
+      return pickSurpriseRecommendation(recommendations, randomFn, excludeId)
   }
 }

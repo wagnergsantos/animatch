@@ -129,7 +129,7 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
             fetchPriority={priority ? 'high' : 'auto'}
           />
           <div className={styles['anime-card__badges-overlay']}>
-            {anime?.predictionSource === 'community' ? (
+            {anime?.predictionSource === 'community' && (
               <span
                 className={`${styles['anime-card__badge-floating']} ${styles['anime-card__badge-floating--community']}`}
                 title={t('labels.fallbackTooltip')}
@@ -137,27 +137,27 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
                 <span className={styles['anime-card__badge-icon']}>🌐</span>
                 <span className={styles['anime-card__badge-label']}>{t('labels.fallbackBadge')}</span>
               </span>
-            ) : (
-              anime?.badges?.map((badgeKey) => {
-                const iconMap = {
-                  ACCLAIMED: '💎',
-                  PERSONAL_BET: '🧪',
-                  STRONG_CONSENSUS: '🔥',
-                }
-                const labelText = t(`labels.badge_${badgeKey}`).replace(/^[^\w\s\u00C0-\u00FF]+/u, '').trim()
-                const modifierClass = styles[`anime-card__badge-floating--${badgeKey.toLowerCase()}`] || ''
-                return (
-                  <span
-                    key={badgeKey}
-                    className={`${styles['anime-card__badge-floating']} ${modifierClass}`}
-                    title={t(`labels.badge_${badgeKey}`)}
-                  >
-                    <span className={styles['anime-card__badge-icon']}>{iconMap[badgeKey] || '⭐'}</span>
-                    <span className={styles['anime-card__badge-label']}>{labelText}</span>
-                  </span>
-                )
-              })
             )}
+            {anime?.badges?.map((badgeKey) => {
+              const iconMap = {
+                ACCLAIMED: '💎',
+                PERSONAL_BET: '🧪',
+                STRONG_CONSENSUS: '🔥',
+                DISCOVERY: '🧭',
+              }
+              const labelText = t(`labels.badge_${badgeKey}`).replace(/^[^\w\s\u00C0-\u00FF]+/u, '').trim()
+              const modifierClass = styles[`anime-card__badge-floating--${badgeKey.toLowerCase()}`] || ''
+              return (
+                <span
+                  key={badgeKey}
+                  className={`${styles['anime-card__badge-floating']} ${modifierClass}`}
+                  title={t(`labels.badge_${badgeKey}`)}
+                >
+                  <span className={styles['anime-card__badge-icon']}>{iconMap[badgeKey] || '⭐'}</span>
+                  <span className={styles['anime-card__badge-label']}>{labelText}</span>
+                </span>
+              )
+            })}
           </div>
           <div
             className={styles['card-provider-actions']}

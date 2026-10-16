@@ -3,6 +3,10 @@ export const DEFAULT_CONFIDENCE_CONSTANT = 25
 export const DEFAULT_SCORE_STD_DEV = 1.2
 export const CONFIDENCE_Z = 1.96
 export const WATCHING_SCORE_WEIGHT = 0.7
+export const DISCOVERY_MAX_SCORED_COUNT = 15
+export const DISCOVERY_MIN_REAL_AVERAGE = 8.0
+export const DISCOVERY_MIN_COMMUNITY_SCORE = 7.5
+export const DISCOVERY_FALLBACK_COMMUNITY_SCORE = 8.0
 
 export function resolveYear(item) {
   if (!item) return null
@@ -185,10 +189,32 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
       } else if (baseTasteScore >= 8.0 && communityScore >= 8.0) {
         badges.push('STRONG_CONSENSUS')
       }
+
+      // Badge de Descoberta / Fora da Zona (gêneros promissores pouco assistidos)
+      const hasPromisingGenre = matchingGenres.some((g) => {
+        const stats = tasteProfile.get(g)
+        const scoredCount = stats?.scoredCount ?? stats?.count ?? 0
+        const realAvg = stats?.average ?? 0
+        return scoredCount > 0 && scoredCount <= DISCOVERY_MAX_SCORED_COUNT && realAvg >= DISCOVERY_MIN_REAL_AVERAGE
+      })
+      const lowWatchedGenresCount = genres.filter((g) => {
+        if (!tasteProfile.has(g)) return true
+        const stats = tasteProfile.get(g)
+        const scoredCount = stats?.scoredCount ?? stats?.count ?? 0
+        return scoredCount <= DISCOVERY_MAX_SCORED_COUNT
+      }).length
+      const isMajorityLowWatched = genres.length > 0 && (lowWatchedGenresCount / genres.length) >= 0.5
+
+      if (hasPromisingGenre && isMajorityLowWatched && communityScore >= DISCOVERY_MIN_COMMUNITY_SCORE) {
+        badges.push('DISCOVERY')
+      }
     } else {
       baseTasteScore = null
       predictedScore = communityScore
       predictionSource = 'community'
+      if (genres.length > 0 && communityScore >= DISCOVERY_FALLBACK_COMMUNITY_SCORE) {
+        badges.push('DISCOVERY')
+      }
     }
 
     const externalLinks = media.externalLinks ?? []

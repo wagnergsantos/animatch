@@ -233,6 +233,18 @@ describe('AnimeCard', () => {
     )
     expect(screen.getByText('+5%')).toBeInTheDocument()
   })
+
+  it('renders DISCOVERY floating badge on taste and community predictions', () => {
+    const anime = {
+      id: 99,
+      title: 'Discovery Anime',
+      predictionSource: 'community',
+      badges: ['DISCOVERY'],
+    }
+
+    render(<AnimeCard anime={anime} />)
+    expect(screen.getByTitle('🧭 Fora da Zona')).toBeInTheDocument()
+  })
 })
 
 
