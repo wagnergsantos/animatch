@@ -1,7 +1,16 @@
 import React from 'react'
-import { toCSV, downloadCSV } from '../logic/statistics'
+import { useTranslation } from 'react-i18next'
+import { downloadCSV } from '../logic/statistics'
 
-export default function ExportSnapshotButton({ user = '', summary = {}, genreStats = [], details = [] }) {
+export default function ExportSnapshotButton({
+  user = '',
+  summary = {},
+  genreStats = [],
+  details = [],
+  onOpenWrapped,
+}) {
+  const { t } = useTranslation()
+
   const handleExportCSV = () => {
     const headers = ['id', 'title', 'genres', 'predictedScore', 'communityScore', 'episodes', 'status']
     const rows = (details || []).map((d) => ({
@@ -30,7 +39,16 @@ export default function ExportSnapshotButton({ user = '', summary = {}, genreSta
   }
 
   return (
-    <div className="export-buttons">
+    <div className="export-buttons" style={{ display: 'flex', gap: 'var(--space-2, 8px)', flexWrap: 'wrap' }}>
+      {onOpenWrapped && (
+        <button
+          type="button"
+          onClick={onOpenWrapped}
+          data-testid="export-wrapped-btn"
+        >
+          {t('wrapped.button', '✨ Compartilhar Wrapped')}
+        </button>
+      )}
       <button type="button" onClick={handleExportCSV}>Exportar CSV</button>
       <button type="button" onClick={handleExportJSON}>Exportar JSON</button>
     </div>

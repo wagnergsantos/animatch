@@ -245,5 +245,27 @@
     "retry_provider": "Tentar novamente {{provider}}",
     "presence_badge_tooltip": "Presente no seu Planning em: {{providers}} (+{{percent}}% de afinidade)",
     "accounts_active": "{{count}} contas ativas"
+  },
+  "wrapped": {
+    "button": "✨ Compartilhar Wrapped",
+    "buttonTitle": "Gerar card visual Wrapped e compartilhar perfil",
+    "modalTitle": "Seu AniMatch Wrapped",
+    "modalSubtitle": "Card visual 1200×630 pronto para compartilhar nas redes sociais.",
+    "downloadPng": "📥 Baixar PNG",
+    "downloading": "Gerando PNG...",
+    "copyImage": "🖼️ Copiar Imagem",
+    "imageCopied": "✅ Imagem copiada!",
+    "copyError": "Use Baixar PNG neste navegador",
+    "copyLink": "🔗 Copiar Link",
+    "linkCopied": "✅ Link copiado!",
+    "close": "Fechar",
+    "completed": "Concluídos",
+    "episodes": "Episódios",
+    "meanScore": "Média Pessoal",
+    "topGenresTitle": "Top Gêneros (Média Bayesiana)",
+    "topRecsTitle": "Top 3 Recomendações para Assistir",
+    "noGenres": "Avalie mais animes para gerar seu perfil de gêneros.",
+    "noRecs": "Adicione animes ao Planning para ver recomendações.",
+    "footer": "Gerado por AniMatch • Descubra o que assistir baseado no seu gosto real"
   }
 }

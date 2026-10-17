@@ -742,4 +742,26 @@ describe('Dashboard', () => {
 
     expect(refetchEnsemble).toHaveBeenCalledWith('kitsu')
   })
+
+  it('opens WrappedModal from header button and from Statistics tab', () => {
+    render(<Dashboard allEntries={mockEntries} username="testuser" onLogout={vi.fn()} />)
+
+    const headerWrappedBtn = screen.getByTestId('dashboard-wrapped-btn')
+    fireEvent.click(headerWrappedBtn)
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(screen.getByText(/Seu AniMatch Wrapped/i)).toBeInTheDocument()
+
+    // Close modal
+    const closeBtn = screen.getByRole('button', { name: /Fechar/i })
+    fireEvent.click(closeBtn)
+    expect(screen.queryByText(/Seu AniMatch Wrapped/i)).not.toBeInTheDocument()
+
+    // Switch to Statistics tab and open WrappedModal from ExportSnapshotButton
+    fireEvent.click(screen.getByRole('button', { name: /Estatísticas/i }))
+    const statsWrappedBtn = screen.getByTestId('export-wrapped-btn')
+    fireEvent.click(statsWrappedBtn)
+
+    expect(screen.getByText(/Seu AniMatch Wrapped/i)).toBeInTheDocument()
+  })
 })

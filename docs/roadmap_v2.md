@@ -183,17 +183,14 @@ ao abrir o app, sem backend novo:
 
 ---
 
-### B5. Exportar/compartilhar perfil de gosto (estilo "Wrapped")
+### [x] B5. Exportar/compartilhar perfil de gosto (estilo "Wrapped") (Concluído ✅)
 
 Gerar uma imagem ou link compartilhável com o Taste Profile e top
 recomendações.
 
-**Reaproveita:** já existe `ExportSnapshotButton.jsx` — hoje provavelmente
-limitado a CSV (`exportRecommendationsToCSV` em `Dashboard.jsx`); a ideia é
-estender esse botão para gerar uma imagem visual, não só dado tabular.
+**Reaproveita:** `ExportSnapshotButton.jsx`, `Dashboard.jsx`, `wrappedGenerator.js` e `WrappedModal.jsx` (Canvas 2D `1200x630` com download PNG, cópia de imagem e cópia de link).
 
-**Esforço:** médio. Requer lib de renderização (Canvas API ou
-`html-to-image`), mas o gatilho de UI já existe.
+**Esforço:** médio. Concluído (#15).
 
 ### [x] B6. Login Animatch + Sync de Configurações (Supabase Auth & Settings) (Concluído ✅)
 
@@ -298,7 +295,7 @@ Monitorar latência de APIs externas (AniList/Kitsu/MAL), taxas de erro de rende
 | 9 | B6 — Sync Supabase | Melhoria | 🚀 Features | ✅ Concluído | Login Supabase Auth, settings sync, multi-provider accounts e SettingsPage (#10). |
 | 10 | B7 — Recomendação Multi-Provider | Melhoria | 🚀 Features | ✅ Concluído | Fusão de perfis e deduplicação com multi-presence boost (#14). |
 | 11 | B8 — Offline-First & Supabase Sync | Melhoria / Infra | 🚀 Features | ⏳ Pendente | IndexedDB (offline real) + persistência multi-dispositivo no Supabase (#16). |
-| 12 | B5 — Exportação Visual ("Wrapped") | Melhoria | 🚀 Features | ⏳ Pendente | Exportação visual de perfil de gosto e top animes (#15). |
+| 12 | B5 — Exportação Visual ("Wrapped") | Melhoria | 🚀 Features | ✅ Concluído | Exportação visual 1200x630 de perfil de gosto e top animes em PNG/Clipboard (#15). |
 | 13 | B3 — comparação entre usuários | Melhoria | 🚀 Features | ⏳ Pendente | Recomendações cruzadas entre dois perfis. |
 | 14 | A7 — Web Worker Performance | Correção/Infra | ⏸️ Baixa | 🛑 Arquivado | Ganho nulo (~2ms de CPU vs ~2ms de overhead de serialização). |
 | 15 | A8 — OpenTelemetry | Infra | ⏸️ Baixa | ⏳ Pendente | Telemetria e observabilidade client-side. |

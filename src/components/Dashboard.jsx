@@ -15,6 +15,7 @@ import SettingsPage from './SettingsPage.jsx'
 import FloatingRandomizerButton from './FloatingRandomizerButton.jsx'
 import DecisionModal from './DecisionModal.jsx'
 import AnimeDetailModal from './AnimeDetailModal.jsx'
+import WrappedModal from './WrappedModal.jsx'
 import styles from './Dashboard.module.css'
 
 function exportRecommendationsToCSV(recommendations, t, prefix) {
@@ -89,7 +90,7 @@ export default function Dashboard({
   const [isDecisionModalOpen, setIsDecisionModalOpen] = useState(false)
   const [selectedAnimeDetail, setSelectedAnimeDetail] = useState(null)
   const [modalGenre, setModalGenre] = useState(null)
-  const [copied, setCopied] = useState(false)
+  const [isWrappedModalOpen, setIsWrappedModalOpen] = useState(false)
   const [isSeasonOnly, setIsSeasonOnly] = useState(false)
   const currentYear = new Date().getFullYear()
   const gridRef = useRef(null)
@@ -318,16 +319,13 @@ export default function Dashboard({
     isLoading || (hasMultiAccounts && isEnsembleLoading && currentEntries.length === 0)
   )
 
-  const handleShare = () => {
-    if (typeof window !== 'undefined' && navigator.clipboard) {
-      const url = new URL(window.location.href)
-      url.searchParams.set('user', username)
-      navigator.clipboard.writeText(url.toString()).then(() => {
-        setCopied(true)
-        setTimeout(() => setCopied(false), 2000)
-      }).catch(() => {})
-    }
-  }
+  const activeProviderLabels = useMemo(() => {
+    return Object.entries(linkedUsernames || {})
+      .filter(([, name]) => typeof name === 'string' && name.trim().length > 0)
+      .map(([p]) =>
+        t(`providers.${p}`, p === 'mal' ? 'MyAnimeList' : p === 'kitsu' ? 'Kitsu' : 'AniList')
+      )
+  }, [linkedUsernames, t])
 
   return (
     <div className={styles.dashboard}>
@@ -389,7 +387,8 @@ export default function Dashboard({
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
           <button
             type="button"
-            onClick={handleShare}
+            data-testid="dashboard-wrapped-btn"
+            onClick={() => setIsWrappedModalOpen(true)}
             style={{
               background: 'var(--surface-2)',
               border: '1px solid var(--color-border)',
@@ -399,9 +398,9 @@ export default function Dashboard({
               fontSize: 'var(--text-sm)',
               cursor: 'pointer',
             }}
-            title={t('dashboard.shareTitle')}
+            title={t('wrapped.buttonTitle', 'Gerar card visual Wrapped e compartilhar perfil')}
           >
-            {copied ? t('dashboard.linkCopied') : t('dashboard.share')}
+            {t('wrapped.button', '✨ Compartilhar Wrapped')}
           </button>
         </div>
       </header>
@@ -472,6 +471,7 @@ export default function Dashboard({
                 : currentScopedUsername || username
             }
             onSelectGenre={setModalGenre}
+            onOpenWrapped={() => setIsWrappedModalOpen(true)}
           />
         ) : (
           <SettingsPage
@@ -529,6 +529,23 @@ export default function Dashboard({
         provider={currentScopedProvider}
         titlePref={titlePref}
         onClose={() => setModalGenre(null)}
+      />
+
+      <WrappedModal
+        isOpen={isWrappedModalOpen}
+        onClose={() => setIsWrappedModalOpen(false)}
+        username={
+          hasMultiAccounts && activeScope === 'ensemble'
+            ? t('ensemble.tab_consolidated', 'Consolidado')
+            : currentScopedUsername || username
+        }
+        providerLabel={scopedProviderLabel}
+        isEnsemble={Boolean(hasMultiAccounts && activeScope === 'ensemble')}
+        activeProviders={activeProviderLabels}
+        entries={currentEntries}
+        tasteProfile={tasteProfile}
+        recommendations={recommendations}
+        titlePref={titlePref}
       />
     </div>
   )

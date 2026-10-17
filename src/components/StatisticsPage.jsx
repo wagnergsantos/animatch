@@ -1,11 +1,11 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { normalizeEntries, dedupeByMediaId, aggregateGenreStats, buildMetricsSummary } from '../logic/statistics'
 import ExportSnapshotButton from './ExportSnapshotButton.jsx'
 import StatisticsView from './StatisticsView.jsx'
 import styles from './StatisticsPage.module.css'
 
-export default function StatisticsPage({ entries = [], user = '', onSelectGenre }) {
+export default function StatisticsPage({ entries = [], user = '', onSelectGenre, onOpenWrapped }) {
   const { t } = useTranslation()
 
   const normalized = useMemo(() => normalizeEntries(entries), [entries])
@@ -19,7 +19,13 @@ export default function StatisticsPage({ entries = [], user = '', onSelectGenre 
       <header className={styles['statistics-header']}>
         <h2>{t('statistics.title', 'Estatísticas')}</h2>
         <div className="statistics-actions">
-          <ExportSnapshotButton user={user} summary={summary} genreStats={genreStats} details={unique} />
+          <ExportSnapshotButton
+            user={user}
+            summary={summary}
+            genreStats={genreStats}
+            details={unique}
+            onOpenWrapped={onOpenWrapped}
+          />
         </div>
       </header>
 
