@@ -1,6 +1,26 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { fetchUserEntries } from '../api/index.js'
 import { mergeAnimeEntries } from '../logic/ensemble.js'
+import { writeIdbCache, buildProviderCacheKey } from '../cache/idbCache.js'
+import { getAuthenticatedUserId, scheduleCloudAnimeListSync } from '../cache/cloudListSync.js'
+
+function persistConsolidatedEnsemble(usernamesKey, consolidated) {
+  if (!usernamesKey || !Array.isArray(consolidated) || consolidated.length === 0) return
+
+  const ensembleCacheKey = buildProviderCacheKey('ensemble', usernamesKey)
+  writeIdbCache(ensembleCacheKey, consolidated, {
+    provider: 'ensemble',
+    username: usernamesKey,
+  }).catch(() => {})
+
+  Promise.resolve(getAuthenticatedUserId())
+    .then((userId) => {
+      if (userId) {
+        scheduleCloudAnimeListSync(userId, 'ensemble', usernamesKey, consolidated)
+      }
+    })
+    .catch(() => {})
+}
 
 /**
  * Hook to concurrently fetch anime library entries from multiple providers
@@ -133,6 +153,7 @@ export function useEnsembleData(linkedUsernames = {}, { enabled = true } = {}) {
         })
 
         const consolidated = mergeAnimeEntries(newEntriesByProvider)
+        persistConsolidatedEnsemble(usernamesKey, consolidated)
 
         entriesByProviderRef.current = newEntriesByProvider
         failedProvidersRef.current = newFailedProviders
@@ -161,6 +182,7 @@ export function useEnsembleData(linkedUsernames = {}, { enabled = true } = {}) {
         })
 
         const consolidated = mergeAnimeEntries(successfulMap)
+        persistConsolidatedEnsemble(usernamesKey, consolidated)
 
         entriesByProviderRef.current = successfulMap
         failedProvidersRef.current = failedList
@@ -191,12 +213,17 @@ export function useEnsembleData(linkedUsernames = {}, { enabled = true } = {}) {
     [loadData]
   )
 
+  const isStale = Object.values(entriesByProvider || {}).some(
+    (list) => Boolean(list?._cacheMeta?.isStale)
+  )
+
   return {
     entriesByProvider,
     consolidatedEntries,
     failedProviders,
     isLoading,
     loadingProviders,
+    isStale,
     refetch,
   }
 }

@@ -109,8 +109,31 @@ export default function Dashboard({
     failedProviders,
     isLoading: isEnsembleLoading,
     loadingProviders = [],
+    isStale: isEnsembleStale = false,
     refetch: refetchEnsemble,
   } = useEnsembleData(linkedUsernames, { enabled: Boolean(hasMultiAccounts) })
+
+  const [isBrowserOffline, setIsBrowserOffline] = useState(() =>
+    typeof navigator !== 'undefined' ? navigator.onLine === false : false
+  )
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const handleOnline = () => setIsBrowserOffline(false)
+    const handleOffline = () => setIsBrowserOffline(true)
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [])
+
+  const isOfflineOrStale = Boolean(
+    isBrowserOffline ||
+      allEntries?._cacheMeta?.isStale ||
+      (hasMultiAccounts && isEnsembleStale)
+  )
 
   const [activeScope, setActiveScope] = useState(() => (hasMultiAccounts ? 'ensemble' : provider))
   const prevHasMultiRef = useRef(hasMultiAccounts)
@@ -385,6 +408,33 @@ export default function Dashboard({
           </nav>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+          {isOfflineOrStale && (
+            <button
+              type="button"
+              data-testid="offline-mode-badge"
+              onClick={handleRefresh}
+              style={{
+                background: 'rgba(245, 158, 11, 0.14)',
+                border: '1px solid rgba(245, 158, 11, 0.45)',
+                color: '#fbbf24',
+                padding: 'var(--space-1) var(--space-3)',
+                borderRadius: 'var(--radius-full)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+              }}
+              title={t(
+                'offline.retryTitle',
+                'Sem conexão ou exibindo cache salvo localmente. Clique para tentar sincronizar agora.'
+              )}
+            >
+              <span>{t('offline.badge', '📴 Modo Offline · dados locais')}</span>
+              <span aria-hidden="true">↻</span>
+            </button>
+          )}
           <button
             type="button"
             data-testid="dashboard-wrapped-btn"

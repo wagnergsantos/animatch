@@ -764,4 +764,29 @@ describe('Dashboard', () => {
 
     expect(screen.getByText(/Seu AniMatch Wrapped/i)).toBeInTheDocument()
   })
+
+  it('displays offline mode badge when allEntries has _cacheMeta.isStale=true and triggers onRefresh on click', () => {
+    const staleList = [...mockEntries]
+    Object.defineProperty(staleList, '_cacheMeta', {
+      value: { source: 'stale-idb', isStale: true, timestamp: Date.now() - 30_000_000 },
+      enumerable: false,
+    })
+    const onRefresh = vi.fn()
+
+    render(
+      <Dashboard
+        allEntries={staleList}
+        username="testuser"
+        onRefresh={onRefresh}
+        onLogout={vi.fn()}
+      />
+    )
+
+    const badge = screen.getByTestId('offline-mode-badge')
+    expect(badge).toBeInTheDocument()
+    expect(badge).toHaveTextContent(/Modo Offline · dados locais/i)
+
+    fireEvent.click(badge)
+    expect(onRefresh).toHaveBeenCalledTimes(1)
+  })
 })

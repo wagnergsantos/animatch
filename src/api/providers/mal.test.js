@@ -77,7 +77,7 @@ describe('malFetchAll', () => {
     const cached = [makeEntry()]
     localStorage.setItem(
       CACHE_PREFIX + 'testuser',
-      JSON.stringify({ timestamp: Date.now() - 10 * 60 * 1000, value: cached })
+      JSON.stringify({ timestamp: Date.now() - 7 * 60 * 60 * 1000, value: cached })
     )
 
     const fresh = [makeEntry(), makeEntry({ media: { ...makeEntry().media, id: 99 } })]

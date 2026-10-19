@@ -13,6 +13,7 @@
 
 const INDEX_KEY = 'animatch_cache_index'
 const MAX_CACHED_USERS = 15 // mesmo teto usado por recentUsers em App.jsx
+export const DEFAULT_CACHE_TTL = 6 * 60 * 60 * 1000 // 6 horas em ms
 
 function readIndex() {
   try {
@@ -57,10 +58,10 @@ function forgetIndex(cacheKey) {
 /**
  * @param {string} cacheKey - chave completa já montada pelo provider (ex.:
  *   `animatch_kitsu_cache_${username}`).
- * @param {number} ttlMs
+ * @param {number} [ttlMs=DEFAULT_CACHE_TTL]
  * @returns {unknown|null} o valor cacheado dentro do TTL, ou `null` (miss).
  */
-export function readCache(cacheKey, ttlMs) {
+export function readCache(cacheKey, ttlMs = DEFAULT_CACHE_TTL) {
   try {
     const raw = localStorage.getItem(cacheKey)
     if (!raw) return null
@@ -72,10 +73,34 @@ export function readCache(cacheKey, ttlMs) {
   }
 }
 
-/** @param {string} cacheKey @param {unknown} value */
-export function writeCache(cacheKey, value) {
+/**
+ * Lê entrada do cache em `localStorage` mesmo se o TTL já tiver expirado (para fallback Stale-While-Revalidate).
+ * @param {string} cacheKey
+ * @param {number} [ttlMs=DEFAULT_CACHE_TTL]
+ * @returns {{ value: unknown, timestamp: number, isFresh: boolean, isStale: boolean } | null}
+ */
+export function readStaleCache(cacheKey, ttlMs = DEFAULT_CACHE_TTL) {
   try {
-    localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), value }))
+    const raw = localStorage.getItem(cacheKey)
+    if (!raw) return null
+    const { timestamp, value } = JSON.parse(raw)
+    if (typeof timestamp !== 'number' || value === undefined) return null
+    const isFresh = Date.now() - timestamp < ttlMs
+    return {
+      value,
+      timestamp,
+      isFresh,
+      isStale: !isFresh,
+    }
+  } catch {
+    return null
+  }
+}
+
+/** @param {string} cacheKey @param {unknown} value @param {number} [timestamp=Date.now()] */
+export function writeCache(cacheKey, value, timestamp = Date.now()) {
+  try {
+    localStorage.setItem(cacheKey, JSON.stringify({ timestamp, value }))
     touchIndex(cacheKey)
   } catch {
     // quota excedida — essa resposta específica simplesmente não fica em cache

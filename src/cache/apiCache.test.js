@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { readCache, writeCache, clearCache } from './apiCache.js'
+import { readCache, readStaleCache, writeCache, clearCache, DEFAULT_CACHE_TTL } from './apiCache.js'
 
 const INDEX_KEY = 'animatch_cache_index'
 
@@ -9,6 +9,10 @@ beforeEach(() => {
 })
 
 describe('readCache / writeCache', () => {
+  it('define DEFAULT_CACHE_TTL como 6 horas (21.600.000 ms)', () => {
+    expect(DEFAULT_CACHE_TTL).toBe(6 * 60 * 60 * 1000)
+  })
+
   it('retorna null quando não há nada cacheado', () => {
     expect(readCache('missing-key', 5000)).toBeNull()
   })
@@ -18,17 +22,24 @@ describe('readCache / writeCache', () => {
     expect(readCache('key-a', 5000)).toEqual({ entries: [1, 2, 3] })
   })
 
-  it('retorna null quando o TTL expirou', () => {
+  it('retorna null quando o TTL expirou, mas readStaleCache recupera o valor como isStale=true', () => {
     vi.useFakeTimers()
     writeCache('key-b', ['x'])
     vi.advanceTimersByTime(10_000)
     expect(readCache('key-b', 5000)).toBeNull()
+
+    const stale = readStaleCache('key-b', 5000)
+    expect(stale).not.toBeNull()
+    expect(stale.value).toEqual(['x'])
+    expect(stale.isFresh).toBe(false)
+    expect(stale.isStale).toBe(true)
     vi.useRealTimers()
   })
 
   it('retorna null (não quebra) para uma entrada com JSON corrompido', () => {
     localStorage.setItem('key-c', '{not valid json')
     expect(readCache('key-c', 5000)).toBeNull()
+    expect(readStaleCache('key-c', 5000)).toBeNull()
   })
 
   it('retorna null para formato antigo sem campo `value` (schema anterior à extração)', () => {

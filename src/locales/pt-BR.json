@@ -267,5 +267,9 @@
     "noGenres": "Avalie mais animes para gerar seu perfil de gêneros.",
     "noRecs": "Adicione animes ao Planning para ver recomendações.",
     "footer": "Gerado por AniMatch • Descubra o que assistir baseado no seu gosto real"
+  },
+  "offline": {
+    "badge": "📴 Modo Offline · dados locais",
+    "retryTitle": "Sem conexão ou exibindo cache salvo localmente. Clique para tentar sincronizar agora."
   }
 }

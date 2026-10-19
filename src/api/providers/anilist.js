@@ -6,12 +6,12 @@ import {
   NonRetryableError,
   ProviderError,
 } from '../errors.js'
-import { readCache, writeCache, clearCache } from '../../cache/apiCache.js'
+import { readCache, writeCache, clearCache, DEFAULT_CACHE_TTL } from '../../cache/apiCache.js'
 
 const _DEV = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.DEV) || false
 const ANILIST_API = _DEV ? '/anilist-api' : 'https://graphql.anilist.co'
 const CACHE_KEY_PREFIX = 'animatch_cache_'
-const CACHE_TTL = 5 * 60 * 1000 // 5 minutos em ms
+const CACHE_TTL = DEFAULT_CACHE_TTL // 6 horas em ms
 
 const COMPLETED_QUERY = `
 query ($userName: String) {
