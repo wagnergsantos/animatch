@@ -140,4 +140,51 @@ describe('ProviderTabs', () => {
 
     expect(screen.queryByRole('alert')).toBeNull()
   })
+
+  it('renders sync icon button on Consolidated and each provider tab and calls onSyncProvider', () => {
+    const handleSync = vi.fn()
+    render(
+      <ProviderTabs
+        linkedUsernames={{ anilist: 'alice', kitsu: 'alice_k', mal: 'alice_m' }}
+        activeScope="ensemble"
+        onScopeChange={vi.fn()}
+        onSyncProvider={handleSync}
+        loadingProviders={['kitsu']}
+      />
+    )
+
+    const syncEnsembleBtn = screen.getByTestId('sync-tab-ensemble')
+    const syncAnilistBtn = screen.getByTestId('sync-tab-anilist')
+    const syncKitsuBtn = screen.getByTestId('sync-tab-kitsu')
+    const syncMalBtn = screen.getByTestId('sync-tab-mal')
+
+    // Since loadingProviders has 'kitsu', both ensemble and kitsu sync buttons are disabled
+    expect(syncEnsembleBtn).toBeDisabled()
+    expect(syncKitsuBtn).toBeDisabled()
+    expect(syncAnilistBtn).not.toBeDisabled()
+    expect(syncMalBtn).not.toBeDisabled()
+
+    fireEvent.click(syncAnilistBtn)
+    expect(handleSync).toHaveBeenCalledWith('anilist')
+
+    fireEvent.click(syncMalBtn)
+    expect(handleSync).toHaveBeenCalledWith('mal')
+  })
+
+  it('calls onSyncProvider("ensemble") when clicking Consolidated sync icon button', () => {
+    const handleSync = vi.fn()
+    render(
+      <ProviderTabs
+        linkedUsernames={{ anilist: 'alice', mal: 'alice_m' }}
+        activeScope="ensemble"
+        onScopeChange={vi.fn()}
+        onSyncProvider={handleSync}
+      />
+    )
+
+    const syncEnsembleBtn = screen.getByTestId('sync-tab-ensemble')
+    expect(syncEnsembleBtn).not.toBeDisabled()
+    fireEvent.click(syncEnsembleBtn)
+    expect(handleSync).toHaveBeenCalledWith('ensemble')
+  })
 })

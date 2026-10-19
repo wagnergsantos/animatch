@@ -166,7 +166,17 @@
     "streamingOnly": "Subscribed only",
     "clearAll": "Clear all filters",
     "clear": "Clear Filters",
-    "exportCSV": "Export recommendations as CSV"
+    "exportCSV": "Export current list (CSV)",
+    "moreFilters": "Filters",
+    "filtersTitle": "Filters",
+    "format": "Format",
+    "year": "Year",
+    "badge": "Highlight",
+    "sortLabel": "Sort",
+    "results": "{{count}} recommendations",
+    "moreActions": "More actions",
+    "done": "Apply",
+    "removeFilter": "Remove filter {{label}}"
   },
   "genres": {
     "Action": "Action",

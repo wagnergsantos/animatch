@@ -9,6 +9,7 @@ import ProviderTabs from './ProviderTabs.jsx'
 import TasteProfile from './TasteProfile.jsx'
 import RecommendationGrid from './RecommendationGrid.jsx'
 import FilterBar from './FilterBar.jsx'
+import ResultsActions from './ResultsActions.jsx'
 import StatisticsPage from './StatisticsPage.jsx'
 import GenreRecommendationModal from './GenreRecommendationModal.jsx'
 import SettingsPage from './SettingsPage.jsx'
@@ -463,6 +464,9 @@ export default function Dashboard({
             onScopeChange={setActiveScope}
             failedProviders={failedProviders}
             onRetryProvider={(p) => refetchEnsemble(p)}
+            onSyncProvider={(scope) => (scope === 'ensemble' ? refetchEnsemble() : refetchEnsemble(scope))}
+            loadingProviders={loadingProviders}
+            isEnsembleLoading={isEnsembleLoading}
           />
         )}
         {activeTab === 'recommendations' ? (
@@ -497,9 +501,6 @@ export default function Dashboard({
               onSeasonOnlyChange={setIsSeasonOnly}
               isStreamingOnly={isStreamingOnly}
               onStreamingOnlyChange={setIsStreamingOnly}
-              onExportCSV={() => exportRecommendationsToCSV(recommendations, t, t('dashboard.exportFilenamePrefix'))}
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
             />
             <div ref={gridRef}>
               <RecommendationGrid
@@ -509,6 +510,13 @@ export default function Dashboard({
                 provider={currentScopedProvider}
                 titlePref={titlePref}
                 viewMode={viewMode}
+                headerActions={
+                  <ResultsActions
+                    viewMode={viewMode}
+                    onViewModeChange={setViewMode}
+                    onExportCSV={() => exportRecommendationsToCSV(recommendations, t, t('dashboard.exportFilenamePrefix'))}
+                  />
+                }
               />
             </div>
           </>

@@ -166,7 +166,17 @@
     "streamingOnly": "登録サービスのみ",
     "clearAll": "すべてのフィルタをクリア",
     "clear": "フィルタをクリア",
-    "exportCSV": "おすすめをCSVでエクスポート"
+    "exportCSV": "現在のリストをCSVでエクスポート",
+    "moreFilters": "フィルター",
+    "filtersTitle": "フィルター",
+    "format": "形式",
+    "year": "年",
+    "badge": "ハイライト",
+    "sortLabel": "並び替え",
+    "results": "{{count}} 件のおすすめ",
+    "moreActions": "その他の操作",
+    "done": "適用",
+    "removeFilter": "フィルター {{label}} を解除"
   },
   "genres": {
     "Action": "アクション",

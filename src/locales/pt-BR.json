@@ -166,7 +166,17 @@
     "streamingOnly": "Somente assinados",
     "clearAll": "Limpar todos os filtros",
     "clear": "Limpar Filtros",
-    "exportCSV": "Exportar recomendações em CSV"
+    "exportCSV": "Exportar lista atual (CSV)",
+    "moreFilters": "Filtros",
+    "filtersTitle": "Filtros",
+    "format": "Formato",
+    "year": "Ano",
+    "badge": "Destaque",
+    "sortLabel": "Ordenar",
+    "results": "{{count}} recomendações",
+    "moreActions": "Mais ações",
+    "done": "Aplicar",
+    "removeFilter": "Remover filtro {{label}}"
   },
   "genres": {
     "Action": "Ação",
@@ -187,7 +197,7 @@
     "SPECIAL": "Especial"
   },
   "sort": {
-    "predicted": "Predicted Score",
+    "predicted": "Score previsto",
     "community": "Nota Comunitária",
     "year_desc": "Ano (Mais Recente)",
     "year_asc": "Ano (Mais Antigo)",

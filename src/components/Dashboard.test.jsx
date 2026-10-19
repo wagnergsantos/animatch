@@ -243,6 +243,7 @@ describe('Dashboard', () => {
       expect(screen.getByText('Anime 2024')).toBeInTheDocument()
     })
 
+    fireEvent.click(screen.getByRole('button', { name: /^Filtros/ }))
     const yearSelect = screen.getByDisplayValue('Todos os Anos')
     
     // Filter by year 2024
@@ -278,7 +279,7 @@ describe('Dashboard', () => {
       expect(screen.getByText('Anime 2024')).toBeInTheDocument()
     })
 
-    const sortSelect = screen.getByDisplayValue('Predicted Score')
+    const sortSelect = screen.getByDisplayValue('Score previsto')
 
     // Sort by year_desc
     fireEvent.change(sortSelect, { target: { value: 'year_desc' } })
@@ -313,7 +314,7 @@ describe('Dashboard', () => {
       expect(screen.getByText('Anime 2024 High')).toBeInTheDocument()
     })
 
-    const sortSelect = screen.getByDisplayValue('Predicted Score')
+    const sortSelect = screen.getByDisplayValue('Score previsto')
 
     // Sort by year_desc
     fireEvent.change(sortSelect, { target: { value: 'year_desc' } })
@@ -349,6 +350,7 @@ describe('Dashboard', () => {
       expect(screen.getByText('Anime Prop Year')).toBeInTheDocument()
     })
 
+    fireEvent.click(screen.getByRole('button', { name: /^Filtros/ }))
     const yearSelect = screen.getByDisplayValue('Todos os Anos')
     const options = Array.from(yearSelect.querySelectorAll('option')).map((opt) => opt.value)
 
@@ -389,6 +391,7 @@ describe('Dashboard', () => {
     expect(screen.getByText("Releasing Anime")).toBeInTheDocument()
     expect(screen.getByText("Old Finished Anime")).toBeInTheDocument()
 
+    fireEvent.click(screen.getByRole('button', { name: /^Filtros/ }))
     const seasonCheckbox = screen.getByLabelText(/Apenas da Temporada/i)
     fireEvent.click(seasonCheckbox)
 
@@ -416,6 +419,7 @@ describe('Dashboard', () => {
       expect(screen.getByText('String Year Anime')).toBeInTheDocument()
     })
 
+    fireEvent.click(screen.getByRole('button', { name: /^Filtros/ }))
     const seasonCheckbox = screen.getByLabelText(/Apenas da Temporada/i)
     fireEvent.click(seasonCheckbox)
 
@@ -476,6 +480,7 @@ describe('Dashboard', () => {
       expect(screen.getByText('Unstreamable Anime')).toBeInTheDocument()
     })
 
+    fireEvent.click(screen.getByRole('button', { name: /^Filtros/ }))
     const streamingCheckbox = screen.getByLabelText(/Somente assinados/i)
     fireEvent.click(streamingCheckbox)
 

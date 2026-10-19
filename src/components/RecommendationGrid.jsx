@@ -26,7 +26,7 @@ function SkeletonCard() {
   )
 }
 
-export default function RecommendationGrid({ recommendations = [], isLoading = false, sortBy = 'predicted', provider = 'anilist', titlePref = 'english', viewMode = 'grid' }) {
+export default function RecommendationGrid({ recommendations = [], isLoading = false, sortBy = 'predicted', provider = 'anilist', titlePref = 'english', viewMode = 'grid', headerActions = null }) {
   const { t } = useTranslation()
 
   const displayRecommendations = useMemo(() => {
@@ -104,6 +104,7 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
         <h2 className={styles['recommendation-grid__title']} style={{ marginBottom: 0 }}>
           {t('recommendationGrid.header', { count: displayRecommendations.length })}
         </h2>
+        {headerActions}
       </div>
       {viewMode === 'list' ? (
         <div className={styles['recommendation-grid__list']}>

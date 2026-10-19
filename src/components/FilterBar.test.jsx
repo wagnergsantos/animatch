@@ -1,14 +1,16 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import FilterBar from './FilterBar.jsx'
+import ResultsActions from './ResultsActions.jsx'
+
+const openFilters = () => fireEvent.click(screen.getByRole('button', { name: /^Filtros/ }))
 
 describe('FilterBar', () => {
-  it('renders search input, format filter, sort selector, and export button', () => {
+  it('renders search input, genre filter, sort selector, and format filter in popover', () => {
     const onSelectGenre = vi.fn()
     const onSearchChange = vi.fn()
     const onSelectFormat = vi.fn()
     const onSortChange = vi.fn()
-    const onExportCSV = vi.fn()
 
     render(
       <FilterBar
@@ -20,12 +22,10 @@ describe('FilterBar', () => {
         onSelectFormat={onSelectFormat}
         sortBy="predicted"
         onSortChange={onSortChange}
-        onExportCSV={onExportCSV}
       />
     )
 
     expect(screen.getByPlaceholderText('🔍 Buscar por nome...')).toBeInTheDocument()
-    expect(screen.getByText('📥 Exportar recomendações em CSV')).toBeInTheDocument()
 
     // Test search change
     fireEvent.change(screen.getByPlaceholderText('🔍 Buscar por nome...'), {
@@ -38,9 +38,11 @@ describe('FilterBar', () => {
     fireEvent.change(genreSelect, { target: { value: 'Action' } })
     expect(onSelectGenre).toHaveBeenCalledWith('Action')
 
-    // Test export click
-    fireEvent.click(screen.getByText('📥 Exportar recomendações em CSV'))
-    expect(onExportCSV).toHaveBeenCalled()
+    // Test format select inside Filters popover
+    openFilters()
+    const formatSelect = screen.getByDisplayValue('Todos Formatos')
+    fireEvent.change(formatSelect, { target: { value: 'TV' } })
+    expect(onSelectFormat).toHaveBeenCalledWith('TV')
   })
 
   it('renders dynamic genres when availableGenres prop is provided', () => {
@@ -72,6 +74,7 @@ describe('FilterBar', () => {
       />
     )
 
+    openFilters()
     const yearSelect = screen.getByDisplayValue('Todos os Anos')
     expect(yearSelect).toBeInTheDocument()
     expect(screen.getByText('Sem Ano')).toBeInTheDocument()
@@ -94,7 +97,7 @@ describe('FilterBar', () => {
     expect(screen.getByText('Ano (Mais Recente)')).toBeInTheDocument()
     expect(screen.getByText('Ano (Mais Antigo)')).toBeInTheDocument()
 
-    const sortSelect = screen.getByDisplayValue('Predicted Score')
+    const sortSelect = screen.getByDisplayValue('Score previsto')
     fireEvent.change(sortSelect, { target: { value: 'year_desc' } })
     expect(onSortChange).toHaveBeenCalledWith('year_desc')
   })
@@ -110,6 +113,7 @@ describe('FilterBar', () => {
       />
     )
 
+    openFilters()
     const seasonToggle = screen.getByLabelText(/Apenas da Temporada/i)
     fireEvent.click(seasonToggle)
     expect(handleSeasonChange).toHaveBeenCalledWith(true)
@@ -135,18 +139,24 @@ describe('FilterBar', () => {
     expect(screen.getByText('Comedy (3)')).toBeInTheDocument()
   })
 
-  it('renders view mode toggle buttons and calls onViewModeChange', () => {
+  it('renders view mode toggle and export icon button in ResultsActions', () => {
     const handleViewModeChange = vi.fn()
+    const handleExportCSV = vi.fn()
     render(
-      <FilterBar
+      <ResultsActions
         viewMode="grid"
         onViewModeChange={handleViewModeChange}
+        onExportCSV={handleExportCSV}
       />
     )
 
     const listBtn = screen.getByRole('button', { name: 'Lista' })
     fireEvent.click(listBtn)
     expect(handleViewModeChange).toHaveBeenCalledWith('list')
+
+    const exportBtn = screen.getByRole('button', { name: 'Exportar lista atual (CSV)' })
+    fireEvent.click(exportBtn)
+    expect(handleExportCSV).toHaveBeenCalled()
   })
 
   it('calls onStreamingOnlyChange when streaming filter checkbox is clicked', () => {
@@ -159,6 +169,7 @@ describe('FilterBar', () => {
       />
     )
 
+    openFilters()
     const streamingToggle = screen.getByLabelText(/Somente assinados/i)
     fireEvent.click(streamingToggle)
     expect(handleStreamingChange).toHaveBeenCalledWith(true)
@@ -205,6 +216,30 @@ describe('FilterBar', () => {
     expect(handleStreamingChange).toHaveBeenCalledWith(false)
   })
 
+  it('shows active filter count as "Filtros (2)", chips and removes a single filter via chip', () => {
+    const handleFormatChange = vi.fn()
+    render(
+      <FilterBar
+        selectedFormat="TV"
+        onSelectFormat={handleFormatChange}
+        isSeasonOnly={true}
+        onSeasonOnlyChange={vi.fn()}
+      />
+    )
+
+    expect(screen.getByRole('button', { name: /^Filtros/ })).toHaveTextContent('Filtros (2)')
+    fireEvent.click(screen.getByRole('button', { name: 'Remover filtro Formato: TV' }))
+    expect(handleFormatChange).toHaveBeenCalledWith('ALL')
+  })
+
+  it('closes the filters popover on Escape', () => {
+    render(<FilterBar onSelectFormat={vi.fn()} />)
+    openFilters()
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
   it('renders DISCOVERY badge option in badge selector and triggers onSelectBadge', () => {
     const handleBadgeChange = vi.fn()
     render(
@@ -214,6 +249,7 @@ describe('FilterBar', () => {
       />
     )
 
+    openFilters()
     expect(screen.getByText('🧭 Fora da Zona')).toBeInTheDocument()
     const badgeSelect = screen.getByDisplayValue('Todos os Destaques')
     fireEvent.change(badgeSelect, { target: { value: 'DISCOVERY' } })
