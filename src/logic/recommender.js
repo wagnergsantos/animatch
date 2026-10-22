@@ -122,8 +122,22 @@ export function buildTasteProfile(entries = [], options = {}) {
   return profile
 }
 
+export function isEligiblePlanningMedia(entry) {
+  if (!entry?.media) return false
+  if (entry.media.status === 'NOT_YET_RELEASED') return false
+  const score = entry.media.averageScore
+  return score != null && score > 0
+}
+
+export function isEligiblePlanningEntry(entry) {
+  const rawStatus = (entry?.status || '').toUpperCase()
+  const isPlanning = rawStatus === 'PLANNING' || rawStatus === 'PLAN_TO_WATCH' || rawStatus === 'PLANNED'
+  return isPlanning && isEligiblePlanningMedia(entry)
+}
+
 export function scoreRecommendations(planningEntries = [], tasteProfile = new Map(), selectedGenre = 'ALL') {
   const filtered = planningEntries.filter((entry) => {
+    if (!isEligiblePlanningMedia(entry)) return false
     const score = entry?.media?.averageScore
     const genres = entry?.media?.genres ?? []
     const matchesGenre = selectedGenre === 'ALL' || genres.includes(selectedGenre)

@@ -210,8 +210,8 @@ describe('Dashboard', () => {
 
   it('renders filter bar genres with planning counts', () => {
     const mockEntries = [
-      { id: 1, status: 'PLANNING', media: { id: 1, title: { romaji: 'Anime 1' }, genres: ['Action', 'Comedy'] } },
-      { id: 2, status: 'PLANNING', media: { id: 2, title: { romaji: 'Anime 2' }, genres: ['Action'] } },
+      { id: 1, status: 'PLANNING', media: { id: 1, title: { romaji: 'Anime 1' }, genres: ['Action', 'Comedy'], averageScore: 80 } },
+      { id: 2, status: 'PLANNING', media: { id: 2, title: { romaji: 'Anime 2' }, genres: ['Action'], averageScore: 75 } },
       { id: 3, status: 'COMPLETED', media: { id: 3, title: { romaji: 'Anime 3' }, genres: ['Drama'] } },
     ]
 
@@ -793,5 +793,43 @@ describe('Dashboard', () => {
 
     fireEvent.click(badge)
     expect(onRefresh).toHaveBeenCalledTimes(1)
+  })
+
+  it('excludes NOT_YET_RELEASED animes from recommendations and year filter (e.g. 2027)', async () => {
+    const entriesWithUnreleased = [
+      ...mockEntries,
+      {
+        status: 'PLANNING',
+        media: {
+          id: 99,
+          title: { romaji: 'Unreleased 2027', english: 'Unreleased 2027' },
+          status: 'NOT_YET_RELEASED',
+          seasonYear: 2027,
+          genres: ['Sci-Fi'],
+          averageScore: 88,
+        },
+      },
+      {
+        status: 'PLANNING',
+        media: {
+          id: 98,
+          title: { romaji: 'Released 2024', english: 'Released 2024' },
+          status: 'FINISHED',
+          seasonYear: 2024,
+          genres: ['Adventure'],
+          averageScore: 82,
+        },
+      },
+    ]
+
+    render(<Dashboard allEntries={entriesWithUnreleased} username="testuser" onLogout={vi.fn()} />)
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('skeleton')).not.toBeInTheDocument()
+    })
+
+    expect(screen.getByText('Released 2024')).toBeInTheDocument()
+    expect(screen.queryByText('Unreleased 2027')).not.toBeInTheDocument()
+    expect(screen.queryByRole('option', { name: '2027' })).not.toBeInTheDocument()
   })
 })

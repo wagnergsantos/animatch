@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocalStorage } from '../hooks/useLocalStorage.js'
 import { useEnsembleData } from '../hooks/useEnsembleData.js'
-import { buildTasteProfile, scoreRecommendations, resolveYear } from '../logic/recommender.js'
+import { buildTasteProfile, scoreRecommendations, resolveYear, isEligiblePlanningEntry } from '../logic/recommender.js'
 import { applyStreamingBoost, matchesUserSubscriptions } from '../logic/streaming.js'
 import { applyMultiPresenceBoost } from '../logic/ensemble.js'
 import ProviderTabs from './ProviderTabs.jsx'
@@ -170,7 +170,7 @@ export default function Dashboard({
   }, [currentEntries])
 
   const planningEntries = useMemo(() => {
-    return currentEntries.filter((e) => e.status === 'PLANNING')
+    return currentEntries.filter(isEligiblePlanningEntry)
   }, [currentEntries])
 
   const availableGenres = useMemo(() => {
@@ -211,7 +211,7 @@ export default function Dashboard({
       const seasonYear = r.seasonYear ?? match?.seasonYear ?? match?.media?.seasonYear
       const startDate = r.startDate ?? match?.startDate ?? match?.media?.startDate
       const year = resolveYear(r) ?? resolveYear(match)
-      const status = r.status ?? match?.status ?? match?.media?.status
+      const status = r.status ?? match?.media?.status
       const titleObj = r.titleObj ?? match?.media?.title ?? match?.titleObj
       const title = r.title ?? match?.media?.title?.english ?? match?.media?.title?.romaji
       const streamingLinks = r.streamingLinks ?? match?.streamingLinks ?? match?.media?.streamingLinks

@@ -1,12 +1,12 @@
 # Pré-Spec — AniMatch: Correções e Melhorias
 
 **Repositório:** wagnergsantos/animatch
-**Data:** 08/10/2026 (revisado)
+**Data:** 22/10/2026 (revisado)
 **Escopo:** Revisão de código existente + propostas de novas funcionalidades
 
 **Changelog desta revisão:**
-- **Débitos técnicos e features concluídas:** A1 (LRU Cache), A2 (Erros tipados), A3 (predictionSource/badges), A4 (Constantes), A5 (useLocalStorage), A6 (Cleanup legados), A9 (SEO/OG/a11y), A10 (Code-splitting/LCP), B1 (Justificativas), B2 (Modo Decisão), B5 (Exportação Visual Wrapped #15), B6 (Supabase Auth & Settings) e B7 (Recomendação Unificada Multi-Provider / Ensemble Recommender com ProviderTabs #14).
-- **A7 (Web Worker):** Avaliado e arquivado/backlog (#3) — ganho imperceptível (~2-4ms para 2500 itens) com overhead de serialização `postMessage` consumindo tempo similar.
+- **Débitos técnicos e features concluídas:** A1 (LRU Cache), A2 (Erros tipados), A3 (predictionSource/badges), A4 (Constantes), A5 (useLocalStorage), A6 (Cleanup legados), A9 (SEO/OG/a11y), A10 (Code-splitting/LCP), B1 (Justificativas), B2 (Modo Decisão & Descoberta #9/#20), B4 (Filtro de inéditos `NOT_YET_RELEASED` nas recomendações e anos #22), B5 (Exportação Visual Wrapped #15), B6 (Supabase Auth & Settings), B7 (Recomendação Unificada Multi-Provider / Ensemble Recommender #14), B8 (Persistência Offline-First IndexedDB & Supabase Sync #16) e Média Bayesiana com Lower Bound `C=25` (#17, #18, #19).
+- **A7 (Web Worker #3) e A8 (OpenTelemetry #2):** Avaliados e arquivados — `A7` tem ganho imperceptível (~2-4ms vs overhead de `postMessage`) e `A8` adiciona peso/infra desnecessários frente aos erros tipados (`A2`) e cache offline SWR (`B8`).
 - **B8 (Persistência Offline-First & Supabase Sync):** Proposta técnica detalhada adicionada à Frente B (#16) para migração do `localStorage` para IndexedDB com sincronização e backup em nuvem no Supabase.
 - Seção 4: Tabela de prioridades e backlog de issues sincronizados.
 
@@ -157,7 +157,7 @@ lógica de interseção/diferença de listas.
 
 ---
 
-### B4. Novidades de temporada — rebaixada e simplificada
+### [x] B4. Filtragem de inéditos (`NOT_YET_RELEASED`) e status de temporada (#22) (Concluído ✅)
 
 **Ressalva:** a proposta original (Web Push em background) subestimava o
 custo real. Web Push funcional de verdade exige infraestrutura persistente:
@@ -256,7 +256,7 @@ Transformar o armazenamento transitório de 5 minutos do `localStorage` em uma a
 
 ---
 
-### A8. Observabilidade — OpenTelemetry Browser (Opt-in)
+### [⏸️] A8. Observabilidade — OpenTelemetry Browser (Arquivado / Backlog) (#2)
 
 Monitorar latência de APIs externas (AniList/Kitsu/MAL), taxas de erro de renderização e performance dos algoritmos de recomendação em produção.
 
@@ -298,9 +298,9 @@ Monitorar latência de APIs externas (AniList/Kitsu/MAL), taxas de erro de rende
 | 12 | B5 — Exportação Visual ("Wrapped") (#15) | Melhoria | 🚀 Features | ✅ Concluído | Exportação visual 1200x630 de perfil de gosto e top animes em PNG/Clipboard. |
 | 13 | B3 — comparação entre usuários (#21) | Melhoria | 🚀 Features | ⏳ Pendente | Recomendações cruzadas entre dois perfis. |
 | 14 | A7 — Web Worker Performance (#3) | Correção/Infra | ⏸️ Baixa | 🛑 Arquivado | Ganho nulo (~2ms de CPU vs ~2ms de overhead de serialização). |
-| 15 | A8 — OpenTelemetry (#2) | Infra | ⏸️ Baixa | ⏳ Pendente | Telemetria e observabilidade client-side. |
-| 16 | B4 — novidades de temporada v1 (#22) | Melhoria | 🚀 Features | ⏳ Pendente | Checagem client-side de novas temporadas ao carregar a lista. |
-| 17 | B4 — Web Push completo (v2) | Backlog | ⏸️ Baixa | ⏳ Pendente | Exige infra persistente (cron, VAPID, tabela de subscriptions). |
+| 15 | A8 — OpenTelemetry (#2) | Infra | ⏸️ Baixa | 🛑 Arquivado | Overengineering para SPA client-side; coberto por A2 e B8. |
+| 16 | B4 — filtrar `NOT_YET_RELEASED` (#22) | Melhoria | 🚀 Features | ✅ Concluído | Ocultar animes não lançados das sugestões e filtros de ano (ex: 2027). |
+| 17 | B4 — Web Push completo (v2) | Backlog | ⏸️ Baixa | 🛑 Arquivado | Exige infra persistente (cron, VAPID, tabela de subscriptions). |
 
 P = pequeno, M = médio, A = alto.
 
@@ -310,8 +310,8 @@ P = pequeno, M = médio, A = alto.
 
 - Backlog ativo no GitHub Issues:
   - **#21 (B3)**: Comparação de perfil de gosto entre dois usuários.
-  - **#22 (B4 v1)**: Indicador client-side de novidades de temporada nos cards.
-  - **#2 (A8)**: Observabilidade — OpenTelemetry Browser (Opt-in).
+  - **#22 (B4)**: Concluído — exclusão de animes `NOT_YET_RELEASED` das recomendações e filtros de ano/gênero.
+  - **#2 (A8)**: Arquivado — Observabilidade OpenTelemetry Browser.
 - O progresso e conclusão das tarefas são gerenciados diretamente via GitHub Issues (`gh issue list`, `gh issue close <id>`).
 - Este documento funciona como pré-especificação técnica dos epics e deve ser mantido atualizado conforme novas ideias surgirem.
 

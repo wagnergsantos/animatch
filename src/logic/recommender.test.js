@@ -716,6 +716,21 @@ describe('scoreRecommendations', () => {
       const result = scoreRecommendations(planning, discoveryProfile)
       expect(result.find((r) => r.id === 206).badges).toContain('DISCOVERY')
       expect(result.find((r) => r.id === 207).badges).not.toContain('DISCOVERY')
+      const planningWithUnreleased = [
+        ...planning,
+        {
+          media: {
+            id: 208,
+            title: { english: 'Upcoming 2027 Anime' },
+            status: 'NOT_YET_RELEASED',
+            seasonYear: 2027,
+            genres: ['Mecha', 'Music'],
+            averageScore: 85,
+          },
+        },
+      ]
+      const resultWithUnreleased = scoreRecommendations(planningWithUnreleased, discoveryProfile)
+      expect(resultWithUnreleased.find((r) => r.id === 208)).toBeUndefined()
     })
   })
 })

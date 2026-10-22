@@ -26,7 +26,7 @@ describe('analytics logic', () => {
     {
       status: 'PLANNING',
       score: 0,
-      media: { episodes: 12, seasonYear: 2021, genres: ['Sci-Fi'] }
+      media: { episodes: 12, seasonYear: 2021, genres: ['Sci-Fi'], averageScore: 80 }
     }
   ]
 
@@ -115,5 +115,31 @@ describe('analytics logic', () => {
     expect(stats[0].genre).toBe('Action')
     expect(stats[0].realAverage).toBe(10)
     expect(stats[0].scoredCount).toBe(2)
+  })
+
+  it('excludes NOT_YET_RELEASED and unscored PLANNING entries from status, year, and plannedCount stats', () => {
+    const entries = [
+      ...sampleEntries,
+      {
+        status: 'PLANNING',
+        score: 0,
+        media: { status: 'NOT_YET_RELEASED', seasonYear: 2027, genres: ['Action'], averageScore: 85 },
+      },
+      {
+        status: 'PLANNING',
+        score: 0,
+        media: { status: 'FINISHED', seasonYear: 2025, genres: ['Action'], averageScore: 0 },
+      },
+    ]
+
+    const dist = computeStatusDistribution(entries)
+    expect(dist.PLANNING).toBe(1) // only the eligible 2021 planning item from sampleEntries
+
+    const years = computeYearDistribution(entries)
+    expect(years.find((y) => y.year === 2027)).toBeUndefined()
+    expect(years.find((y) => y.year === 2025)).toBeUndefined()
+
+    const genreStats = computeBayesianGenreStats(entries, 15)
+    expect(genreStats[0].plannedCount).toBe(0)
   })
 })

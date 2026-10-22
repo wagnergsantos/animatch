@@ -3,6 +3,7 @@ import {
   DEFAULT_SCORE_STD_DEV,
   CONFIDENCE_Z,
   WATCHING_SCORE_WEIGHT,
+  isEligiblePlanningEntry,
 } from './recommender.js'
 
 export function computeOverviewStats(entries = []) {
@@ -44,7 +45,9 @@ export function computeStatusDistribution(entries = []) {
   }
 
   for (const entry of entries) {
+    if (entry?.media?.status === 'NOT_YET_RELEASED') continue
     const st = entry?.status
+    if (st === 'PLANNING' && !isEligiblePlanningEntry(entry)) continue
     if (st && dist[st] !== undefined) {
       dist[st] += 1
     }
@@ -57,6 +60,8 @@ export function computeYearDistribution(entries = []) {
   const yearCounts = new Map()
 
   for (const entry of entries) {
+    if (entry?.media?.status === 'NOT_YET_RELEASED') continue
+    if (entry?.status === 'PLANNING' && !isEligiblePlanningEntry(entry)) continue
     const year = entry?.media?.seasonYear || entry?.media?.startDate?.year
     if (year && year > 1960 && year <= 2030) {
       yearCounts.set(year, (yearCounts.get(year) || 0) + 1)
@@ -130,9 +135,7 @@ export function computeBayesianGenreStats(
   }
 
   for (const entry of entries) {
-    if (!entry?.media) continue
-    const rawStatus = (entry.status || '').toUpperCase()
-    if (rawStatus === 'PLANNING' || rawStatus === 'PLAN_TO_WATCH') {
+    if (isEligiblePlanningEntry(entry)) {
       const genres = entry.media.genres ?? []
       for (const genre of genres) {
         if (genreStats.has(genre)) {
