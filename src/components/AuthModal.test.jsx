@@ -12,6 +12,7 @@ describe('AuthModal', () => {
   let mockSignInWithPassword
   let mockSignUpWithPassword
   let mockSignInWithOAuth
+  let mockResetPasswordForEmail
   let mockSignOut
 
   beforeEach(() => {
@@ -19,6 +20,7 @@ describe('AuthModal', () => {
     mockSignInWithPassword = vi.fn()
     mockSignUpWithPassword = vi.fn()
     mockSignInWithOAuth = vi.fn()
+    mockResetPasswordForEmail = vi.fn()
     mockSignOut = vi.fn()
 
     AuthContextModule.useAuth.mockReturnValue({
@@ -28,6 +30,7 @@ describe('AuthModal', () => {
       signInWithPassword: mockSignInWithPassword,
       signUpWithPassword: mockSignUpWithPassword,
       signInWithOAuth: mockSignInWithOAuth,
+      resetPasswordForEmail: mockResetPasswordForEmail,
       signOut: mockSignOut,
     })
   })
@@ -118,7 +121,7 @@ describe('AuthModal', () => {
     })
   })
 
-  it('submits email and password for signup and shows confirmation message', async () => {
+  it('submits email and password for signup with accepted_terms_at metadata and shows confirmation message', async () => {
     mockSignUpWithPassword.mockResolvedValue({
       data: { user: { id: '456' } },
       error: null,
@@ -128,19 +131,55 @@ describe('AuthModal', () => {
 
     fireEvent.change(screen.getByLabelText(/Email/i), { target: { value: 'newuser@example.com' } })
     fireEvent.change(screen.getByLabelText(/Senha|Password/i), { target: { value: 'securepassword' } })
+    fireEvent.click(screen.getByTestId('terms-consent-checkbox'))
 
     const submitBtn = screen.getByRole('button', { name: /^Criar Conta$|^Sign Up$/i })
     fireEvent.click(submitBtn)
 
     await waitFor(() => {
-      expect(mockSignUpWithPassword).toHaveBeenCalledWith({
-        email: 'newuser@example.com',
-        password: 'securepassword',
-      })
+      expect(mockSignUpWithPassword).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: 'newuser@example.com',
+          password: 'securepassword',
+          options: {
+            data: expect.objectContaining({
+              accepted_terms_at: expect.any(String),
+              terms_version: '1.0',
+            }),
+          },
+        })
+      )
     })
 
     await waitFor(() => {
       expect(screen.getByText(/Verifique seu email|confirm/i)).toBeInTheDocument()
+    })
+  })
+
+  it('blocks signup when 16+ terms consent checkbox is not checked', async () => {
+    render(<AuthModal isOpen={true} initialTab="signup" onClose={vi.fn()} />)
+
+    fireEvent.change(screen.getByLabelText(/Email/i), { target: { value: 'newuser@example.com' } })
+    fireEvent.change(screen.getByLabelText(/Senha|Password/i), { target: { value: 'securepassword' } })
+
+    const submitBtn = screen.getByRole('button', { name: /^Criar Conta$|^Sign Up$/i })
+    fireEvent.click(submitBtn)
+
+    expect(mockSignUpWithPassword).not.toHaveBeenCalled()
+    expect(screen.getByRole('alert')).toHaveTextContent(/16 anos|termos/i)
+  })
+
+  it('triggers resetPasswordForEmail when clicking forgot password in login tab', async () => {
+    mockResetPasswordForEmail.mockResolvedValue({ data: {}, error: null })
+    render(<AuthModal isOpen={true} onClose={vi.fn()} />)
+
+    fireEvent.change(screen.getByLabelText(/Email/i), { target: { value: 'recover@example.com' } })
+    const forgotBtn = screen.getByTestId('forgot-password-btn')
+    fireEvent.click(forgotBtn)
+
+    await waitFor(() => {
+      expect(mockResetPasswordForEmail).toHaveBeenCalledWith('recover@example.com')
+      expect(screen.getByRole('status')).toHaveTextContent(/recuperação|redefinição|email/i)
     })
   })
 
@@ -154,6 +193,7 @@ describe('AuthModal', () => {
 
     fireEvent.change(screen.getByLabelText(/Email/i), { target: { value: 'existing@example.com' } })
     fireEvent.change(screen.getByLabelText(/Senha|Password/i), { target: { value: 'securepassword' } })
+    fireEvent.click(screen.getByTestId('terms-consent-checkbox'))
 
     const submitBtn = screen.getByRole('button', { name: /^Criar Conta$|^Sign Up$/i })
     fireEvent.click(submitBtn)

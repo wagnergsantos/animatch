@@ -1,7 +1,22 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import SettingsPage from './SettingsPage.jsx'
 import { STREAMING_SERVICES } from '../logic/streaming.js'
+import { clearProviderCache } from '../api/index.js'
+import { deleteCloudAnimeList } from '../cache/cloudListSync.js'
+import { clearAllLocalData } from '../cache/idbCache.js'
+
+vi.mock('../api/index.js', () => ({
+  clearProviderCache: vi.fn(),
+}))
+
+vi.mock('../cache/cloudListSync.js', () => ({
+  deleteCloudAnimeList: vi.fn().mockResolvedValue(true),
+}))
+
+vi.mock('../cache/idbCache.js', () => ({
+  clearAllLocalData: vi.fn().mockResolvedValue(undefined),
+}))
 
 describe('SettingsPage', () => {
   const defaultProps = {
@@ -320,5 +335,67 @@ describe('SettingsPage', () => {
       const syncingAllBtn = screen.getByRole('button', { name: /sincronizando todos os provedores/i })
       expect(syncingAllBtn).toBeDisabled()
     })
+
+    it('clears provider cache and cloud anime list when unlinking a provider', () => {
+      const onLinkedUsernamesChange = vi.fn()
+      render(
+        <SettingsPage
+          {...defaultProps}
+          user={{ id: 'u-cloud-99', email: 'test@example.com' }}
+          linkedUsernames={{ anilist: 'ani_hero', kitsu: 'kitsu_hero', mal: '' }}
+          onLinkedUsernamesChange={onLinkedUsernamesChange}
+        />
+      )
+
+      const kitsuUnlinkBtn = screen.getByTitle('Desvincular conta do Kitsu')
+      fireEvent.click(kitsuUnlinkBtn)
+
+      expect(clearProviderCache).toHaveBeenCalledWith('kitsu_hero', 'kitsu')
+      expect(deleteCloudAnimeList).toHaveBeenCalledWith('u-cloud-99', 'kitsu', 'kitsu_hero')
+      expect(onLinkedUsernamesChange).toHaveBeenCalledWith({
+        anilist: 'ani_hero',
+        kitsu: '',
+        mal: '',
+      })
+    })
+
+    it('clears all local browser data when clicking clear local data button', async () => {
+      const onLogout = vi.fn()
+      render(<SettingsPage {...defaultProps} onLogout={onLogout} />)
+
+      const clearLocalBtn = screen.getByTestId('clear-local-data-btn')
+      fireEvent.click(clearLocalBtn)
+
+      await waitFor(() => {
+        expect(clearAllLocalData).toHaveBeenCalledTimes(1)
+        expect(onLogout).toHaveBeenCalledTimes(1)
+      })
+    })
+
+    it('requires explicit confirmation before deleting cloud account and calls onDeleteAccount', async () => {
+      const onDeleteAccount = vi.fn().mockResolvedValue({ error: null })
+      const onLogout = vi.fn()
+      render(
+        <SettingsPage
+          {...defaultProps}
+          user={{ id: 'u-del', email: 'delete@example.com' }}
+          onDeleteAccount={onDeleteAccount}
+          onLogout={onLogout}
+        />
+      )
+
+      const deleteBtn = screen.getByTestId('delete-cloud-account-btn')
+      fireEvent.click(deleteBtn)
+
+      // Confirmation step appears
+      const confirmBtn = screen.getByTestId('confirm-delete-account-btn')
+      fireEvent.click(confirmBtn)
+
+      await waitFor(() => {
+        expect(onDeleteAccount).toHaveBeenCalledTimes(1)
+        expect(onLogout).toHaveBeenCalledTimes(1)
+      })
+    })
   })
 })
+

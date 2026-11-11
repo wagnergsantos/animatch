@@ -46,11 +46,16 @@ export default function ExportSnapshotButton({
           onClick={onOpenWrapped}
           data-testid="export-wrapped-btn"
         >
-          {t('wrapped.button', '✨ Compartilhar Wrapped')}
+          <span aria-hidden="true">✨ </span>
+          {t('wrapped.buttonText', t('wrapped.button', 'Compartilhar Wrapped').replace(/^✨\s*/, ''))}
         </button>
       )}
-      <button type="button" onClick={handleExportCSV}>Exportar CSV</button>
-      <button type="button" onClick={handleExportJSON}>Exportar JSON</button>
+      <button type="button" onClick={handleExportCSV}>
+        {t('stats.exportCSV', 'Exportar CSV')}
+      </button>
+      <button type="button" onClick={handleExportJSON}>
+        {t('stats.exportJSON', 'Exportar JSON')}
+      </button>
     </div>
   )
 }

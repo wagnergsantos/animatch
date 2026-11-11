@@ -488,6 +488,47 @@ describe('flattenEntries', () => {
     expect(result[0].media.idMal).toBe(16498)
     expect(result[1].media.idMal).toBe(52991)
   })
+
+  it('filters out adult entries where media.isAdult is true', () => {
+    const data = {
+      MediaListCollection: {
+        lists: [
+          {
+            entries: [
+              { media: { id: 1, isAdult: false, title: { romaji: 'Safe Anime' } } },
+              { media: { id: 2, isAdult: true, title: { romaji: 'Adult Anime' } } },
+              { media: { id: 3, title: { romaji: 'Unspecified Safe Anime' } } },
+            ],
+          },
+        ],
+      },
+    }
+    const result = flattenEntries(data)
+    expect(result).toHaveLength(2)
+    expect(result.map((e) => e.media.id)).toEqual([1, 3])
+  })
 })
+
+describe('AniList adult content queries', () => {
+  it('requests isAdult in COMPLETED_QUERY, PLANNING_QUERY and ALL_LISTS_QUERY', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({
+        data: { MediaListCollection: { lists: [] } },
+      }),
+    })
+
+    await fetchCompletedList('user1')
+    await fetchPlanningList('user1')
+    await fetchAllLists('user1', { forceRefresh: true })
+
+    expect(mockFetch).toHaveBeenCalledTimes(3)
+    for (const call of mockFetch.mock.calls) {
+      const body = JSON.parse(call[1].body)
+      expect(body.query).toMatch(/media\s*\{[^}]*\bisAdult\b/)
+    }
+  })
+})
+
 
 

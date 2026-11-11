@@ -1,19 +1,24 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/AuthContext.jsx'
+import { resetPasswordForEmail as fallbackResetPasswordForEmail } from '../auth/session.js'
+import { useModalFocusTrap } from '../hooks/useModalFocusTrap.js'
 import styles from './AuthModal.module.css'
 
 export default function AuthModal({
   isOpen,
   onClose,
+  onOpenLegalModal,
   initialTab = 'login',
 }) {
   const { t } = useTranslation()
-  const { signInWithPassword, signUpWithPassword, signInWithOAuth } = useAuth()
+  const { signInWithPassword, signUpWithPassword, signInWithOAuth, resetPasswordForEmail } = useAuth()
+  const modalRef = useRef(null)
 
   const [activeTab, setActiveTab] = useState(initialTab)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
   const [successMessage, setSuccessMessage] = useState(null)
@@ -24,30 +29,45 @@ export default function AuthModal({
       setActiveTab(initialTab || 'login')
       setEmail('')
       setPassword('')
+      setAcceptedTerms(false)
       setError(null)
       setSuccessMessage(null)
       setIsLoading(false)
     }
   }, [isOpen, initialTab])
 
-  // Handle Escape key to close modal
-  useEffect(() => {
-    if (!isOpen) return
-
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        onClose?.()
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, onClose])
+  useModalFocusTrap(Boolean(isOpen), modalRef, onClose)
 
   const handleTabChange = (tab) => {
     setActiveTab(tab)
     setError(null)
     setSuccessMessage(null)
+  }
+
+  const handleForgotPassword = async () => {
+    setError(null)
+    setSuccessMessage(null)
+    const trimmedEmail = email.trim()
+    if (!trimmedEmail) {
+      setError(t('auth.reset_email_required', 'Informe seu email acima para recuperar a senha.'))
+      return
+    }
+    setIsLoading(true)
+    try {
+      const resetFn = resetPasswordForEmail || fallbackResetPasswordForEmail
+      const { error: resetError } = await resetFn(trimmedEmail)
+      if (resetError) {
+        setError(resetError.message || t('auth.error_generic', 'Ocorreu um erro. Tente novamente.'))
+      } else {
+        setSuccessMessage(
+          t('auth.reset_password_sent', 'Email de recuperação enviado! Verifique sua caixa de entrada.')
+        )
+      }
+    } catch (err) {
+      setError(err?.message || t('auth.error_generic', 'Ocorreu um erro. Tente novamente.'))
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -64,6 +84,16 @@ export default function AuthModal({
       return
     }
 
+    if (activeTab === 'signup' && !acceptedTerms) {
+      setError(
+        t(
+          'auth.terms_required',
+          'Você deve declarar ter 16 anos ou mais e concordar com os Termos e Política de Privacidade.'
+        )
+      )
+      return
+    }
+
     setIsLoading(true)
 
     try {
@@ -75,7 +105,16 @@ export default function AuthModal({
           onClose?.()
         }
       } else {
-        const { error: signUpError } = await signUpWithPassword({ email, password })
+        const { error: signUpError } = await signUpWithPassword({
+          email,
+          password,
+          options: {
+            data: {
+              accepted_terms_at: new Date().toISOString(),
+              terms_version: '1.0',
+            },
+          },
+        })
         if (signUpError) {
           setError(signUpError.message || t('auth.error_generic', 'Ocorreu um erro. Tente novamente.'))
         } else {
@@ -117,11 +156,13 @@ export default function AuthModal({
       data-testid="auth-modal-overlay"
     >
       <div
+        ref={modalRef}
         className={styles.modal}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-labelledby="auth-modal-title"
+        tabIndex={-1}
       >
         <button
           className={styles.closeButton}
@@ -136,7 +177,7 @@ export default function AuthModal({
             {t('auth.account', 'Conta AniMatch')}
           </h2>
           <p className={styles.subtitle}>
-            {t('auth.sync_desc', 'Suas preferências e contas vinculadas são salvas com segurança na sua conta.')}
+            {t('auth.sync_desc', 'Sincronize suas preferências e contas vinculadas na nuvem.')}
           </p>
         </div>
 
@@ -211,6 +252,74 @@ export default function AuthModal({
               disabled={isLoading}
             />
           </div>
+
+          {activeTab === 'login' && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                data-testid="forgot-password-btn"
+                onClick={handleForgotPassword}
+                disabled={isLoading}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--color-primary, #38bdf8)',
+                  fontSize: 'var(--text-xs, 0.75rem)',
+                  cursor: 'pointer',
+                  padding: 0,
+                  textDecoration: 'underline',
+                }}
+              >
+                {t('auth.forgot_password', 'Esqueci minha senha')}
+              </button>
+            </div>
+          )}
+
+          {activeTab === 'signup' && (
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '0.5rem',
+                fontSize: 'var(--text-xs, 0.75rem)',
+                color: 'var(--text-2, #cbd5e1)',
+                cursor: 'pointer',
+                lineHeight: 1.4,
+              }}
+            >
+              <input
+                type="checkbox"
+                data-testid="terms-consent-checkbox"
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
+                disabled={isLoading}
+                style={{ marginTop: '0.15rem' }}
+              />
+              <span>
+                {t(
+                  'auth.terms_consent_label',
+                  'Declaro ter 16 anos ou mais e concordo com os Termos e Política de Privacidade.'
+                )}{' '}
+                {onOpenLegalModal && (
+                  <button
+                    type="button"
+                    onClick={onOpenLegalModal}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: 'var(--color-primary, #38bdf8)',
+                      textDecoration: 'underline',
+                      cursor: 'pointer',
+                      fontSize: 'inherit',
+                      padding: 0,
+                    }}
+                  >
+                    ({t('legal.shortLink', 'Sobre, Privacidade & Termos')})
+                  </button>
+                )}
+              </span>
+            </label>
+          )}
 
           <button
             type="submit"

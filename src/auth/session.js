@@ -37,9 +37,23 @@ export async function signInWithOAuth(options) {
   return supabaseClient.auth.signInWithOAuth(options)
 }
 
+/** Envia e-mail de recuperação de senha via Supabase Auth. */
+export async function resetPasswordForEmail(email) {
+  if (!supabaseClient?.auth?.resetPasswordForEmail) {
+    return { data: null, error: new Error('Recuperação de senha indisponível.') }
+  }
+  return supabaseClient.auth.resetPasswordForEmail(email)
+}
+
 /** Encerra a sessão do usuário no Supabase Auth. */
 export async function signOut() {
   return supabaseClient.auth.signOut()
+}
+
+/** Exclui permanentemente a própria conta e todos os dados na nuvem via RPC security definer. */
+export async function deleteOwnAccount() {
+  if (!supabaseClient?.rpc) return { error: new Error('RPC indisponível.') }
+  return supabaseClient.rpc('delete_own_account')
 }
 
 /** Extrai o user id de uma sessão, ou null. */

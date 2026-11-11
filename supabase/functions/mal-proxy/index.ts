@@ -39,6 +39,7 @@ interface MALNode {
   media_type?: string
   synopsis?: string
   num_list_users?: number
+  nsfw?: string
 }
 
 interface MALListEntry {
@@ -95,10 +96,10 @@ function normalizeEntry(entry: MALListEntry) {
 }
 
 async function fetchAllPages(username: string, status: string): Promise<MALListEntry[]> {
-  const fields = 'list_status,genres,main_picture,num_episodes,start_date,status,media_type,synopsis,mean,num_list_users,alternative_titles'
+  const fields = 'list_status,genres,main_picture,num_episodes,start_date,status,media_type,synopsis,mean,num_list_users,alternative_titles,nsfw'
   const limit = 1000
   let url: string | null =
-    `${MAL_API}/users/${encodeURIComponent(username)}/animelist?status=${status}&fields=${fields}&limit=${limit}&nsfw=true`
+    `${MAL_API}/users/${encodeURIComponent(username)}/animelist?status=${status}&fields=${fields}&limit=${limit}`
 
   const all: MALListEntry[] = []
 
@@ -116,7 +117,12 @@ async function fetchAllPages(username: string, status: string): Promise<MALListE
     url = json.paging?.next ?? null
   }
 
-  return all
+  return all.filter((entry) => {
+    if (entry?.node?.nsfw === 'black') return false
+    const genres = entry?.node?.genres ?? []
+    if (genres.some((g) => g.name === 'Hentai' || g.name === 'Erotica')) return false
+    return true
+  })
 }
 
 Deno.serve(async (req: Request) => {

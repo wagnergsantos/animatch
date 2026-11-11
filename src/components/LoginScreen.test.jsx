@@ -162,7 +162,8 @@ describe('LoginScreen', () => {
       />
     )
 
-    expect(screen.getByText('👤 user@example.com')).toBeInTheDocument()
+    expect(screen.getByText(/user@example\.com/)).toBeInTheDocument()
+    expect(screen.getByText('👤')).toHaveAttribute('aria-hidden', 'true')
     expect(screen.queryByRole('button', { name: /entrar \/ sincronizar/i })).not.toBeInTheDocument()
   })
 
@@ -186,5 +187,25 @@ describe('LoginScreen', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'MyAnimeList' }))
     expect(screen.getByLabelText('Username do MyAnimeList')).toHaveValue('linkedMal')
   })
+
+  it('renders clear history button when recentUsers is non-empty and calls onClearRecentUsers', () => {
+    const onClearRecentUsers = vi.fn()
+    const recent = [{ username: 'user1', provider: 'anilist' }]
+    render(
+      <LoginScreen
+        onSubmit={() => {}}
+        isLoading={false}
+        error={null}
+        recentUsers={recent}
+        onClearRecentUsers={onClearRecentUsers}
+      />
+    )
+
+    const clearBtn = screen.getByTestId('clear-recent-users-btn')
+    expect(clearBtn).toBeInTheDocument()
+    fireEvent.click(clearBtn)
+    expect(onClearRecentUsers).toHaveBeenCalledTimes(1)
+  })
 })
+
 

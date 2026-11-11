@@ -3,6 +3,7 @@ import {
   readIdbCache,
   writeIdbCache,
   clearIdbCache,
+  clearAllLocalData,
   buildProviderCacheKey,
   MAX_IDB_ENTRIES,
 } from './idbCache.js'
@@ -179,4 +180,23 @@ describe('idbCache', () => {
     expect(result.value).toEqual([{ id: 99 }])
     expect(result.source).toBe('localStorage')
   })
+
+  it('limpa todas as entradas do IndexedDB e todas as chaves animatch_* do localStorage em clearAllLocalData', async () => {
+    const key1 = buildProviderCacheKey('anilist', 'user1')
+    const key2 = buildProviderCacheKey('kitsu', 'user2')
+    await writeIdbCache(key1, [{ id: 1 }])
+    await writeIdbCache(key2, [{ id: 2 }])
+    localStorage.setItem('animatch_settings', '{"theme":"dark"}')
+    localStorage.setItem('animatch_recent_users', '["user1"]')
+    localStorage.setItem('other_app_key', 'keep_me')
+
+    await clearAllLocalData()
+
+    expect(await readIdbCache(key1)).toBeNull()
+    expect(await readIdbCache(key2)).toBeNull()
+    expect(localStorage.getItem('animatch_settings')).toBeNull()
+    expect(localStorage.getItem('animatch_recent_users')).toBeNull()
+    expect(localStorage.getItem('other_app_key')).toBe('keep_me')
+  })
 })
+

@@ -5,7 +5,8 @@ import * as wrappedGenerator from '../logic/wrappedGenerator.js'
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key, fallback) => (typeof fallback === 'string' ? fallback : key),
+    t: (key, fallback) =>
+      typeof fallback === 'string' ? fallback : fallback?.defaultValue || key,
   }),
 }))
 
@@ -42,6 +43,9 @@ describe('WrappedModal', () => {
     )
 
     expect(screen.getByRole('dialog')).toBeTruthy()
+    const canvas = screen.getByRole('img')
+    expect(canvas.tagName).toBe('CANVAS')
+    expect(canvas.getAttribute('aria-label')).toMatch(/wagner/i)
     await waitFor(() => {
       expect(wrappedGenerator.renderWrappedCanvas).toHaveBeenCalled()
     })

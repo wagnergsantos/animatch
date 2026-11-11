@@ -21,7 +21,9 @@
     "realAverage": "Média Real",
     "bayesianAverage": "Média Bayesiana",
     "lowerBound": "Score (Lower Bound)",
-    "viewRecommendationsFor": "Ver recomendações para {{genre}}"
+    "viewRecommendationsFor": "Ver recomendações para {{genre}}",
+    "exportCSV": "📥 Exportar CSV",
+    "exportJSON": "📥 Exportar JSON"
   },
   "settings": {
     "title": "Configurações",
@@ -75,7 +77,7 @@
     "logout": "Sair da conta",
     "account": "Conta AniMatch",
     "sync_title": "Sincronização em Nuvem",
-    "sync_desc": "Suas preferências e contas vinculadas são salvas com segurança na sua conta.",
+    "sync_desc": "Sincronize suas preferências e contas vinculadas na nuvem.",
     "sync_status_synced": "Sincronizado na nuvem",
     "sync_status_syncing": "Sincronizando...",
     "sync_status_offline": "Modo Offline (LocalStorage)",
@@ -85,7 +87,12 @@
     "or": "ou",
     "close": "Fechar",
     "error_generic": "Ocorreu um erro. Tente novamente.",
-    "signup_success_check_email": "Conta criada! Verifique seu email para confirmar o cadastro."
+    "signup_success_check_email": "Conta criada! Verifique seu email para confirmar o cadastro.",
+    "terms_consent_label": "Declaro ter 16 anos ou mais e concordo com os Termos de Uso e Política de Privacidade.",
+    "terms_required": "Você precisa aceitar os Termos de Uso e Política de Privacidade para criar uma conta.",
+    "forgot_password": "Esqueci minha senha",
+    "reset_password_sent": "Enviamos um link de redefinição de senha para o seu email.",
+    "reset_email_required": "Informe seu email acima para receber o link de redefinição."
   },
   "decision": {
     "title": "Escolha pra mim",
@@ -219,7 +226,9 @@
     "shareTitle": "Copiar link das suas recomendações",
     "share": "🔗 Compartilhar",
     "linkCopied": "✅ Link copiado!",
-    "exportFilenamePrefix": "animatch-recomendacoes"
+    "exportFilenamePrefix": "animatch-recomendacoes",
+    "unlinkedAccountPrompt": "Esta conta (@{{username}}) é sua?",
+    "confirmLinkAccount": "Vincular e salvar na minha nuvem"
   },
   "tasteProfile": {
     "title": "O que você mais gosta?"
@@ -276,10 +285,25 @@
     "topRecsTitle": "Top 3 Recomendações para Assistir",
     "noGenres": "Avalie mais animes para gerar seu perfil de gêneros.",
     "noRecs": "Adicione animes ao Planning para ver recomendações.",
-    "footer": "Gerado por AniMatch • Descubra o que assistir baseado no seu gosto real"
+    "footer": "Gerado por AniMatch • Descubra o que assistir baseado no seu gosto real",
+    "canvasAriaLabel": "Card resumo AniMatch Wrapped de {{username}}: {{completed}} animes concluídos e {{episodes}} episódios."
   },
   "offline": {
     "badge": "📴 Modo Offline · dados locais",
     "retryTitle": "Sem conexão ou exibindo cache salvo localmente. Clique para tentar sincronizar agora."
+  },
+  "legal": {
+    "title": "Sobre, Privacidade & Termos",
+    "modalTitle": "Sobre, Privacidade & Termos",
+    "footer_link": "Sobre, Privacidade & Termos",
+    "close": "Fechar",
+    "aboutTitle": "1. Sobre & Direitos Autorais",
+    "aboutText": "O AniMatch é uma ferramenta independente, 100% gratuita e sem fins comerciais para descoberta e organização pessoal de animes. Os metadados, capas e sinopses são carregados das APIs públicas de AniList, Kitsu e MyAnimeList para uso estritamente informativo e de catalogação pessoal. Todas as marcas, títulos e imagens pertencem aos seus respectivos titulares e serviços de streaming, sem qualquer vínculo ou endosso oficial.",
+    "privacyTitle": "2. Privacidade & Dados (LGPD / GDPR)",
+    "privacyText": "Consultamos apenas listas públicas de animes (com filtro +18 / Safe Mode ativo por padrão). Para funcionamento rápido e offline, os dados são armazenados localmente no seu navegador (localStorage e IndexedDB), sem cookies publicitários ou rastreadores de terceiros. A criação de conta na nuvem é opcional e sincroniza apenas contas vinculadas confirmadas pelo próprio usuário (infraestrutura Supabase em sa-east-1 e subprocessadores nos EUA como GitHub Pages e Google OAuth sob Cláusulas-Padrão Contratuais — SCCs). Você pode limpar os dados locais, desvincular provedores, revogar o acesso OAuth na sua conta Google ou excluir permanentemente sua conta e dados da nuvem a qualquer momento nas Configurações.",
+    "termsTitle": "3. Termos & Idade Mínima",
+    "termsText": "O serviço é fornecido \"no estado em que se encontra\" (as is), sem garantias de disponibilidade contínua. Para criar uma conta de sincronização na nuvem, é exigido ter 16 anos ou mais (LGPD Art. 14 / GDPR Art. 8).",
+    "contactTitle": "4. Contato & Código-Fonte",
+    "contactText": "Controlador responsável: Wagner Santos. Para solicitações relativas à LGPD/GDPR, dúvidas de privacidade ou pedidos de remoção de conteúdo autoral (DMCA/Takedown), utilize o canal oficial no GitHub:"
   }
 }

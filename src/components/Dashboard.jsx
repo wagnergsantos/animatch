@@ -2,6 +2,7 @@ import { useState, useMemo, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocalStorage } from '../hooks/useLocalStorage.js'
 import { useEnsembleData } from '../hooks/useEnsembleData.js'
+import { scheduleCloudAnimeListSync } from '../cache/cloudListSync.js'
 import { buildTasteProfile, scoreRecommendations, resolveYear, isEligiblePlanningEntry } from '../logic/recommender.js'
 import { applyStreamingBoost, matchesUserSubscriptions } from '../logic/streaming.js'
 import { applyMultiPresenceBoost } from '../logic/ensemble.js'
@@ -61,7 +62,9 @@ export default function Dashboard({
   user = null,
   syncStatus = 'idle',
   onOpenAuthModal,
+  onOpenLegalModal,
   onSignOut,
+  onDeleteAccount,
   linkedUsernames = { anilist: '', kitsu: '', mal: '' },
   onLinkedUsernamesChange,
 }) {
@@ -316,9 +319,9 @@ export default function Dashboard({
 
   const currentScopedProvider = activeScope !== 'ensemble' ? activeScope : provider
   const currentScopedUsername =
-    activeScope !== 'ensemble' && linkedUsernames[activeScope]?.trim()
+    hasMultiAccounts && activeScope !== 'ensemble' && linkedUsernames[activeScope]?.trim()
       ? linkedUsernames[activeScope].trim()
-      : username
+      : username || linkedUsernames?.[currentScopedProvider]?.trim() || ''
 
   const scopedProviderLabel = t(
     `providers.${currentScopedProvider}`,
@@ -350,6 +353,24 @@ export default function Dashboard({
         t(`providers.${p}`, p === 'mal' ? 'MyAnimeList' : p === 'kitsu' ? 'Kitsu' : 'AniList')
       )
   }, [linkedUsernames, t])
+
+  const isUnlinkedCurrentAccount = useMemo(() => {
+    if (!user || !username || !username.trim()) return false
+    const savedForProvider = String(linkedUsernames?.[provider] || '').trim().toLowerCase()
+    return savedForProvider !== username.trim().toLowerCase()
+  }, [user, username, linkedUsernames, provider])
+
+  const handleConfirmLinkCurrentAccount = () => {
+    if (!username || !username.trim()) return
+    const cleanUsername = username.trim()
+    onLinkedUsernamesChange?.({
+      ...(linkedUsernames || {}),
+      [provider]: cleanUsername,
+    })
+    if (user?.id && Array.isArray(allEntries) && allEntries.length > 0) {
+      scheduleCloudAnimeListSync(user.id, provider, cleanUsername, allEntries)
+    }
+  }
 
   return (
     <div className={styles.dashboard}>
@@ -408,7 +429,47 @@ export default function Dashboard({
             </button>
           </nav>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
+          {isUnlinkedCurrentAccount && (
+            <div
+              data-testid="link-account-banner"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                background: 'rgba(99, 102, 241, 0.12)',
+                border: '1px solid rgba(99, 102, 241, 0.35)',
+                color: 'var(--text-1)',
+                padding: 'var(--space-1) var(--space-3)',
+                borderRadius: 'var(--radius-full)',
+                fontSize: 'var(--text-xs)',
+              }}
+            >
+              <span>
+                {t('dashboard.unlinkedAccountPrompt', {
+                  username: username.trim(),
+                  defaultValue: `Esta conta (@${username.trim()}) é sua?`,
+                })}
+              </span>
+              <button
+                type="button"
+                data-testid="confirm-link-account-btn"
+                onClick={handleConfirmLinkCurrentAccount}
+                style={{
+                  background: 'var(--color-primary, #6366f1)',
+                  border: 'none',
+                  color: '#fff',
+                  padding: '0.2rem 0.55rem',
+                  borderRadius: 'var(--radius-full)',
+                  fontSize: 'var(--text-xs)',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                {t('dashboard.confirmLinkAccount', 'Vincular e salvar na minha nuvem')}
+              </button>
+            </div>
+          )}
           {isOfflineOrStale && (
             <button
               type="button"
@@ -549,12 +610,33 @@ export default function Dashboard({
             user={user}
             syncStatus={syncStatus}
             onOpenAuthModal={onOpenAuthModal}
+            onOpenLegalModal={onOpenLegalModal}
             onSignOut={onSignOut}
+            onDeleteAccount={onDeleteAccount}
             linkedUsernames={linkedUsernames}
             onLinkedUsernamesChange={onLinkedUsernamesChange}
           />
         )}
       </main>
+
+      <footer style={{ textAlign: 'center', padding: 'var(--space-4)', borderTop: '1px solid var(--color-border)' }}>
+        <button
+          type="button"
+          data-testid="dashboard-legal-btn"
+          onClick={() => onOpenLegalModal?.()}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            color: 'var(--text-3, #94a3b8)',
+            fontSize: 'var(--text-xs)',
+            textDecoration: 'underline',
+            cursor: 'pointer',
+            padding: '0.25rem 0.5rem',
+          }}
+        >
+          {t('legal.footer_link', 'Sobre, Privacidade & Termos')}
+        </button>
+      </footer>
 
       {activeTab === 'recommendations' && recommendations.length > 0 && (
         <FloatingRandomizerButton

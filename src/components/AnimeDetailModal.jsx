@@ -1,6 +1,7 @@
-import { useEffect } from 'react'
+import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import RecommendationReason from './RecommendationReason.jsx'
+import { useModalFocusTrap } from '../hooks/useModalFocusTrap.js'
 import styles from './AnimeDetailModal.module.css'
 
 const PROVIDER_SHORT_LABELS = {
@@ -17,16 +18,9 @@ const PROVIDER_FULL_LABELS = {
 
 export default function AnimeDetailModal({ anime, titlePref = 'english', onClose }) {
   const { t } = useTranslation()
+  const modalRef = useRef(null)
 
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        onClose?.()
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [onClose])
+  useModalFocusTrap(Boolean(anime), modalRef, onClose)
 
   if (!anime) return null
 
@@ -105,7 +99,15 @@ export default function AnimeDetailModal({ anime, titlePref = 'english', onClose
 
   return (
     <div className={styles['anime-modal-overlay']} onClick={onClose} data-testid="anime-detail-modal-overlay">
-      <div className={styles['anime-modal']} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div
+        ref={modalRef}
+        className={styles['anime-modal']}
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+        tabIndex={-1}
+      >
         <button className={styles['anime-modal__close']} onClick={onClose} aria-label={t('labels.closeModal')}>
           ✕
         </button>

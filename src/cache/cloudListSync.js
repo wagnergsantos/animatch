@@ -4,6 +4,39 @@ import { DEFAULT_CACHE_TTL } from './apiCache.js'
 const pendingSyncTimers = new Map()
 
 /**
+ * Verifica se o par (provider, username) corresponde à conta vinculada do usuário
+ * em `settings.linked_usernames[provider]` (comparação case-insensitive).
+ *
+ * @param {string} provider
+ * @param {string} username
+ * @param {Record<string, string>} [linkedUsernamesOption]
+ * @returns {boolean}
+ */
+export function isLinkedProviderAccount(provider, username, linkedUsernamesOption) {
+  if (!provider || !username) return false
+  const normProvider = String(provider).trim().toLowerCase()
+  const normUsername = String(username).trim().toLowerCase()
+  if (!normProvider || !normUsername) return false
+  if (normProvider === 'ensemble') return true
+
+  let linkedMap = linkedUsernamesOption
+  if (!linkedMap && typeof window !== 'undefined' && window.localStorage) {
+    try {
+      const raw = window.localStorage.getItem('animatch_settings')
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        linkedMap = parsed?.linked_usernames
+      }
+    } catch {
+      linkedMap = null
+    }
+  }
+
+  const savedUsername = String(linkedMap?.[normProvider] || '').trim().toLowerCase()
+  return Boolean(savedUsername && savedUsername === normUsername)
+}
+
+/**
  * Obtém o userId autenticado na sessão local do Supabase sem bloquear se não houver sessão.
  * @returns {Promise<string|null>}
  */
@@ -124,3 +157,39 @@ export function scheduleCloudAnimeListSync(
     pendingSyncTimers.set(timerKey, timer)
   })
 }
+
+/**
+ * Remove a lista sincronizada na nuvem (`user_anime_lists`) para um `(userId, provider, username)`.
+ *
+ * @param {string} userId
+ * @param {string} provider
+ * @param {string} username
+ * @returns {Promise<boolean>}
+ */
+export async function deleteCloudAnimeList(userId, provider, username) {
+  if (!userId || !provider || !username) return false
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return false
+
+  try {
+    const normProvider = String(provider).trim().toLowerCase()
+    const normUsername = String(username).trim().toLowerCase()
+    const timerKey = `${userId}:${normProvider}:${normUsername}`
+
+    if (pendingSyncTimers.has(timerKey)) {
+      clearTimeout(pendingSyncTimers.get(timerKey))
+      pendingSyncTimers.delete(timerKey)
+    }
+
+    const { error } = await supabaseClient
+      .from('user_anime_lists')
+      .delete()
+      .eq('user_id', userId)
+      .eq('provider', normProvider)
+      .eq('username', normUsername)
+
+    return !error
+  } catch {
+    return false
+  }
+}
+

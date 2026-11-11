@@ -11,11 +11,15 @@ vi.mock("./providers/kitsu.js", () => ({
   clearKitsuCache: vi.fn(),
 }))
 
-vi.mock("../cache/cloudListSync.js", () => ({
-  getAuthenticatedUserId: vi.fn().mockResolvedValue(null),
-  fetchCloudAnimeList: vi.fn().mockResolvedValue(null),
-  scheduleCloudAnimeListSync: vi.fn().mockResolvedValue(true),
-}))
+vi.mock("../cache/cloudListSync.js", async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    getAuthenticatedUserId: vi.fn().mockResolvedValue(null),
+    fetchCloudAnimeList: vi.fn().mockResolvedValue(null),
+    scheduleCloudAnimeListSync: vi.fn().mockResolvedValue(true),
+  }
+})
 
 import { fetchUserEntries, clearProviderCache } from "./index.js"
 import { fetchAllLists as anilistFetchAll } from "./providers/anilist.js"
@@ -98,10 +102,14 @@ describe("fetchUserEntries", () => {
     expect(result._cacheMeta?.isStale).toBe(false)
   })
 
-  it("returns fresh Supabase Cloud list when local cache misses and user is authenticated", async () => {
+  it("returns fresh Supabase Cloud list when local cache misses and user is authenticated with linked account", async () => {
     const cloudEntries = [
       { status: "PLANNING", media: { id: 77, title: { english: "Cloud Anime" } } },
     ]
+    localStorage.setItem(
+      "animatch_settings",
+      JSON.stringify({ linked_usernames: { anilist: "CloudUser" } })
+    )
     getAuthenticatedUserId.mockResolvedValue("user-abc")
     fetchCloudAnimeList.mockResolvedValueOnce({
       entries: cloudEntries,
@@ -118,10 +126,14 @@ describe("fetchUserEntries", () => {
     expect(result._cacheMeta?.isStale).toBe(false)
   })
 
-  it("schedules cloud sync when authenticated user fetches fresh data from network", async () => {
+  it("schedules cloud sync when authenticated user fetches fresh data for their own linked account (case-insensitive)", async () => {
     const netEntries = [
       { status: "PLANNING", media: { id: 88, title: { english: "Net Anime" } } },
     ]
+    localStorage.setItem(
+      "animatch_settings",
+      JSON.stringify({ linked_usernames: { anilist: "SyncUser" } })
+    )
     getAuthenticatedUserId.mockResolvedValue("user-xyz")
     anilistFetchAll.mockResolvedValueOnce(netEntries)
 
@@ -133,6 +145,22 @@ describe("fetchUserEntries", () => {
       "syncuser",
       netEntries
     )
+  })
+
+  it("does NOT schedule cloud sync when authenticated user queries an unlinked third-party username", async () => {
+    const netEntries = [
+      { status: "PLANNING", media: { id: 89, title: { english: "Friend Anime" } } },
+    ]
+    localStorage.setItem(
+      "animatch_settings",
+      JSON.stringify({ linked_usernames: { anilist: "myownaccount" } })
+    )
+    getAuthenticatedUserId.mockResolvedValue("user-xyz")
+    anilistFetchAll.mockResolvedValueOnce(netEntries)
+
+    await fetchUserEntries("friendaccount", "anilist")
+
+    expect(scheduleCloudAnimeListSync).not.toHaveBeenCalled()
   })
 
   it("falls back to stale local cache when network fails with RetryableError (Stale-While-Revalidate)", async () => {

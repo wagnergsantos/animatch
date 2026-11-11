@@ -11,6 +11,8 @@ vi.mock('./session', () => ({
   signUpWithPassword: vi.fn(),
   signInWithOAuth: vi.fn(),
   signOut: vi.fn(),
+  deleteOwnAccount: vi.fn(),
+  resetPasswordForEmail: vi.fn(),
   getUserId: vi.fn(),
 }))
 

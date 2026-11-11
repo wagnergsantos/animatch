@@ -245,7 +245,38 @@ describe('kitsuFetchAll', () => {
     expect(secondCall).toEqual(firstCall)
     expect(mockFetch).toHaveBeenCalledTimes(2) // no additional fetches
   })
+
+  it('filters out adult entries with nsfw=true or ageRating=R18', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({
+        data: [{ id: '1', type: 'users', attributes: { name: 'safeuser' } }],
+      }),
+    })
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({
+        data: [
+          { id: '1', type: 'libraryEntries', attributes: { status: 'completed', ratingTwenty: 16 }, relationships: { anime: { data: { type: 'anime', id: '201' } } } },
+          { id: '2', type: 'libraryEntries', attributes: { status: 'completed', ratingTwenty: 14 }, relationships: { anime: { data: { type: 'anime', id: '202' } } } },
+          { id: '3', type: 'libraryEntries', attributes: { status: 'completed', ratingTwenty: 12 }, relationships: { anime: { data: { type: 'anime', id: '203' } } } },
+        ],
+        included: [
+          { id: '201', type: 'anime', attributes: { canonicalTitle: 'Safe Anime', titles: {}, nsfw: false, ageRating: 'PG', episodeCount: 12, status: 'finished', subtype: 'TV' }, relationships: {} },
+          { id: '202', type: 'anime', attributes: { canonicalTitle: 'NSFW Anime', titles: {}, nsfw: true, ageRating: 'R', episodeCount: 2, status: 'finished', subtype: 'OVA' }, relationships: {} },
+          { id: '203', type: 'anime', attributes: { canonicalTitle: 'R18 Anime', titles: {}, nsfw: false, ageRating: 'R18', episodeCount: 1, status: 'finished', subtype: 'OVA' }, relationships: {} },
+        ],
+        links: {},
+      }),
+    })
+
+    const result = await kitsuFetchAll('safeuser')
+    expect(result).toHaveLength(1)
+    expect(result[0].media.id).toBe(201)
+  })
 })
+
 
 describe('clearKitsuCache', () => {
   it('removes correct localStorage key', () => {

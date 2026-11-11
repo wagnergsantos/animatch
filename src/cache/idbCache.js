@@ -3,6 +3,7 @@ import {
   readStaleCache,
   writeCache,
   clearCache,
+  clearAllApiCache,
 } from './apiCache.js'
 
 const DB_NAME = 'animatch_db'
@@ -185,3 +186,85 @@ export async function clearIdbCache(cacheKey) {
     }
   })
 }
+
+const KNOWN_LOCAL_STORAGE_KEYS = [
+  'animatch_settings',
+  'animatch_username',
+  'animatch_provider',
+  'animatch_recent_users',
+  'animatch_theme',
+  'animatch_lang',
+  'animatch_view_mode',
+  'animatch_subscriptions',
+  'animatch_streaming_boost',
+  'animatch_cache_index',
+]
+
+/**
+ * Remove todos os dados locais do AniMatch:
+ * - Limpa todas as entradas do object store `anime_lists` no IndexedDB (`animatch_db`)
+ * - Remove todas as chaves `animatch_*` do `localStorage`
+ *
+ * @returns {Promise<void>}
+ */
+export async function clearAllLocalData() {
+  try {
+    clearAllApiCache()
+    if (typeof localStorage !== 'undefined') {
+      for (const knownKey of KNOWN_LOCAL_STORAGE_KEYS) {
+        localStorage.removeItem(knownKey)
+      }
+      const keysToRemove = []
+      if (typeof localStorage.length === 'number' && typeof localStorage.key === 'function') {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i)
+          if (key && key.startsWith('animatch_')) {
+            keysToRemove.push(key)
+          }
+        }
+      }
+      for (const key of Object.keys(localStorage)) {
+        if (key && key.startsWith('animatch_')) {
+          keysToRemove.push(key)
+        }
+      }
+      for (const key of keysToRemove) {
+        localStorage.removeItem(key)
+      }
+    }
+  } catch {
+    // ignore storage errors
+  }
+
+  const db = await openDatabase()
+  if (!db) return
+
+  await new Promise((resolve) => {
+    try {
+      const tx = db.transaction(STORE_NAME, 'readwrite')
+      const store = tx.objectStore(STORE_NAME)
+      if (typeof store.clear === 'function') {
+        const req = store.clear()
+        req.onsuccess = () => resolve()
+        req.onerror = () => resolve()
+      } else if (typeof store.getAll === 'function') {
+        const getAllReq = store.getAll()
+        getAllReq.onsuccess = () => {
+          const allRecords = Array.isArray(getAllReq.result) ? getAllReq.result : []
+          for (const item of allRecords) {
+            if (item?.cacheKey) {
+              store.delete(item.cacheKey)
+            }
+          }
+          resolve()
+        }
+        getAllReq.onerror = () => resolve()
+      } else {
+        resolve()
+      }
+    } catch {
+      resolve()
+    }
+  })
+}
+

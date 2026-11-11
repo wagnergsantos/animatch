@@ -52,6 +52,7 @@ function normalizeEntry(entry, included) {
   const anime = included.find(inc => inc.type === 'anime' && inc.id === animeRef.id)
   
   if (!anime) return null
+  if (anime.attributes?.nsfw === true || anime.attributes?.ageRating === 'R18') return null
 
   // Resolve Categories (Genres)
   const genres = []

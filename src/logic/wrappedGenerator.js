@@ -487,7 +487,7 @@ export async function renderWrappedCanvas(
   ctx.fillStyle = 'rgba(255, 255, 255, 0.08)'
   ctx.fillRect(48, 562, CANVAS_WIDTH - 96, 1)
 
-  ctx.fillStyle = '#64748b'
+  ctx.fillStyle = '#94a3b8'
   ctx.font = '500 13px system-ui, -apple-system, sans-serif'
   ctx.fillText(copy.footer, 48, 588)
 }

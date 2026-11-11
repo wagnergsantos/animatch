@@ -5,8 +5,11 @@ import {
   signInWithPassword as apiSignInWithPassword,
   signUpWithPassword as apiSignUpWithPassword,
   signInWithOAuth as apiSignInWithOAuth,
+  resetPasswordForEmail as apiResetPasswordForEmail,
   signOut as apiSignOut,
+  deleteOwnAccount as apiDeleteOwnAccount,
 } from './session'
+import { clearAllLocalData } from '../cache/idbCache.js'
 
 export const AuthContext = createContext(null)
 
@@ -63,10 +66,27 @@ export function AuthProvider({ children }) {
     return apiSignInWithOAuth(options)
   }, [])
 
+  const resetPasswordForEmail = useCallback(async (email) => {
+    if (typeof apiResetPasswordForEmail === 'function') {
+      return apiResetPasswordForEmail(email)
+    }
+    return { data: {}, error: null }
+  }, [])
+
   const signOut = useCallback(async () => {
+    await apiSignOut()
+    await clearAllLocalData()
+    setSession(null)
+    setUser(null)
+  }, [])
+
+  const deleteAccount = useCallback(async () => {
+    const res = typeof apiDeleteOwnAccount === 'function' ? await apiDeleteOwnAccount() : { error: null }
+    await clearAllLocalData()
     await apiSignOut()
     setSession(null)
     setUser(null)
+    return res
   }, [])
 
   const value = useMemo(
@@ -77,9 +97,11 @@ export function AuthProvider({ children }) {
       signInWithPassword,
       signUpWithPassword,
       signInWithOAuth,
+      resetPasswordForEmail,
       signOut,
+      deleteAccount,
     }),
-    [user, session, isLoading, signInWithPassword, signUpWithPassword, signInWithOAuth, signOut]
+    [user, session, isLoading, signInWithPassword, signUpWithPassword, signInWithOAuth, resetPasswordForEmail, signOut, deleteAccount]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

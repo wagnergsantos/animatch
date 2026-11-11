@@ -2,6 +2,15 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import Dashboard from './Dashboard.jsx'
 import { useEnsembleData } from '../hooks/useEnsembleData.js'
+import { scheduleCloudAnimeListSync } from '../cache/cloudListSync.js'
+
+vi.mock('../cache/cloudListSync.js', async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    scheduleCloudAnimeListSync: vi.fn().mockResolvedValue(true),
+  }
+})
 
 vi.mock('../hooks/useEnsembleData.js', () => ({
   useEnsembleData: vi.fn(() => ({
@@ -832,4 +841,70 @@ describe('Dashboard', () => {
     expect(screen.queryByText('Unreleased 2027')).not.toBeInTheDocument()
     expect(screen.queryByRole('option', { name: '2027' })).not.toBeInTheDocument()
   })
+
+  it('shows link account confirmation banner when logged-in user queries an unlinked username, and links + syncs on confirm', () => {
+    const onLinkedUsernamesChange = vi.fn()
+    const user = { id: 'user-cloud-1', email: 'test@example.com' }
+    const linkedUsernames = { anilist: 'my_main', kitsu: '', mal: '' }
+
+    render(
+      <Dashboard
+        allEntries={mockEntries}
+        username="wgsantos"
+        provider="anilist"
+        user={user}
+        linkedUsernames={linkedUsernames}
+        onLinkedUsernamesChange={onLinkedUsernamesChange}
+      />
+    )
+
+    const banner = screen.getByTestId('link-account-banner')
+    expect(banner).toBeInTheDocument()
+    expect(banner).toHaveTextContent(/@wgsantos/i)
+
+    const confirmBtn = screen.getByTestId('confirm-link-account-btn')
+    fireEvent.click(confirmBtn)
+
+    expect(onLinkedUsernamesChange).toHaveBeenCalledWith({
+      anilist: 'wgsantos',
+      kitsu: '',
+      mal: '',
+    })
+    expect(scheduleCloudAnimeListSync).toHaveBeenCalledWith(
+      'user-cloud-1',
+      'anilist',
+      'wgsantos',
+      mockEntries
+    )
+  })
+
+  it('does NOT show link account banner when username is already linked (case-insensitive) or user is not logged in', () => {
+    const user = { id: 'user-cloud-1', email: 'test@example.com' }
+    const linkedUsernames = { anilist: 'WgSantos', kitsu: '', mal: '' }
+
+    const { rerender } = render(
+      <Dashboard
+        allEntries={mockEntries}
+        username="wgsantos"
+        provider="anilist"
+        user={user}
+        linkedUsernames={linkedUsernames}
+      />
+    )
+
+    expect(screen.queryByTestId('link-account-banner')).not.toBeInTheDocument()
+
+    rerender(
+      <Dashboard
+        allEntries={mockEntries}
+        username="otheruser"
+        provider="anilist"
+        user={null}
+        linkedUsernames={linkedUsernames}
+      />
+    )
+
+    expect(screen.queryByTestId('link-account-banner')).not.toBeInTheDocument()
+  })
 })
+

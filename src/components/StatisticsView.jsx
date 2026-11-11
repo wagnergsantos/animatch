@@ -142,13 +142,38 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
           <table className={styles['genre-table']}>
             <thead>
               <tr>
-                <th onClick={() => toggleSort('genre')} role="button">{t('stats.genre')} {sortBy === 'genre' ? (sortDir === 'desc' ? '▼' : '▲') : ''}</th>
-                <th onClick={() => toggleSort('watched')} role="button">{t('stats.watched')} {sortBy === 'watched' ? (sortDir === 'desc' ? '▼' : '▲') : ''}</th>
-                <th onClick={() => toggleSort('scored')} role="button">{t('stats.scored')} {sortBy === 'scored' ? (sortDir === 'desc' ? '▼' : '▲') : ''}</th>
-                <th onClick={() => toggleSort('planned')} role="button">{t('stats.planned')} {sortBy === 'planned' ? (sortDir === 'desc' ? '▼' : '▲') : ''}</th>
-                <th onClick={() => toggleSort('realAverage')} role="button">{t('stats.realAverage')} {sortBy === 'realAverage' ? (sortDir === 'desc' ? '▼' : '▲') : ''}</th>
-                <th onClick={() => toggleSort('bayesian')} role="button">{t('stats.bayesianAverage')} {sortBy === 'bayesian' ? (sortDir === 'desc' ? '▼' : '▲') : ''}</th>
-                <th onClick={() => toggleSort('lowerBound')} role="button">{t('stats.lowerBound')} {sortBy === 'lowerBound' ? (sortDir === 'desc' ? '▼' : '▲') : ''}</th>
+                {[
+                  { key: 'genre', label: t('stats.genre') },
+                  { key: 'watched', label: t('stats.watched') },
+                  { key: 'scored', label: t('stats.scored') },
+                  { key: 'planned', label: t('stats.planned') },
+                  { key: 'realAverage', label: t('stats.realAverage') },
+                  { key: 'bayesian', label: t('stats.bayesianAverage') },
+                  { key: 'lowerBound', label: t('stats.lowerBound') },
+                ].map((col) => {
+                  const isSorted = sortBy === col.key
+                  const ariaSort = isSorted ? (sortDir === 'desc' ? 'descending' : 'ascending') : 'none'
+                  return (
+                    <th
+                      key={col.key}
+                      onClick={() => toggleSort(col.key)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          toggleSort(col.key)
+                        }
+                      }}
+                      tabIndex={0}
+                      role="button"
+                      aria-sort={ariaSort}
+                    >
+                      {col.label}{' '}
+                      <span aria-hidden="true">
+                        {isSorted ? (sortDir === 'desc' ? '▼' : '▲') : ''}
+                      </span>
+                    </th>
+                  )
+                })}
               </tr>
             </thead>
             <tbody>

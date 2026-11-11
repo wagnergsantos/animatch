@@ -22,6 +22,7 @@ query ($userName: String) {
         media {
           id
           idMal
+          isAdult
           title { romaji english }
           genres
           coverImage { large }
@@ -40,6 +41,7 @@ query ($userName: String) {
         media {
           id
           idMal
+          isAdult
           title { romaji english }
           genres
           episodes
@@ -69,6 +71,7 @@ query ($userName: String) {
         media {
           id
           idMal
+          isAdult
           title { romaji english }
           status
           format
@@ -182,6 +185,7 @@ export function flattenEntries(data) {
   return entries.filter((entry) => {
     const id = entry?.media?.id
     if (!id || seen.has(id)) return false
+    if (entry?.media?.isAdult === true) return false
     seen.add(id)
     return true
   })

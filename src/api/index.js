@@ -12,6 +12,7 @@ import {
   fetchCloudAnimeList,
   scheduleCloudAnimeListSync,
   getAuthenticatedUserId,
+  isLinkedProviderAccount,
 } from '../cache/cloudListSync.js'
 
 export * from './errors.js'
@@ -63,17 +64,20 @@ export async function fetchUserEntries(username, provider = 'anilist', options =
   const localCached = await readIdbCache(cacheKey)
   let cloudRecord = null
   let resolvedUserId = options.userId ?? null
+  const canSyncToCloud = isLinkedProviderAccount(provider, username, options.linkedUsernames)
 
   if (!options.forceRefresh) {
     if (localCached?.isFresh && Array.isArray(localCached.value)) {
-      // Garante em background que o cache local existente também seja salvo no Supabase (ex.: MAL já em cache local ao recarregar)
-      Promise.resolve(resolvedUserId || getAuthenticatedUserId())
-        .then((uid) => {
-          if (uid && localCached.value.length > 0) {
-            scheduleCloudAnimeListSync(uid, provider, username, localCached.value)
-          }
-        })
-        .catch(() => {})
+      // Garante em background que o cache local existente também seja salvo no Supabase se for conta vinculada do próprio usuário
+      if (canSyncToCloud) {
+        Promise.resolve(resolvedUserId || getAuthenticatedUserId())
+          .then((uid) => {
+            if (uid && localCached.value.length > 0) {
+              scheduleCloudAnimeListSync(uid, provider, username, localCached.value)
+            }
+          })
+          .catch(() => {})
+      }
 
       return attachCacheMeta(localCached.value, {
         source: localCached.source || 'idb',
@@ -82,11 +86,11 @@ export async function fetchUserEntries(username, provider = 'anilist', options =
       })
     }
 
-    if (!resolvedUserId) {
+    if (canSyncToCloud && !resolvedUserId) {
       resolvedUserId = await getAuthenticatedUserId()
     }
 
-    if (resolvedUserId) {
+    if (canSyncToCloud && resolvedUserId) {
       cloudRecord = await fetchCloudAnimeList(resolvedUserId, provider, username)
       if (cloudRecord?.isFresh && Array.isArray(cloudRecord.entries)) {
         await writeIdbCache(cacheKey, cloudRecord.entries, {
@@ -114,10 +118,10 @@ export async function fetchUserEntries(username, provider = 'anilist', options =
         username,
       })
 
-      if (!resolvedUserId) {
+      if (canSyncToCloud && !resolvedUserId) {
         resolvedUserId = await getAuthenticatedUserId()
       }
-      if (resolvedUserId) {
+      if (canSyncToCloud && resolvedUserId) {
         scheduleCloudAnimeListSync(resolvedUserId, provider, username, entries)
       }
     }
@@ -132,10 +136,10 @@ export async function fetchUserEntries(username, provider = 'anilist', options =
       throw err
     }
 
-    if (!cloudRecord && !resolvedUserId) {
+    if (canSyncToCloud && !cloudRecord && !resolvedUserId) {
       resolvedUserId = await getAuthenticatedUserId()
     }
-    if (!cloudRecord && resolvedUserId) {
+    if (canSyncToCloud && !cloudRecord && resolvedUserId) {
       cloudRecord = await fetchCloudAnimeList(resolvedUserId, provider, username)
     }
 
@@ -158,7 +162,7 @@ export async function fetchUserEntries(username, provider = 'anilist', options =
     if (candidates.length > 0) {
       candidates.sort((a, b) => b.timestamp - a.timestamp)
       const best = candidates[0]
-      if (best.source === 'stale-idb' && resolvedUserId && !cloudRecord) {
+      if (canSyncToCloud && best.source === 'stale-idb' && resolvedUserId && !cloudRecord) {
         scheduleCloudAnimeListSync(resolvedUserId, provider, username, best.entries)
       }
       return attachCacheMeta(best.entries, {

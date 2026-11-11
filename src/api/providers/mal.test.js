@@ -141,7 +141,27 @@ describe('malFetchAll', () => {
     const result = await malFetchAll('testuser')
     expect(result).toHaveLength(1)
   })
+
+  it('filtra entradas adultas (nsfw === "black", isAdult === true ou gênero Hentai/Erotica)', async () => {
+    const entries = [
+      makeEntry({ media: { ...makeEntry().media, id: 1, title: { romaji: 'Safe', english: 'Safe' } } }),
+      makeEntry({ media: { ...makeEntry().media, id: 2, nsfw: 'black' } }),
+      makeEntry({ media: { ...makeEntry().media, id: 3, isAdult: true } }),
+      makeEntry({ media: { ...makeEntry().media, id: 4, genres: ['Hentai'] } }),
+    ]
+    supabaseClient.functions.invoke
+      .mockResolvedValueOnce({ data: { data: entries }, error: null })
+      .mockResolvedValueOnce({ data: { data: [] }, error: null })
+      .mockResolvedValueOnce({ data: { data: [] }, error: null })
+      .mockResolvedValueOnce({ data: { data: [] }, error: null })
+      .mockResolvedValueOnce({ data: { data: [] }, error: null })
+
+    const result = await malFetchAll('testuser')
+    expect(result).toHaveLength(1)
+    expect(result[0].media.id).toBe(1)
+  })
 })
+
 
 describe('clearMalCache', () => {
   it('remove cache do localStorage', () => {

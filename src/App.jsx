@@ -4,16 +4,18 @@ import { fetchUserEntries } from './api/index.js'
 import LoginScreen from './components/LoginScreen.jsx'
 import Dashboard from './components/Dashboard.jsx'
 import AuthModal from './components/AuthModal.jsx'
+import LegalModal from './components/LegalModal.jsx'
 import useLocalStorage from './hooks/useLocalStorage.js'
 import { useAsyncAction } from './hooks/useAsyncAction.js'
 import { AuthContext, AuthProvider, useAuth } from './auth/AuthContext.jsx'
 import useUserSettings from './hooks/useUserSettings.js'
 
 export function AppContent() {
-  const { user, signOut } = useAuth()
+  const { user, signOut, deleteAccount } = useAuth()
   const { settings, updateSetting, syncStatus } = useUserSettings()
   const { i18n } = useTranslation()
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
+  const [isLegalModalOpen, setIsLegalModalOpen] = useState(false)
 
   const [screen, setScreen] = useState(() => {
     if (typeof window === 'undefined') return 'login'
@@ -161,6 +163,12 @@ export function AppContent() {
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
+        onOpenLegalModal={() => setIsLegalModalOpen(true)}
+      />
+
+      <LegalModal
+        isOpen={isLegalModalOpen}
+        onClose={() => setIsLegalModalOpen(false)}
       />
 
       {screen === 'loading' && (
@@ -177,10 +185,12 @@ export function AppContent() {
           isLoading={isLoading}
           error={error}
           recentUsers={normalizedRecentUsers}
+          onClearRecentUsers={() => setRecentUsers([])}
           initialUsername={username || settings?.linked_usernames?.[provider] || ''}
           user={user}
           syncStatus={syncStatus}
           onOpenAuthModal={() => setIsAuthModalOpen(true)}
+          onOpenLegalModal={() => setIsLegalModalOpen(true)}
           linkedUsernames={settings?.linked_usernames}
         />
       )}
@@ -201,7 +211,9 @@ export function AppContent() {
           user={user}
           syncStatus={syncStatus}
           onOpenAuthModal={() => setIsAuthModalOpen(true)}
+          onOpenLegalModal={() => setIsLegalModalOpen(true)}
           onSignOut={signOut}
+          onDeleteAccount={deleteAccount}
           linkedUsernames={settings.linked_usernames}
           onLinkedUsernamesChange={(newUsernames) => updateSetting('linked_usernames', newUsernames)}
           onLogout={handleLogout}

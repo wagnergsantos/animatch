@@ -137,9 +137,12 @@ describe('TasteProfile Component', () => {
     render(<TasteProfile profile={profile} />)
 
     const badge = screen.getByText('Action \u2605 8.50 (10)')
+    expect(badge.tagName).toBe('BUTTON')
+    expect(badge).toHaveAttribute('type', 'button')
     fireEvent.click(badge)
 
     expect(screen.getByRole('dialog')).toBeInTheDocument()
     expect(screen.getByText(/Origem da nota: Action/i)).toBeInTheDocument()
   })
 })
+

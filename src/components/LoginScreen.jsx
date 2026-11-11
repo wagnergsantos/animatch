@@ -9,10 +9,12 @@ export default function LoginScreen({
   isLoading,
   error,
   recentUsers = [],
+  onClearRecentUsers,
   initialUsername = '',
   user = null,
   syncStatus = 'idle',
   onOpenAuthModal,
+  onOpenLegalModal,
   linkedUsernames = null,
 }) {
   const { t } = useTranslation()
@@ -59,11 +61,11 @@ export default function LoginScreen({
             onClick={() => onOpenAuthModal?.()}
             aria-label={t('auth.login', 'Entrar / Sincronizar')}
           >
-            ☁️ {t('auth.login', 'Entrar / Sincronizar')}
+            <span aria-hidden="true">☁️</span> {t('auth.login', 'Entrar / Sincronizar')}
           </button>
         ) : (
           <div className={styles['cloud-user-badge']}>
-            <span className={styles['cloud-user-email']}>👤 {user.email}</span>
+            <span className={styles['cloud-user-email']}><span aria-hidden="true">👤</span> {user.email}</span>
             <span
               className={`${styles['cloud-sync-status']} ${styles[`cloud-sync-status--${syncStatus}`]}`}
               title={
@@ -76,7 +78,9 @@ export default function LoginScreen({
                   : t('auth.sync_status_synced', 'Sincronizado na nuvem')
               }
             >
-              {syncStatus === 'syncing' ? '⏳' : syncStatus === 'error' ? '⚠️' : syncStatus === 'offline' ? '📴' : '☁️'}
+              <span aria-hidden="true">
+                {syncStatus === 'syncing' ? '⏳' : syncStatus === 'error' ? '⚠️' : syncStatus === 'offline' ? '📴' : '☁️'}
+              </span>
             </span>
           </div>
         )}
@@ -157,9 +161,34 @@ export default function LoginScreen({
 
         {recentUsers.length > 0 && (
           <div className="recent-users" style={{ marginTop: 'var(--space-6)', textAlign: 'center' }}>
-            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-2)', marginBottom: 'var(--space-2)' }}>
-              {t('login.recentQueries')}
-            </p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-2)' }}>
+              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-2)', margin: 0 }}>
+                {t('login.recentQueries')}
+              </p>
+              <button
+                type="button"
+                data-testid="clear-recent-users-btn"
+                onClick={() => {
+                  try {
+                    localStorage.removeItem('animatch_recent_users')
+                  } catch {
+                    // ignore
+                  }
+                  onClearRecentUsers?.()
+                }}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--text-3, #94a3b8)',
+                  fontSize: 'var(--text-xs)',
+                  textDecoration: 'underline',
+                  cursor: 'pointer',
+                  padding: '0 0.25rem',
+                }}
+              >
+                {t('login.clearHistory', 'Limpar histórico')}
+              </button>
+            </div>
             <div style={{ display: 'flex', gap: 'var(--space-2)', justifyContent: 'center', flexWrap: 'wrap' }}>
               {recentUsers.map((item) => {
                 const uName = typeof item === 'string' ? item : item.username
@@ -188,6 +217,25 @@ export default function LoginScreen({
             </div>
           </div>
         )}
+
+        <footer style={{ marginTop: 'var(--space-6)', textAlign: 'center' }}>
+          <button
+            type="button"
+            data-testid="open-legal-modal-btn"
+            onClick={() => onOpenLegalModal?.()}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--text-3, #94a3b8)',
+              fontSize: 'var(--text-xs)',
+              textDecoration: 'underline',
+              cursor: 'pointer',
+              padding: '0.25rem 0.5rem',
+            }}
+          >
+            {t('legal.footer_link', 'Sobre, Privacidade & Termos')}
+          </button>
+        </footer>
       </div>
     </div>
   )

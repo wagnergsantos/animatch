@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useModalFocusTrap } from '../hooks/useModalFocusTrap.js'
 import styles from './GenreOriginModal.module.css'
 import overlayStyles from './ModalOverlay.module.css'
 
@@ -7,49 +8,7 @@ export default function GenreOriginModal({ genre, stats, onClose, onFilterGenre 
   const { t } = useTranslation()
   const modalRef = useRef(null)
 
-  useEffect(() => {
-    if (!genre || !stats) return
-
-    const modalElement = modalRef.current
-    if (!modalElement) return
-
-    // Focus first focusable element or modal container
-    const focusableElements = modalElement.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    )
-    const firstElement = focusableElements[0]
-    const lastElement = focusableElements[focusableElements.length - 1]
-
-    if (firstElement) {
-      firstElement.focus()
-    } else {
-      modalElement.focus()
-    }
-
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        onClose?.()
-        return
-      }
-
-      if (e.key === 'Tab' && focusableElements.length > 0) {
-        if (e.shiftKey) {
-          if (document.activeElement === firstElement) {
-            e.preventDefault()
-            lastElement?.focus()
-          }
-        } else {
-          if (document.activeElement === lastElement) {
-            e.preventDefault()
-            firstElement?.focus()
-          }
-        }
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [genre, stats, onClose])
+  useModalFocusTrap(Boolean(genre && stats), modalRef, onClose)
 
   if (!genre || !stats) return null
 

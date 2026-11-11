@@ -1,7 +1,8 @@
-import { useMemo, useEffect, useRef } from 'react'
+import { useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { scoreRecommendations } from '../logic/recommender.js'
 import RecommendationGrid from './RecommendationGrid.jsx'
+import { useModalFocusTrap } from '../hooks/useModalFocusTrap.js'
 import styles from './GenreRecommendationModal.module.css'
 import overlayStyles from './ModalOverlay.module.css'
 
@@ -10,48 +11,7 @@ export default function GenreRecommendationModal({ genre, planningEntries, taste
   const modalRef = useRef(null)
   const providerLabel = t(`providers.${provider}`, provider === 'mal' ? 'MyAnimeList' : provider === 'kitsu' ? 'Kitsu' : 'AniList')
 
-  useEffect(() => {
-    if (!genre) return
-
-    const modalElement = modalRef.current
-    if (!modalElement) return
-
-    const focusableElements = modalElement.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    )
-    const firstElement = focusableElements[0]
-    const lastElement = focusableElements[focusableElements.length - 1]
-
-    if (firstElement) {
-      firstElement.focus()
-    } else {
-      modalElement.focus()
-    }
-
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        onClose?.()
-        return
-      }
-
-      if (e.key === 'Tab' && focusableElements.length > 0) {
-        if (e.shiftKey) {
-          if (document.activeElement === firstElement) {
-            e.preventDefault()
-            lastElement?.focus()
-          }
-        } else {
-          if (document.activeElement === lastElement) {
-            e.preventDefault()
-            firstElement?.focus()
-          }
-        }
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [genre, onClose])
+  useModalFocusTrap(Boolean(genre), modalRef, onClose)
 
   const genreRecommendations = useMemo(() => {
     if (!genre) return []

@@ -30,15 +30,16 @@ export default function TasteProfile({ profile = new Map(), onGenreClick }) {
           const count = stats?.count ?? 0
 
           return (
-            <span
+            <button
               key={genre}
+              type="button"
               className={`${styles['taste-badge']} ${isFilled ? styles['taste-badge--filled'] : styles['taste-badge--outline']}`}
               onClick={() => setSelectedModalGenre({ genre, stats })}
               style={{ cursor: 'pointer' }}
               title={`${t('modals.genreOrigin.lowerBound', { score: score.toFixed(2) })} | ${t('modals.genreOrigin.average', { avg: realAvg.toFixed(2) })}`}
             >
               {genre} &#9733; {score.toFixed(2)} ({count})
-            </span>
+            </button>
           )
         })}
       </div>

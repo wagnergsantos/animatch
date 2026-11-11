@@ -46,11 +46,16 @@ export async function malFetchAll(username, options = {}) {
 
   const all = [...completedEntries, ...planningEntries, ...watchingEntries, ...onHoldEntries, ...droppedEntries]
 
-  // Deduplicar por media.id
+  // Deduplicar por media.id e filtrar conteúdo adulto (+18)
   const seen = new Set()
   const entries = all.filter((entry) => {
-    const id = entry?.media?.id
+    const media = entry?.media
+    const id = media?.id
     if (!id || seen.has(id)) return false
+    if (media?.isAdult === true || media?.nsfw === 'black') return false
+    if (Array.isArray(media?.genres) && media.genres.some((g) => g === 'Hentai' || g === 'Erotica')) {
+      return false
+    }
     seen.add(id)
     return true
   })

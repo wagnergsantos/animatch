@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { STREAMING_SERVICES } from '../logic/streaming.js'
+import { clearProviderCache } from '../api/index.js'
+import { deleteCloudAnimeList } from '../cache/cloudListSync.js'
+import { clearAllLocalData } from '../cache/idbCache.js'
+import { deleteOwnAccount } from '../auth/session.js'
 import styles from './SettingsPage.module.css'
 
 const LANG_OPTIONS = [
@@ -13,7 +17,9 @@ export default function SettingsPage({
   user = null,
   syncStatus = 'idle',
   onOpenAuthModal,
+  onOpenLegalModal,
   onSignOut,
+  onDeleteAccount,
   linkedUsernames = { anilist: '', kitsu: '', mal: '' },
   onLinkedUsernamesChange,
   subscriptions = [],
@@ -31,6 +37,8 @@ export default function SettingsPage({
   provider = 'anilist',
 }) {
   const { t, i18n } = useTranslation()
+  const [confirmingDeleteAccount, setConfirmingDeleteAccount] = useState(false)
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false)
 
   const [theme, setTheme] = useState(() => {
     if (typeof window !== 'undefined' && window.localStorage) {
@@ -97,6 +105,42 @@ export default function SettingsPage({
   ).length
   const isMultiProvider = hasMultiAccounts ?? activeAccountsCount >= 2
 
+  const handleUnlinkProvider = (prov) => {
+    const oldUsername = linkedUsernames?.[prov]?.trim()
+    if (oldUsername) {
+      clearProviderCache(oldUsername, prov)
+      if (user?.id) {
+        deleteCloudAnimeList(user.id, prov, oldUsername)
+      }
+    }
+    onLinkedUsernamesChange?.({
+      ...linkedUsernames,
+      [prov]: '',
+    })
+  }
+
+  const handleClearLocalData = async () => {
+    await clearAllLocalData()
+    onLogout?.()
+  }
+
+  const handleConfirmDeleteAccount = async () => {
+    setIsDeletingAccount(true)
+    try {
+      if (onDeleteAccount) {
+        await onDeleteAccount()
+      } else {
+        await deleteOwnAccount()
+        await clearAllLocalData()
+        await onSignOut?.()
+      }
+      setConfirmingDeleteAccount(false)
+      onLogout?.()
+    } finally {
+      setIsDeletingAccount(false)
+    }
+  }
+
   return (
     <div className={styles['settings-page']}>
       <header className={styles['settings-page__header']}>
@@ -110,10 +154,10 @@ export default function SettingsPage({
       <section className={styles['settings-page__card']} aria-labelledby="settings-auth-title">
         <div className={styles['settings-page__card-header']}>
           <h2 id="settings-auth-title" className={styles['settings-page__card-title']}>
-            ☁️ {t('settings.accountSection', { defaultValue: 'Conta & Sincronização em Nuvem' })}
+            <span aria-hidden="true">☁️</span> {t('settings.accountSection', { defaultValue: 'Conta & Sincronização em Nuvem' })}
           </h2>
           <p className={styles['settings-page__card-desc']}>
-            {t('auth.sync_desc', { defaultValue: 'Suas preferências e contas vinculadas são salvas com segurança na sua conta.' })}
+            {t('auth.sync_desc', { defaultValue: 'Sincronize suas preferências e contas vinculadas na nuvem.' })}
           </p>
         </div>
 
@@ -122,7 +166,7 @@ export default function SettingsPage({
             <div className={styles['settings-page__auth-info']}>
               <span className={styles['settings-page__auth-title']}>{t('auth.account', { defaultValue: 'Conta AniMatch' })}</span>
               <span className={styles['settings-page__auth-desc']}>
-                {t('auth.sync_desc', { defaultValue: 'Faça login para sincronizar configurações em múltiplos dispositivos.' })}
+                {t('auth.sync_desc', { defaultValue: 'Sincronize suas preferências e contas vinculadas na nuvem.' })}
               </span>
             </div>
             <button
@@ -136,23 +180,59 @@ export default function SettingsPage({
         ) : (
           <div className={styles['settings-page__auth-user']}>
             <div className={styles['settings-page__auth-user-header']}>
-              <span className={styles['settings-page__auth-avatar']}>👤</span>
+              <span className={styles['settings-page__auth-avatar']} aria-hidden="true">👤</span>
               <div className={styles['settings-page__auth-user-details']}>
                 <span className={styles['settings-page__auth-email']}>{user.email}</span>
                 <span
                   className={`${styles['settings-page__sync-badge']} ${styles[`settings-page__sync-badge--${syncStatus}`]}`}
                 >
-                  {syncBadge.icon} {syncBadge.text}
+                  <span aria-hidden="true">{syncBadge.icon}</span> {syncBadge.text}
                 </span>
               </div>
             </div>
-            <button
-              type="button"
-              className={styles['settings-page__btn']}
-              onClick={() => onSignOut?.()}
-            >
-              {t('auth.logout', { defaultValue: 'Sair da conta' })}
-            </button>
+            <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap', alignItems: 'center' }}>
+              <button
+                type="button"
+                className={styles['settings-page__btn']}
+                onClick={() => onSignOut?.()}
+              >
+                {t('auth.logout', { defaultValue: 'Sair da conta' })}
+              </button>
+              {!confirmingDeleteAccount ? (
+                <button
+                  type="button"
+                  data-testid="delete-cloud-account-btn"
+                  className={`${styles['settings-page__btn']} ${styles['settings-page__btn--danger']}`}
+                  onClick={() => setConfirmingDeleteAccount(true)}
+                >
+                  🗑️ {t('settings.deleteCloudAccount', { defaultValue: 'Excluir minha conta e dados da nuvem' })}
+                </button>
+              ) : (
+                <div style={{ display: 'inline-flex', gap: 'var(--space-2)', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-danger, #ef4444)', fontWeight: 600 }}>
+                    {t('settings.deleteCloudAccountConfirmPrompt', { defaultValue: 'Tem certeza? Esta ação é irreversível.' })}
+                  </span>
+                  <button
+                    type="button"
+                    data-testid="confirm-delete-account-btn"
+                    className={`${styles['settings-page__btn']} ${styles['settings-page__btn--danger']}`}
+                    disabled={isDeletingAccount}
+                    onClick={handleConfirmDeleteAccount}
+                  >
+                    {t('settings.confirmDeleteAccount', { defaultValue: 'Confirmar exclusão permanente' })}
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="cancel-delete-account-btn"
+                    className={styles['settings-page__btn']}
+                    disabled={isDeletingAccount}
+                    onClick={() => setConfirmingDeleteAccount(false)}
+                  >
+                    {t('auth.close', { defaultValue: 'Cancelar' })}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </section>
@@ -210,12 +290,7 @@ export default function SettingsPage({
                       type="button"
                       className={`${styles['settings-page__btn-subtle']} ${styles['settings-page__btn-subtle--danger']}`}
                       disabled={isSyncingAni}
-                      onClick={() =>
-                        onLinkedUsernamesChange?.({
-                          ...linkedUsernames,
-                          anilist: '',
-                        })
-                      }
+                      onClick={() => handleUnlinkProvider('anilist')}
                       title={t('settings.unlink_provider_title', { provider: 'AniList', defaultValue: 'Desvincular conta do AniList' })}
                     >
                       ✕ {t('settings.unlink_provider', { defaultValue: 'Desvincular' })}
@@ -259,12 +334,7 @@ export default function SettingsPage({
                       type="button"
                       className={`${styles['settings-page__btn-subtle']} ${styles['settings-page__btn-subtle--danger']}`}
                       disabled={isSyncingKitsu}
-                      onClick={() =>
-                        onLinkedUsernamesChange?.({
-                          ...linkedUsernames,
-                          kitsu: '',
-                        })
-                      }
+                      onClick={() => handleUnlinkProvider('kitsu')}
                       title={t('settings.unlink_provider_title', { provider: 'Kitsu', defaultValue: 'Desvincular conta do Kitsu' })}
                     >
                       ✕ {t('settings.unlink_provider', { defaultValue: 'Desvincular' })}
@@ -308,12 +378,7 @@ export default function SettingsPage({
                       type="button"
                       className={`${styles['settings-page__btn-subtle']} ${styles['settings-page__btn-subtle--danger']}`}
                       disabled={isSyncingMal}
-                      onClick={() =>
-                        onLinkedUsernamesChange?.({
-                          ...linkedUsernames,
-                          mal: '',
-                        })
-                      }
+                      onClick={() => handleUnlinkProvider('mal')}
                       title={t('settings.unlink_provider_title', { provider: 'MyAnimeList', defaultValue: 'Desvincular conta do MyAnimeList' })}
                     >
                       ✕ {t('settings.unlink_provider', { defaultValue: 'Desvincular' })}
@@ -478,6 +543,26 @@ export default function SettingsPage({
               {isMultiProvider
                 ? t('settings.logout_session', { defaultValue: '🚪 Desconectar sessão atual' })
                 : t('settings.logout', { defaultValue: 'Trocar de conta' })}
+            </button>
+          )}
+
+          <button
+            type="button"
+            data-testid="clear-local-data-btn"
+            className={`${styles['settings-page__btn']} ${styles['settings-page__btn--danger']}`}
+            onClick={handleClearLocalData}
+          >
+            <span aria-hidden="true">🧹</span> {t('settings.clearLocalData', { defaultValue: 'Limpar dados locais do navegador' })}
+          </button>
+
+          {onOpenLegalModal && (
+            <button
+              type="button"
+              data-testid="settings-legal-btn"
+              className={styles['settings-page__btn']}
+              onClick={() => onOpenLegalModal?.()}
+            >
+              {t('legal.footer_link', { defaultValue: 'Sobre, Privacidade & Termos' })}
             </button>
           )}
         </div>

@@ -116,3 +116,17 @@ export function clearCache(cacheKey) {
   }
   forgetIndex(cacheKey)
 }
+
+/** Limpa todas as chaves rastreadas no índice de cache e chaves `animatch_*` do `localStorage`. */
+export function clearAllApiCache() {
+  try {
+    const indexed = readIndex()
+    for (const key of indexed) {
+      localStorage.removeItem(key)
+    }
+    localStorage.removeItem(INDEX_KEY)
+  } catch {
+    // ignora
+  }
+}
+

@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { DECISION_MODES, makeDecision } from '../logic/decision.js'
 import RecommendationReason from './RecommendationReason.jsx'
+import { useModalFocusTrap } from '../hooks/useModalFocusTrap.js'
 import styles from './DecisionModal.module.css'
 
 export default function DecisionModal({
@@ -13,6 +14,7 @@ export default function DecisionModal({
   onSelectAnime,
 }) {
   const { t } = useTranslation()
+  const modalRef = useRef(null)
   const [activeMode, setActiveMode] = useState(DECISION_MODES.SURPRISE)
   const [selectedAnime, setSelectedAnime] = useState(null)
   const [isShuffling, setIsShuffling] = useState(false)
@@ -39,19 +41,7 @@ export default function DecisionModal({
     }
   }, [isOpen, drawAnime])
 
-  // Handle escape key
-  useEffect(() => {
-    if (!isOpen) return
-
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        onClose?.()
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, onClose])
+  useModalFocusTrap(Boolean(isOpen), modalRef, onClose)
 
   const handlePickAnother = useCallback(() => {
     setIsShuffling(true)
@@ -143,11 +133,13 @@ export default function DecisionModal({
       data-testid="decision-modal-overlay"
     >
       <div
+        ref={modalRef}
         className={styles.modal}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-labelledby="decision-modal-title"
+        tabIndex={-1}
       >
         <button
           className={styles.closeButton}

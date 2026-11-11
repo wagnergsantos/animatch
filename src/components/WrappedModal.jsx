@@ -6,6 +6,7 @@ import {
   downloadWrappedPng,
   copyWrappedPngToClipboard,
 } from '../logic/wrappedGenerator.js'
+import { useModalFocusTrap } from '../hooks/useModalFocusTrap.js'
 import styles from './WrappedModal.module.css'
 
 export default function WrappedModal({
@@ -22,6 +23,7 @@ export default function WrappedModal({
 }) {
   const { t } = useTranslation()
   const canvasRef = useRef(null)
+  const modalRef = useRef(null)
   const [isDownloading, setIsDownloading] = useState(false)
   const [imageCopyState, setImageCopyState] = useState('idle') // 'idle' | 'copied' | 'error'
   const [linkCopied, setLinkCopied] = useState(false)
@@ -75,16 +77,7 @@ export default function WrappedModal({
     renderWrappedCanvas(canvasRef.current, wrappedData, canvasLabels)
   }, [isOpen, wrappedData, canvasLabels])
 
-  useEffect(() => {
-    if (!isOpen) return
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        onClose?.()
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, onClose])
+  useModalFocusTrap(Boolean(isOpen), modalRef, onClose)
 
   if (!isOpen) return null
 
@@ -137,10 +130,12 @@ export default function WrappedModal({
       }}
     >
       <div
+        ref={modalRef}
         className={styles.modal}
         role="dialog"
         aria-modal="true"
         aria-labelledby="wrapped-modal-title"
+        tabIndex={-1}
       >
         <header className={styles.header}>
           <div>
@@ -170,6 +165,13 @@ export default function WrappedModal({
             width={1200}
             height={630}
             className={styles.canvasPreview}
+            role="img"
+            aria-label={t('wrapped.canvasAriaLabel', {
+              username: username || 'AniMatch',
+              completed: wrappedData?.metrics?.completedCount ?? 0,
+              episodes: wrappedData?.metrics?.totalEpisodes ?? 0,
+              defaultValue: `Card resumo AniMatch Wrapped de ${username || 'usuário'}: ${wrappedData?.metrics?.completedCount ?? 0} animes concluídos e ${wrappedData?.metrics?.totalEpisodes ?? 0} episódios.`,
+            })}
           />
         </div>
 

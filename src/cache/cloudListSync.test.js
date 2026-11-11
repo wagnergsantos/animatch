@@ -13,6 +13,7 @@ import { supabaseClient } from '../supabase.js'
 import {
   fetchCloudAnimeList,
   scheduleCloudAnimeListSync,
+  deleteCloudAnimeList,
   getAuthenticatedUserId,
 } from './cloudListSync.js'
 import { DEFAULT_CACHE_TTL } from './apiCache.js'
@@ -128,4 +129,21 @@ describe('cloudListSync', () => {
     expect(synced).toBe(false)
     expect(supabaseClient.from).not.toHaveBeenCalled()
   })
+
+  it('remove registro de user_anime_lists ao chamar deleteCloudAnimeList', async () => {
+    const eqUsernameMock = vi.fn().mockResolvedValue({ error: null })
+    const eqProviderMock = vi.fn(() => ({ eq: eqUsernameMock }))
+    const eqUserIdMock = vi.fn(() => ({ eq: eqProviderMock }))
+    const deleteMock = vi.fn(() => ({ eq: eqUserIdMock }))
+    supabaseClient.from.mockReturnValue({ delete: deleteMock })
+
+    const ok = await deleteCloudAnimeList('user-123', 'Kitsu', 'Kitsu_Hero')
+
+    expect(ok).toBe(true)
+    expect(supabaseClient.from).toHaveBeenCalledWith('user_anime_lists')
+    expect(eqUserIdMock).toHaveBeenCalledWith('user_id', 'user-123')
+    expect(eqProviderMock).toHaveBeenCalledWith('provider', 'kitsu')
+    expect(eqUsernameMock).toHaveBeenCalledWith('username', 'kitsu_hero')
+  })
 })
+
