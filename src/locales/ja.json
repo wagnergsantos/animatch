@@ -72,7 +72,7 @@
     "signup": "新規登録",
     "email": "メールアドレス",
     "password": "パスワード",
-    "password_min_length": "パスワードは6文字以上である必要があります",
+    "password_min_length": "パスワードは8文字以上である必要があります",
     "continue_with_google": "Googleで続ける",
     "logout": "ログアウト",
     "account": "AniMatchアカウント",

@@ -79,8 +79,8 @@ export default function AuthModal({
       return
     }
 
-    if (password.length < 6) {
-      setError(t('auth.password_min_length', 'A senha deve ter pelo menos 6 caracteres'))
+    if (password.length < 8) {
+      setError(t('auth.password_min_length', 'A senha deve ter pelo menos 8 caracteres'))
       return
     }
 
@@ -246,7 +246,7 @@ export default function AuthModal({
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              minLength={6}
+              minLength={8}
               autoComplete={activeTab === 'login' ? 'current-password' : 'new-password'}
               placeholder="••••••••"
               disabled={isLoading}

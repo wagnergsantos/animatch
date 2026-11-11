@@ -28,12 +28,12 @@ Uma aplicação web inteligente que analisa a sua lista do AniList para gerar re
 
 1. Clone o repositório:
 ```bash
-git clone https://github.com/seu-usuario/nome-do-projeto.git
+git clone https://github.com/wagnergsantos/animatch.git
 ```
 
 2. Acesse a pasta do projeto:
 ```bash
-cd nome-do-projeto
+cd animatch
 ```
 
 3. Instale as dependências:
@@ -41,12 +41,53 @@ cd nome-do-projeto
 npm install
 ```
 
-4. Inicie o servidor de desenvolvimento:
+4. Configure as variáveis de ambiente:
+```bash
+cp .env.example .env.local
+```
+Preencha `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` com as credenciais do seu projeto Supabase.
+
+5. Inicie o servidor de desenvolvimento:
 ```bash
 npm run dev
 ```
 
-5. Abra o navegador na porta indicada (normalmente `http://localhost:5173`).
+6. Abra o navegador em `http://localhost:5173`.
+
+## Infraestrutura & Supabase
+
+### 1. Migrations e Banco de Dados (RLS)
+O projeto utiliza Supabase com Row Level Security (RLS) para isolamento estrito de dados entre usuários.
+Para rodar localmente com o Supabase CLI:
+```bash
+# Iniciar stack local do Supabase
+supabase start
+
+# Aplicar migrations pendentes
+supabase db push
+```
+
+As migrations criam as tabelas `public.user_settings`, `public.user_anime_lists`, as políticas de segurança RLS (leitura/escrita/deleção restritas ao próprio `auth.uid()`) e a RPC `delete_own_account()`.
+
+### 2. Edge Function `mal-proxy` (MyAnimeList)
+A integração com o MyAnimeList requer Client ID gerenciado no backend para evitar exposição de chaves no cliente e contornar restrições de CORS:
+```bash
+# Configurar secret local da function
+cp supabase/functions/.env.example supabase/functions/.env
+# Preencher MAL_CLIENT_ID com sua chave da API do MyAnimeList
+
+# Deploy da function em produção
+supabase functions deploy mal-proxy
+supabase secrets set MAL_CLIENT_ID=sua_chave_aqui
+```
+
+### 3. Deploy Contínuo e Segurança (CI/CD)
+O deploy para o GitHub Pages ocorre via GitHub Actions (`.github/workflows/ci.yml`).
+Configure os seguintes **Repository Secrets** no GitHub:
+- `VITE_SUPABASE_URL`: URL pública do projeto Supabase (`https://<project-ref>.supabase.co`)
+- `VITE_SUPABASE_ANON_KEY`: Chave pública `anon` do Supabase
+
+> **Nota de Segurança:** O job de deploy falha automaticamente se essas variáveis não estiverem configuradas, impedindo builds de produção com credenciais vazias ou placeholders. Chaves secretas (`service_role` ou `sb_secret_`) são expressamente bloqueadas pelo cliente web (`src/supabase.js`).
 
 ## Scripts Disponíveis
 

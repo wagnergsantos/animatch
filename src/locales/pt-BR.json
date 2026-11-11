@@ -72,7 +72,7 @@
     "signup": "Criar Conta",
     "email": "Email",
     "password": "Senha",
-    "password_min_length": "A senha deve ter pelo menos 6 caracteres",
+    "password_min_length": "A senha deve ter pelo menos 8 caracteres",
     "continue_with_google": "Continuar com Google",
     "logout": "Sair da conta",
     "account": "Conta AniMatch",

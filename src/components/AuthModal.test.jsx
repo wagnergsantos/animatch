@@ -207,13 +207,13 @@ describe('AuthModal', () => {
     render(<AuthModal isOpen={true} onClose={vi.fn()} />)
 
     fireEvent.change(screen.getByLabelText(/Email/i), { target: { value: 'user@example.com' } })
-    fireEvent.change(screen.getByLabelText(/Senha|Password/i), { target: { value: '123' } })
+    fireEvent.change(screen.getByLabelText(/Senha|Password/i), { target: { value: '1234567' } })
 
     const submitBtn = screen.getByRole('button', { name: /^Entrar$|^Login$/i })
     fireEvent.click(submitBtn)
 
     expect(mockSignInWithPassword).not.toHaveBeenCalled()
-    expect(screen.getByRole('alert')).toHaveTextContent(/6 caracteres|6 characters/i)
+    expect(screen.getByRole('alert')).toHaveTextContent(/8 caracteres|8 characters/i)
   })
 
   it('triggers Google OAuth login when clicking Google button', async () => {

@@ -67,7 +67,7 @@
 
 ---
 
-### [ ] S4 — Segurança de Deploy, Segredos, Config de Auth e Documentação (#33)
+### [x] S4 — Segurança de Deploy, Segredos, Config de Auth e Documentação (#33)
 
 **Onde:** `.env.development`, `.env.example`, `supabase/functions/.env.example`, `.gitignore`, `src/supabase.js`, `.github/workflows/ci.yml`, `supabase/config.toml`, `src/components/AuthModal.jsx`, `README.md`
 
@@ -94,4 +94,4 @@
 | **1** | **#26** | **S1 (A14)** | CORS restrito, rate-limit por IP, teto de paginação, retry `429` e CSP | 🔥 Crítica | 📋 Aberto |
 | **2** | **#31** | **S2** | Validação de `username`, proteção SSRF em `paging.next` e sanitização de URLs | 🔥 Alta | 📋 Aberto |
 | **3** | **#32** | **S3** | Constraints SQL de tamanho máximo (`jsonb`) e formato nas tabelas com RLS | 🟡 Alta | 📋 Aberto |
-| **4** | **#33** | **S4** | Desrastrear `.env.development`, travar deploy sem secrets, `config.toml` e docs | 🟡 Alta | 📋 Aberto |
+| **4** | **#33** | **S4** | Desrastrear `.env.development`, travar deploy sem secrets, `config.toml` e docs | 🟡 Alta | ✅ Concluído |
