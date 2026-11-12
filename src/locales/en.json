@@ -294,6 +294,7 @@
   },
   "legal": {
     "title": "About, Privacy & Terms",
+    "sectionDesc": "Privacy guidelines (LGPD/GDPR), copyright disclosures, age compliance, and contact channel.",
     "modalTitle": "About, Privacy & Terms",
     "footer_link": "About, Privacy & Terms",
     "close": "Close",

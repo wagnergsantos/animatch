@@ -555,19 +555,45 @@ export default function SettingsPage({
           >
             <span aria-hidden="true">🧹</span> {t('settings.clearLocalData', { defaultValue: 'Limpar dados locais do navegador' })}
           </button>
+        </div>
+      </section>
 
-          {onOpenLegalModal && (
+      {/* Seção 6: Sobre, Privacidade & Termos */}
+      {onOpenLegalModal && (
+        <section className={styles['settings-page__card']} aria-labelledby="settings-legal-title">
+          <div className={styles['settings-page__card-header']}>
+            <h2 id="settings-legal-title" className={styles['settings-page__card-title']}>
+              <span aria-hidden="true">⚖️</span> {t('legal.title', { defaultValue: 'Sobre, Privacidade & Termos' })}
+            </h2>
+            <p className={styles['settings-page__card-desc']}>
+              {t('legal.sectionDesc', {
+                defaultValue: 'Diretrizes de privacidade (LGPD/GDPR), direitos autorais, conformidade etária e canal de contato.',
+              })}
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap', alignItems: 'center' }}>
             <button
               type="button"
               data-testid="settings-legal-btn"
-              className={styles['settings-page__btn']}
+              className={`${styles['settings-page__btn']} ${styles['settings-page__btn--primary']}`}
               onClick={() => onOpenLegalModal?.()}
             >
-              {t('legal.footer_link', { defaultValue: 'Sobre, Privacidade & Termos' })}
+              📄 {t('legal.footer_link', { defaultValue: 'Sobre, Privacidade & Termos' })}
             </button>
-          )}
-        </div>
-      </section>
+            <a
+              href="https://github.com/wagnergsantos/animatch"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles['settings-page__btn']}
+              style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+            >
+              <span>GitHub</span>
+              <span aria-hidden="true">↗</span>
+            </a>
+          </div>
+        </section>
+      )}
     </div>
   )
 }

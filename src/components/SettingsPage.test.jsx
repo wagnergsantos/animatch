@@ -38,14 +38,20 @@ describe('SettingsPage', () => {
     provider: 'anilist',
   }
 
-  it('renders all 5 main settings sections', () => {
-    render(<SettingsPage {...defaultProps} />)
+  it('renders all 6 main settings sections and handles legal modal button', () => {
+    const onOpenLegalModal = vi.fn()
+    render(<SettingsPage {...defaultProps} onOpenLegalModal={onOpenLegalModal} />)
 
     expect(screen.getByRole('heading', { name: /Conta.*Sincronização|Conta AniMatch/i })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /Contas Vinculadas/i })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /Streaming.*Assinaturas/i })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /Preferências de Interface|Interface/i })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /Dados da Lista/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Sobre, Privacidade & Termos/i })).toBeInTheDocument()
+
+    const legalBtn = screen.getByTestId('settings-legal-btn')
+    fireEvent.click(legalBtn)
+    expect(onOpenLegalModal).toHaveBeenCalledTimes(1)
   })
 
   describe('Cloud Account & Auth', () => {
