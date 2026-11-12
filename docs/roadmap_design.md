@@ -344,9 +344,11 @@ Adicionar `aria-label` e `aria-describedby` em selects/inputs de filtro para scr
 
 ## 5. Roadmap de Implementação
 
+> Spec detalhada das fases restantes (A0, A3, A4, B1, B2, B4, C1): [PHASE_A3_B_C_SPEC.md](./PHASE_A3_B_C_SPEC.md). B3 descartado (premissa não confere com o código).
+
 ### Fase 1: Progressive Rendering (SEMANA 1)
-- [ ] A1. Criar `useProgressiveRecommendationPipeline` + testes
-- [ ] A2. Adaptar `RecommendationGrid` para 2 passes
+- [x] A1. Criar `useProgressiveRecommendationPipeline` + testes (`9cc563a`, fix `5def15d`)
+- [x] A2. Adaptar `RecommendationGrid` para 2 passes (`9cc563a`)
 - [ ] Testar com cache ativado (500+ animes)
 - **Gain esperado:** Time to First Recommendation **200–300ms** ✅
 
