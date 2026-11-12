@@ -53,6 +53,20 @@ describe('Custom API Errors', () => {
     expect(err).toBeInstanceOf(NonRetryableError)
     expect(err.name).toBe('RateLimitError')
     expect(err.message).toContain('O AniList bloqueou temporariamente a requisição (403)')
+    expect(err.statusCode).toBe(403)
     expect(err.isRetryable).toBe(false)
+  })
+
+  it('supports RateLimitError with HTTP 429 and retryable options', () => {
+    const err = new RateLimitError('AniList', 2, {
+      statusCode: 429,
+      isRetryable: true,
+      retryAfterMs: 1500,
+    })
+    expect(err).toBeInstanceOf(RateLimitError)
+    expect(err.statusCode).toBe(429)
+    expect(err.isRetryable).toBe(true)
+    expect(err.retryAfterMs).toBe(1500)
+    expect(err.message).toContain('O AniList bloqueou temporariamente a requisição (429)')
   })
 })

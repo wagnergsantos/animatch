@@ -21,7 +21,7 @@
 
 ## 2. Itens de Implementação
 
-### [ ] S1 (antigo A14) — Firewall, CORS Restrito, Rate-Limit, Teto de Paginação, Retry 429 e CSP (#26)
+### [x] S1 (antigo A14) — Firewall, CORS Restrito, Rate-Limit, Teto de Paginação, Retry 429 e CSP (#26)
 
 **Onde:** `supabase/functions/_shared/cors.ts`, `supabase/functions/mal-proxy/index.ts`, `src/api/errors.js`, `src/api/providers/anilist.js`, `src/api/providers/kitsu.js`, `index.html`
 
@@ -91,7 +91,7 @@
 
 | Ordem | Issue | Código | Entrega | Prioridade | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **1** | **#26** | **S1 (A14)** | CORS restrito, rate-limit por IP, teto de paginação, retry `429` e CSP | 🔥 Crítica | 📋 Aberto |
+| **1** | **#26** | **S1 (A14)** | CORS restrito, rate-limit por IP, teto de paginação, retry `429` e CSP | 🔥 Crítica | ✅ Concluído |
 | **2** | **#31** | **S2** | Validação de `username`, proteção SSRF em `paging.next` e sanitização de URLs | 🔥 Alta | ✅ Concluído |
 | **3** | **#32** | **S3** | Constraints SQL de tamanho máximo (`jsonb`) e formato nas tabelas com RLS | 🟡 Alta | ✅ Concluído |
 | **4** | **#33** | **S4** | Desrastrear `.env.development`, travar deploy sem secrets, `config.toml` e docs | 🟡 Alta | ✅ Concluído |

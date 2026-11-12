@@ -1,7 +1,43 @@
-import { corsHeaders } from '../_shared/cors.ts'
+import { getCorsHeaders } from '../_shared/cors.ts'
 
 const MAL_CLIENT_ID = Deno.env.get('MAL_CLIENT_ID') ?? ''
 const MAL_API = 'https://api.myanimelist.net/v2'
+export const MAX_PAGES = 10
+
+const RATE_LIMIT_WINDOW_MS = 60_000
+const RATE_LIMIT_MAX_REQUESTS = 30
+const ipRateLimits = new Map<string, { count: number; resetAt: number }>()
+
+export class MalRateLimitError extends Error {
+  retryAfter: string
+  constructor(retryAfter = '60') {
+    super('O MyAnimeList bloqueou temporariamente a requisição (429).')
+    this.name = 'MalRateLimitError'
+    this.retryAfter = retryAfter
+  }
+}
+
+export function checkIpRateLimit(ip: string, now = Date.now()): { allowed: boolean; retryAfterSec: number } {
+  if (ipRateLimits.size > 1000) {
+    for (const [k, v] of ipRateLimits.entries()) {
+      if (now >= v.resetAt) ipRateLimits.delete(k)
+    }
+  }
+
+  const record = ipRateLimits.get(ip)
+  if (!record || now >= record.resetAt) {
+    ipRateLimits.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS })
+    return { allowed: true, retryAfterSec: 0 }
+  }
+
+  if (record.count >= RATE_LIMIT_MAX_REQUESTS) {
+    const retryAfterSec = Math.max(1, Math.ceil((record.resetAt - now) / 1000))
+    return { allowed: false, retryAfterSec }
+  }
+
+  record.count += 1
+  return { allowed: true, retryAfterSec: 0 }
+}
 
 const STATUS_MAP: Record<string, string> = {
   completed: 'COMPLETED',
@@ -102,12 +138,18 @@ async function fetchAllPages(username: string, status: string): Promise<MALListE
     `${MAL_API}/users/${encodeURIComponent(username)}/animelist?status=${status}&fields=${fields}&limit=${limit}`
 
   const all: MALListEntry[] = []
+  let pageCount = 0
 
-  while (url) {
+  while (url && pageCount < MAX_PAGES) {
+    pageCount += 1
     const res = await fetch(url, {
       headers: { 'X-MAL-CLIENT-ID': MAL_CLIENT_ID },
     })
 
+    if (res.status === 429) {
+      const retryAfter = res.headers.get('Retry-After') || '60'
+      throw new MalRateLimitError(retryAfter)
+    }
     if (res.status === 403) throw new Error('A lista deste usuário é privada.')
     if (res.status === 404) throw new Error('Usuário não encontrado no MyAnimeList.')
     if (!res.ok) throw new Error('Erro ao conectar com o MyAnimeList.')
@@ -130,11 +172,45 @@ async function fetchAllPages(username: string, status: string): Promise<MALListE
 }
 
 Deno.serve(async (req: Request) => {
+  const corsHeaders = getCorsHeaders(req)
+
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
+    const hasAuthHeader = Boolean(
+      req.headers.get('apikey')?.trim() || req.headers.get('authorization')?.trim()
+    )
+    if (!hasAuthHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Credenciais de acesso ausentes (apikey/authorization).' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const clientIp =
+      req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      req.headers.get('cf-connecting-ip')?.trim() ||
+      'unknown'
+    const rateCheck = checkIpRateLimit(clientIp)
+    if (!rateCheck.allowed) {
+      return new Response(
+        JSON.stringify({
+          error: 'Muitas requisições ao proxy do MyAnimeList. Tente novamente em instantes.',
+          retryAfter: String(rateCheck.retryAfterSec),
+        }),
+        {
+          status: 429,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+            'Retry-After': String(rateCheck.retryAfterSec),
+          },
+        }
+      )
+    }
+
     if (!MAL_CLIENT_ID) {
       return new Response(
         JSON.stringify({ error: 'MAL_CLIENT_ID não configurado.' }),
@@ -166,13 +242,27 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    const rawEntries = await fetchAllPages(username, status)
+    const rawEntries = await fetchAllPages(username.trim(), status)
     const normalized = rawEntries.map(normalizeEntry)
 
     return new Response(JSON.stringify({ data: normalized }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (err) {
+    if (err instanceof MalRateLimitError) {
+      return new Response(
+        JSON.stringify({ error: err.message, retryAfter: err.retryAfter }),
+        {
+          status: 429,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+            'Retry-After': err.retryAfter,
+          },
+        }
+      )
+    }
+
     const message = err instanceof Error ? err.message : 'Erro desconhecido.'
     const status =
       message.includes('não encontrado') ? 404 :

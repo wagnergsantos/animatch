@@ -1,5 +1,5 @@
 import { supabaseClient } from '../../supabase.js'
-import { UserNotFoundError, RetryableError, NonRetryableError } from '../errors.js'
+import { UserNotFoundError, RetryableError, NonRetryableError, RateLimitError } from '../errors.js'
 import { readCache, writeCache, clearCache, DEFAULT_CACHE_TTL } from '../../cache/apiCache.js'
 
 const CACHE_PREFIX = 'animatch_mal_cache_'
@@ -19,6 +19,12 @@ async function invokeProxy(username, status) {
     const errMsg = data.error
     if (errMsg.toLowerCase().includes('not found') || errMsg.toLowerCase().includes('não encontrado')) {
       throw new UserNotFoundError('MyAnimeList')
+    }
+    if (errMsg.includes('429') || errMsg.toLowerCase().includes('muitas requisições')) {
+      const retryAfterSec = Number.parseInt(data.retryAfter, 10)
+      const retryMinutes =
+        Number.isFinite(retryAfterSec) && retryAfterSec > 0 ? Math.max(1, Math.ceil(retryAfterSec / 60)) : 1
+      throw new RateLimitError('MyAnimeList', retryMinutes, { statusCode: 429, isRetryable: false })
     }
     throw new NonRetryableError(errMsg)
   }

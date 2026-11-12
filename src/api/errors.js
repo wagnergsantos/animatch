@@ -34,7 +34,15 @@ export class PrivateListError extends NonRetryableError {
 }
 
 export class RateLimitError extends NonRetryableError {
-  constructor(providerName = 'provedor', retryAfterMinutes = 1) {
-    super(`O ${providerName} bloqueou temporariamente a requisição (403). Tente novamente em ${retryAfterMinutes} minuto.`)
+  constructor(providerName = 'provedor', retryAfterMinutes = 1, options = {}) {
+    const statusCode = options.statusCode ?? 403
+    super(
+      `O ${providerName} bloqueou temporariamente a requisição (${statusCode}). Tente novamente em ${retryAfterMinutes} minuto.`,
+      options
+    )
+    this.statusCode = statusCode
+    this.retryAfterMinutes = retryAfterMinutes
+    this.retryAfterMs = options.retryAfterMs ?? null
+    this.isRetryable = options.isRetryable ?? false
   }
 }

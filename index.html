@@ -3,6 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.anilist.co https://*.kitsu.io https://*.kitsu.app https://*.myanimelist.net https:; connect-src 'self' https://graphql.anilist.co https://kitsu.io https://*.supabase.co wss://*.supabase.co; font-src 'self' data:; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';"
+    />
     <meta name="description" content="Recomendações personalizadas de anime baseadas no seu gosto real, não no que é popular." />
     <meta name="theme-color" content="#0e1117" />
     <link rel="canonical" href="https://wagnergsantos.github.io/animatch/" />
@@ -27,14 +31,5 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-    <script>
-      if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/animatch/sw.js').catch((err) => {
-            console.log('SW registration failed:', err)
-          })
-        })
-      }
-    </script>
   </body>
 </html>

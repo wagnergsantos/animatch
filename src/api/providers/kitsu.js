@@ -5,6 +5,7 @@ import { readCache, writeCache, clearCache, DEFAULT_CACHE_TTL } from '../../cach
 
 const KITSU_CACHE_PREFIX = 'animatch_kitsu_cache_'
 const KITSU_CACHE_TTL = DEFAULT_CACHE_TTL // 6 hours
+export const MAX_PAGES = 20
 
 const KITSU_HEADERS = {
   'Accept': 'application/vnd.api+json',
@@ -152,8 +153,10 @@ export async function kitsuFetchAll(username, options = {}) {
     
     let entries = []
     let nextUrl = `${KITSU_API}/library-entries?filter[userId]=${userId}&filter[kind]=anime&include=anime,anime.categories,anime.streamingLinks,anime.streamingLinks.streamer&page[limit]=500`
-    
-    while (nextUrl) {
+    let pageCount = 0
+
+    while (nextUrl && pageCount < MAX_PAGES) {
+      pageCount += 1
       const res = await fetch(nextUrl, { headers: KITSU_HEADERS })
       if (!res.ok) throw new RetryableError('Erro ao conectar com o Kitsu.')
       const data = await res.json()

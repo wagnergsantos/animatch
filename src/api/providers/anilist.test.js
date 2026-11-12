@@ -153,13 +153,50 @@ describe('fetchCompletedList', () => {
     await expect(fetchCompletedList('testuser')).rejects.toThrow(RetryableError)
   })
 
-  it('throws NonRetryableError on rate limit (HTTP 429)', async () => {
-    mockFetch.mockResolvedValueOnce({
+  it('retries on rate limit (HTTP 429) and succeeds when next attempt returns 200', async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 429,
+        headers: { get: (h) => (h.toLowerCase() === 'retry-after' ? '0' : null) },
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: () =>
+          Promise.resolve({
+            data: {
+              MediaListCollection: {
+                lists: [
+                  {
+                    entries: [
+                      {
+                        score: 9,
+                        media: { id: 77, title: { romaji: 'Retry Success' }, genres: ['Action'] },
+                      },
+                    ],
+                  },
+                ],
+              },
+            },
+          }),
+      })
+
+    const result = await fetchCompletedList('testuser')
+    expect(result).toHaveLength(1)
+    expect(result[0].media.id).toBe(77)
+    expect(mockFetch).toHaveBeenCalledTimes(2)
+  })
+
+  it('throws RateLimitError (429) when HTTP 429 persists after all retries', async () => {
+    mockFetch.mockResolvedValue({
       ok: false,
       status: 429,
+      headers: { get: () => null },
     })
 
-    await expect(fetchCompletedList('testuser')).rejects.toThrow(NonRetryableError)
+    await expect(fetchCompletedList('testuser')).rejects.toThrow(RateLimitError)
+    expect(mockFetch).toHaveBeenCalledTimes(3)
   })
 })
 

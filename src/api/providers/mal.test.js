@@ -10,7 +10,7 @@ vi.mock('../../supabase.js', () => ({
 
 import { supabaseClient } from '../../supabase.js'
 import { malFetchAll, clearMalCache } from './mal.js'
-import { UserNotFoundError, RetryableError } from '../errors.js'
+import { UserNotFoundError, RetryableError, RateLimitError } from '../errors.js'
 
 const CACHE_PREFIX = 'animatch_mal_cache_'
 
@@ -118,6 +118,15 @@ describe('malFetchAll', () => {
     })
 
     await expect(malFetchAll('noexist')).rejects.toThrow(UserNotFoundError)
+  })
+
+  it('lança RateLimitError quando proxy retorna erro 429', async () => {
+    supabaseClient.functions.invoke.mockResolvedValueOnce({
+      data: { error: 'O MyAnimeList bloqueou temporariamente a requisição (429).', retryAfter: '120' },
+      error: null,
+    })
+
+    await expect(malFetchAll('ratelimited')).rejects.toThrow(RateLimitError)
   })
 
   it('lança RetryableError quando invoke falha no nivel de rede', async () => {

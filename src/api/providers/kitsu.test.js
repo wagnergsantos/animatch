@@ -10,7 +10,7 @@ beforeEach(() => {
 })
 
 // Importar após setup do mock
-import { kitsuFetchAll, clearKitsuCache } from './kitsu.js'
+import { kitsuFetchAll, clearKitsuCache, MAX_PAGES } from './kitsu.js'
 
 describe('kitsuFetchAll', () => {
   it('throws when user is not found on Kitsu', async () => {
@@ -302,6 +302,46 @@ describe('kitsuFetchAll', () => {
     const result = await kitsuFetchAll('ssrfuser')
     expect(result).toHaveLength(1)
     expect(mockFetch).toHaveBeenCalledTimes(2)
+  })
+
+  it('caps pagination at MAX_PAGES (20) to prevent infinite loops', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({
+        data: [{ id: '1', type: 'users', attributes: { name: 'giantuser' } }],
+      }),
+    })
+
+    for (let i = 0; i < MAX_PAGES + 5; i++) {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({
+          data: [
+            {
+              id: String(i + 1),
+              type: 'libraryEntries',
+              attributes: { status: 'completed', ratingTwenty: 16 },
+              relationships: { anime: { data: { type: 'anime', id: String(1000 + i) } } },
+            },
+          ],
+          included: [
+            {
+              id: String(1000 + i),
+              type: 'anime',
+              attributes: { canonicalTitle: `Anime ${i}`, titles: {}, episodeCount: 12, status: 'finished', subtype: 'TV' },
+              relationships: {},
+            },
+          ],
+          links: {
+            next: `https://kitsu.io/api/edge/library-entries?page[offset]=${(i + 1) * 500}`,
+          },
+        }),
+      })
+    }
+
+    const result = await kitsuFetchAll('giantuser')
+    expect(result).toHaveLength(MAX_PAGES)
+    expect(mockFetch).toHaveBeenCalledTimes(1 + MAX_PAGES)
   })
 })
 

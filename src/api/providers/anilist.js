@@ -119,7 +119,23 @@ async function queryAniList(query, variables, retries = 2, delayMs = 100) {
       }
 
       if (response.status === 429) {
-        throw new NonRetryableError('O AniList está temporariamente indisponível.')
+        const retryAfterHeader =
+          response.headers?.get?.('Retry-After') ?? response.headers?.get?.('retry-after')
+        const retryAfterSec = retryAfterHeader ? Number.parseInt(retryAfterHeader, 10) : NaN
+        const retryAfterMs =
+          Number.isFinite(retryAfterSec) && retryAfterSec > 0
+            ? Math.min(retryAfterSec * 1000, 5000)
+            : delayMs * Math.pow(2, attempt)
+        const retryAfterMinutes =
+          Number.isFinite(retryAfterSec) && retryAfterSec > 0
+            ? Math.max(1, Math.ceil(retryAfterSec / 60))
+            : 1
+
+        throw new RateLimitError('AniList', retryAfterMinutes, {
+          statusCode: 429,
+          isRetryable: attempt < retries,
+          retryAfterMs,
+        })
       }
       if (response.status === 404) {
         throw new UserNotFoundError('AniList')
@@ -170,7 +186,11 @@ async function queryAniList(query, variables, retries = 2, delayMs = 100) {
       }
 
       if (attempt < retries) {
-        await new Promise((resolve) => setTimeout(resolve, delayMs * Math.pow(2, attempt)))
+        const waitMs =
+          err instanceof RateLimitError && Number.isFinite(err.retryAfterMs) && err.retryAfterMs > 0
+            ? err.retryAfterMs
+            : delayMs * Math.pow(2, attempt)
+        await new Promise((resolve) => setTimeout(resolve, waitMs))
       }
     }
   }
