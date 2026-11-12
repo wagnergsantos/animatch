@@ -3,6 +3,8 @@ import {
   scoreRecommendations,
   resolveYear,
   calculateWeightedGenreAverage,
+  isEligiblePlanningMedia,
+  isEligiblePlanningEntry,
   DEFAULT_MIN_GENRE_COUNT,
   DEFAULT_CONFIDENCE_CONSTANT,
   DEFAULT_TASTE_WEIGHT,
@@ -50,6 +52,52 @@ describe('resolveYear', () => {
   it('treats year 0 as a valid falsy-but-present value via nullish coalescing', () => {
     // 0 ?? seasonYear should short-circuit to 0, not fall through
     expect(resolveYear({ year: 0, seasonYear: 1999 })).toBe(0)
+  })
+})
+
+describe('isEligiblePlanningMedia and isEligiblePlanningEntry', () => {
+  const profile = new Map([['Drama', { adjustedAverage: 8.0 }]])
+
+  it('retorna true para anime com averageScore > 0 mesmo sem tasteProfile', () => {
+    const entry = { status: 'PLANNING', media: { averageScore: 75, status: 'FINISHED' } }
+    expect(isEligiblePlanningMedia(entry)).toBe(true)
+    expect(isEligiblePlanningEntry(entry)).toBe(true)
+  })
+
+  it('retorna false para obras NOT_YET_RELEASED mesmo com score ou gênero no perfil', () => {
+    const entry = {
+      status: 'PLANNING',
+      media: { averageScore: 80, status: 'NOT_YET_RELEASED', genres: ['Drama'] },
+    }
+    expect(isEligiblePlanningMedia(entry, profile)).toBe(false)
+    expect(isEligiblePlanningEntry(entry, profile)).toBe(false)
+  })
+
+  it('resgata anime sem averageScore se lançado e com gênero no perfil de gosto', () => {
+    const entry = {
+      status: 'PLAN_TO_WATCH',
+      media: { averageScore: null, status: 'FINISHED', genres: ['Drama', 'Mystery'] },
+    }
+    expect(isEligiblePlanningMedia(entry, profile)).toBe(true)
+    expect(isEligiblePlanningEntry(entry, profile)).toBe(true)
+  })
+
+  it('descarta anime sem averageScore quando perfil não contém os gêneros da obra', () => {
+    const entry = {
+      status: 'PLANNING',
+      media: { averageScore: null, status: 'FINISHED', genres: ['Mecha'] },
+    }
+    expect(isEligiblePlanningMedia(entry, profile)).toBe(false)
+    expect(isEligiblePlanningEntry(entry, profile)).toBe(false)
+  })
+
+  it('descarta anime sem averageScore quando nenhum tasteProfile é fornecido', () => {
+    const entry = {
+      status: 'PLANNING',
+      media: { averageScore: null, status: 'FINISHED', genres: ['Drama'] },
+    }
+    expect(isEligiblePlanningMedia(entry)).toBe(false)
+    expect(isEligiblePlanningEntry(entry)).toBe(false)
   })
 })
 
@@ -270,6 +318,48 @@ describe('scoreRecommendations', () => {
     expect(recs[0].predictedScore).toBe(9.0)
     expect(DEFAULT_TASTE_WEIGHT).toBe(0.85)
     expect(DEFAULT_COMMUNITY_WEIGHT).toBe(0.15)
+  })
+
+  it('resgata anime lançado sem averageScore quando houver gêneros no perfil de gosto', () => {
+    const planning = [
+      {
+        media: {
+          id: 99,
+          title: { romaji: 'Cult Classic' },
+          genres: ['Drama'],
+          averageScore: null,
+          status: 'FINISHED',
+        },
+      },
+      {
+        media: {
+          id: 100,
+          title: { romaji: 'Unknown Unrated' },
+          genres: ['Sci-Fi'], // não está no perfil
+          averageScore: null,
+          status: 'FINISHED',
+        },
+      },
+      {
+        media: {
+          id: 101,
+          title: { romaji: 'Future Unreleased' },
+          genres: ['Drama'],
+          averageScore: null,
+          status: 'NOT_YET_RELEASED',
+        },
+      },
+    ]
+
+    const singleProfile = new Map([['Drama', { adjustedAverage: 8.5, scoredCount: 10 }]])
+    const recs = scoreRecommendations(planning, singleProfile, 'ALL')
+
+    expect(recs).toHaveLength(1)
+    expect(recs[0].id).toBe(99)
+    expect(recs[0].baseTasteScore).toBe(8.5)
+    expect(recs[0].communityScore).toBeNull()
+    expect(recs[0].predictedScore).toBe(8.5)
+    expect(recs[0].predictionSource).toBe('taste')
   })
 
   it('safely handles missing or null media, genres, title, and coverImage', () => {
@@ -543,12 +633,14 @@ describe('scoreRecommendations', () => {
         media: {
           id: 2, title: { romaji: 'Unreleased Null', english: 'Unreleased Null' },
           genres: ['Action'], coverImage: { large: '' }, averageScore: null, siteUrl: 'https://anilist.co/anime/2',
+          status: 'NOT_YET_RELEASED',
         },
       },
       {
         media: {
           id: 3, title: { romaji: 'Unreleased Zero', english: 'Unreleased Zero' },
           genres: ['Action'], coverImage: { large: '' }, averageScore: 0, siteUrl: 'https://anilist.co/anime/3',
+          status: 'NOT_YET_RELEASED',
         },
       },
     ]

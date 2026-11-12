@@ -124,11 +124,19 @@ export function buildTasteProfile(entries = [], options = {}) {
   return profile
 }
 
-export function isEligiblePlanningMedia(entry) {
+export function isEligiblePlanningMedia(entry, tasteProfile = null) {
   if (!entry?.media) return false
   if (entry.media.status === 'NOT_YET_RELEASED') return false
   const score = entry.media.averageScore
-  return score != null && score > 0
+  if (score != null && score > 0) return true
+
+  // Resgate de obras sem nota comunitária compatíveis com o perfil de gosto
+  if (tasteProfile && tasteProfile.size > 0) {
+    const genres = entry.media.genres ?? []
+    return genres.some((g) => tasteProfile.has(g))
+  }
+
+  return false
 }
 
 export function calculateWeightedGenreAverage(scoredMatchingGenres, tasteProfile) {
@@ -147,10 +155,10 @@ export function calculateWeightedGenreAverage(scoredMatchingGenres, tasteProfile
   return totalWeight > 0 ? Math.round((weightedSum / totalWeight) * 100) / 100 : null
 }
 
-export function isEligiblePlanningEntry(entry) {
+export function isEligiblePlanningEntry(entry, tasteProfile = null) {
   const rawStatus = (entry?.status || '').toUpperCase()
   const isPlanning = rawStatus === 'PLANNING' || rawStatus === 'PLAN_TO_WATCH' || rawStatus === 'PLANNED'
-  return isPlanning && isEligiblePlanningMedia(entry)
+  return isPlanning && isEligiblePlanningMedia(entry, tasteProfile)
 }
 
 export function scoreRecommendations(planningEntries = [], tasteProfile = new Map(), selectedGenre = 'ALL', options = {}) {
@@ -164,11 +172,10 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
       : DEFAULT_COMMUNITY_WEIGHT
 
   const filtered = planningEntries.filter((entry) => {
-    if (!isEligiblePlanningMedia(entry)) return false
-    const score = entry?.media?.averageScore
+    if (!isEligiblePlanningMedia(entry, tasteProfile)) return false
     const genres = entry?.media?.genres ?? []
     const matchesGenre = selectedGenre === 'ALL' || genres.includes(selectedGenre)
-    return score != null && score > 0 && matchesGenre
+    return matchesGenre
   })
 
   const scored = filtered.map((entry) => {
@@ -184,7 +191,10 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
       }
     })
 
-    const communityScore = Math.round((media.averageScore / 10) * 100) / 100
+    const hasCommunityScore = media.averageScore != null && media.averageScore > 0
+    const communityScore = hasCommunityScore
+      ? Math.round((media.averageScore / 10) * 100) / 100
+      : null
 
     let baseTasteScore
     let predictedScore
@@ -196,8 +206,13 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
     if (matchingGenres.length > 0) {
       baseTasteScore = calculateWeightedGenreAverage(scoredMatchingGenres, tasteProfile)
       
-      // Híbrido: tasteWeight * perfil de gosto + communityWeight * nota da comunidade
-      predictedScore = Math.round((baseTasteScore * tasteWeight + communityScore * communityWeight) * 100) / 100
+      if (communityScore != null) {
+        // Híbrido: tasteWeight * perfil de gosto + communityWeight * nota da comunidade
+        predictedScore = Math.round((baseTasteScore * tasteWeight + communityScore * communityWeight) * 100) / 100
+      } else {
+        // Obra sem nota comunitária: 100% inferência do perfil de gosto
+        predictedScore = baseTasteScore
+      }
       predictionSource = 'taste'
 
       // Gêneros com maior pontuação
@@ -221,13 +236,15 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
       collectedAnchors.sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
       anchorAnimes = collectedAnchors.slice(0, 3)
 
-      // Badges baseados em discrepância
-      if (communityScore >= 8.5 && (communityScore - baseTasteScore >= 1.0)) {
-        badges.push('ACCLAIMED')
-      } else if (baseTasteScore - communityScore >= 1.5) {
-        badges.push('PERSONAL_BET')
-      } else if (baseTasteScore >= 8.0 && communityScore >= 8.0) {
-        badges.push('STRONG_CONSENSUS')
+      // Badges baseados em discrepância (somente com communityScore válido)
+      if (communityScore != null) {
+        if (communityScore >= 8.5 && (communityScore - baseTasteScore >= 1.0)) {
+          badges.push('ACCLAIMED')
+        } else if (baseTasteScore - communityScore >= 1.5) {
+          badges.push('PERSONAL_BET')
+        } else if (baseTasteScore >= 8.0 && communityScore >= 8.0) {
+          badges.push('STRONG_CONSENSUS')
+        }
       }
 
       // Badge de Descoberta / Fora da Zona (gêneros promissores pouco assistidos)
@@ -245,14 +262,14 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
       }).length
       const isMajorityLowWatched = genres.length > 0 && (lowWatchedGenresCount / genres.length) >= 0.5
 
-      if (hasPromisingGenre && isMajorityLowWatched && communityScore >= DISCOVERY_MIN_COMMUNITY_SCORE) {
+      if (hasPromisingGenre && isMajorityLowWatched && communityScore != null && communityScore >= DISCOVERY_MIN_COMMUNITY_SCORE) {
         badges.push('DISCOVERY')
       }
     } else {
       baseTasteScore = null
       predictedScore = communityScore
       predictionSource = 'community'
-      if (genres.length > 0 && communityScore >= DISCOVERY_FALLBACK_COMMUNITY_SCORE) {
+      if (genres.length > 0 && communityScore != null && communityScore >= DISCOVERY_FALLBACK_COMMUNITY_SCORE) {
         badges.push('DISCOVERY')
       }
     }
