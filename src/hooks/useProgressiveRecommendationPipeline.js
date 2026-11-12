@@ -16,10 +16,13 @@ import { applyMultiPresenceBoost } from '../logic/ensemble.js'
  * 
  * Uso: const { recommendations, isLoadingMore } = useProgressiveRecommendationPipeline(...)
  */
+const EMPTY_ARRAY = []
+const EMPTY_OBJECT = {}
+
 export const INITIAL_BATCH_SIZE = 15
 
 export function useProgressiveRecommendationPipeline({
-  entries = [],
+  entries = EMPTY_ARRAY,
   activeScope = 'anilist',
   selectedFilterGenre = 'ALL',
   searchQuery = '',
@@ -27,28 +30,27 @@ export function useProgressiveRecommendationPipeline({
   selectedYear = 'ALL',
   selectedBadge = 'ALL',
   streamingBoost = false,
-  subscriptions = [],
+  subscriptions = EMPTY_ARRAY,
   isStreamingOnly = false,
   isSeasonOnly = false,
   currentYear = new Date().getFullYear(),
-  recommenderOptions = {},
+  recommenderOptions = EMPTY_OBJECT,
   batchSize = INITIAL_BATCH_SIZE,
   onLoadComplete = null,
-} = {}) {
-  const safeEntries = useMemo(() => (Array.isArray(entries) ? entries : []), [entries])
-
-  // Phase 1 data
-  const [recommendations, setRecommendations] = useState([])
-  const [isLoadingMore, setIsLoadingMore] = useState(false)
-  const [error, setError] = useState(null)
-  const timeoutRef = useRef(null)
+} = EMPTY_OBJECT) {
+  const safeEntries = useMemo(() => {
+    if (!Array.isArray(entries) || entries.length === 0) return EMPTY_ARRAY
+    return entries
+  }, [entries])
 
   const tasteProfile = useMemo(() => {
     return buildTasteProfile(safeEntries)
   }, [safeEntries])
 
   const planningEntries = useMemo(() => {
-    return safeEntries.filter((entry) => isEligiblePlanningEntry(entry, tasteProfile))
+    if (safeEntries.length === 0) return EMPTY_ARRAY
+    const filtered = safeEntries.filter((entry) => isEligiblePlanningEntry(entry, tasteProfile))
+    return filtered.length === 0 ? EMPTY_ARRAY : filtered
   }, [safeEntries, tasteProfile])
 
   const availableGenres = useMemo(() => {
@@ -183,6 +185,30 @@ export function useProgressiveRecommendationPipeline({
     ]
   )
 
+  const computePhase1 = (planningList, profile) => {
+    if (!planningList || planningList.length === 0) return EMPTY_ARRAY
+    const firstBatch = planningList.slice(0, Math.min(100, planningList.length))
+    let recs = scoreRecommendations(
+      firstBatch,
+      profile,
+      selectedFilterGenre,
+      recommenderOptions
+    )
+    recs = enrichRecommendations(recs, planningList)
+    recs = applyFilters(recs)
+    return recs.slice(0, batchSize)
+  }
+
+  // Phase 1 data
+  const [recommendations, setRecommendations] = useState(() =>
+    computePhase1(planningEntries, tasteProfile)
+  )
+  const [isLoadingMore, setIsLoadingMore] = useState(() =>
+    planningEntries.length > batchSize
+  )
+  const [error, setError] = useState(null)
+  const timeoutRef = useRef(null)
+
   // Phase 1 + Phase 2: Progressive scoring
   useEffect(() => {
     // Cleanup previous timeout
@@ -191,8 +217,8 @@ export function useProgressiveRecommendationPipeline({
     }
 
     if (!planningEntries || planningEntries.length === 0) {
-      setRecommendations([])
-      setIsLoadingMore(false)
+      setRecommendations((prev) => (prev.length === 0 ? prev : EMPTY_ARRAY))
+      setIsLoadingMore((prev) => (prev ? false : prev))
       return
     }
 
@@ -218,13 +244,29 @@ export function useProgressiveRecommendationPipeline({
       // Pega só os N primeiros (default: 15)
       const batchRecs = phase1Recs.slice(0, batchSize)
 
-      setRecommendations(batchRecs)
-      setIsLoadingMore(planningEntries.length > firstBatchPlanningEntries.length)
+      setRecommendations((prev) => {
+        if (prev === batchRecs) return prev
+        if (
+          prev.length === batchRecs.length &&
+          prev.every((item, idx) => item.id === batchRecs[idx]?.id && item.predictedScore === batchRecs[idx]?.predictedScore)
+        ) {
+          return prev
+        }
+        return batchRecs
+      })
+
+      const hasMoreToLoad =
+        planningEntries.length > batchSize ||
+        planningEntries.length > firstBatchPlanningEntries.length
+
+      setIsLoadingMore((prev) => (prev !== hasMoreToLoad ? hasMoreToLoad : prev))
       setError(null)
 
-      // ===== PHASE 2: Background (próx. 1–2s) =====
-      // Score de TODOS os animes
-      if (planningEntries.length > firstBatchPlanningEntries.length || selectedFilterGenre !== 'ALL' || searchQuery.trim() || selectedFormat !== 'ALL' || selectedYear !== 'ALL' || selectedBadge !== 'ALL') {
+      if (!hasMoreToLoad) {
+        onLoadComplete?.(batchRecs)
+      } else {
+        // ===== PHASE 2: Background (próx. 1–2s) =====
+        // Score de TODOS os animes
         timeoutRef.current = setTimeout(() => {
           try {
             let phase2Recs = scoreRecommendations(
@@ -238,7 +280,16 @@ export function useProgressiveRecommendationPipeline({
             phase2Recs = enrichRecommendations(phase2Recs, planningEntries)
             phase2Recs = applyFilters(phase2Recs)
 
-            setRecommendations(phase2Recs)
+            setRecommendations((prev) => {
+              if (prev === phase2Recs) return prev
+              if (
+                prev.length === phase2Recs.length &&
+                prev.every((item, idx) => item.id === phase2Recs[idx]?.id && item.predictedScore === phase2Recs[idx]?.predictedScore)
+              ) {
+                return prev
+              }
+              return phase2Recs
+            })
             setIsLoadingMore(false)
             onLoadComplete?.(phase2Recs)
           } catch (err) {
@@ -265,7 +316,6 @@ export function useProgressiveRecommendationPipeline({
     selectedFilterGenre,
     activeScope,
     streamingBoost,
-    subscriptions,
     isStreamingOnly,
     searchQuery,
     selectedFormat,

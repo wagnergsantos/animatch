@@ -42,6 +42,7 @@ export default function RecommendationGrid({
   viewMode = 'grid', 
   headerActions = null, 
   isLoadingMore = false,
+  totalCount = 0,
   initialBatchSize = INITIAL_BATCH_SIZE 
 }) {
   const { t } = useTranslation()
@@ -196,7 +197,9 @@ export default function RecommendationGrid({
         <div className={styles['loading-footer']}>
           <div className="skeleton" style={{ height: '1.5rem', width: '60%', margin: 'var(--space-4) auto' }} />
           <p style={{ textAlign: 'center', color: 'var(--color-text-muted)', fontSize: 'var(--font-size-sm)' }}>
-            {t('recommendationGrid.loadingMore', { count: displayRecommendations.length - visibleRecommendations.length })}
+            {t('recommendationGrid.loadingMore', {
+              count: Math.max(0, (totalCount > 0 ? totalCount : displayRecommendations.length) - visibleRecommendations.length),
+            })}
           </p>
         </div>
       )}

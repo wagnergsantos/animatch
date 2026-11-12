@@ -190,6 +190,7 @@ export default function Dashboard({
     availableYears,
     recommendations,
     isLoadingMore,
+    totalCount,
   } = progressiveHookResult
 
   const handleTasteProfileGenreClick = (genre) => {
@@ -448,6 +449,7 @@ export default function Dashboard({
                 recommendations={recommendations}
                 isLoading={isGridLoading}
                 isLoadingMore={isLoadingMore}
+                totalCount={totalCount}
                 sortBy={sortBy}
                 provider={currentScopedProvider}
                 titlePref={titlePref}

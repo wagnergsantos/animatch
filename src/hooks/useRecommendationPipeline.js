@@ -9,9 +9,10 @@ import { applyStreamingBoost, matchesUserSubscriptions } from '../logic/streamin
 import { applyMultiPresenceBoost } from '../logic/ensemble.js'
 
 /**
+ * @deprecated Use `useProgressiveRecommendationPipeline` instead for progressive 2-phase rendering.
+ * Mantido para compatibilidade e processamento síncrono pontual até validação completa.
  * Hook dedicado para o pipeline de recomendação, filtragem e ordenação.
- * Extraído do `Dashboard.jsx` (A11 / #25) para permitir testes isolados e reuso
- * (ex.: comparação de perfil entre dois usuários em B3).
+ * Extraído do `Dashboard.jsx` (A11 / #25) para permitir testes isolados e reuso.
  */
 export function useRecommendationPipeline({
   entries = [],

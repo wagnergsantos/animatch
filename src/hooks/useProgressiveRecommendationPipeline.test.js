@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { useProgressiveRecommendationPipeline } from './useProgressiveRecommendationPipeline.js'
 
@@ -32,8 +32,9 @@ describe('useProgressiveRecommendationPipeline', () => {
       media: {
         id: 103,
         title: { english: 'Anime 3', romaji: 'Anime 3' },
-        genres: ['Drama'],
+        genres: ['Action', 'Drama'],
         status: 'FINISHED',
+        averageScore: 80,
       },
       status: 'PLANNING',
       score: 0,
@@ -41,8 +42,7 @@ describe('useProgressiveRecommendationPipeline', () => {
   ]
 
   beforeEach(() => {
-    vi.clearAllTimers()
-    vi.useFakeTimers()
+    // Garantir ambiente com timers reais para @testing-library waitFor
   })
 
   it('returns initial state with empty recommendations on first render', () => {
@@ -69,7 +69,7 @@ describe('useProgressiveRecommendationPipeline', () => {
       expect(result.current.recommendations.length).toBeGreaterThan(0)
     })
 
-    expect(result.current.isLoadingMore).toBe(false) // No more than initial batch
+    expect(result.current.isLoadingMore).toBe(false) // 1 planning entry <= batchSize
   })
 
   it('returns correct availableGenres from planningEntries', async () => {
@@ -84,7 +84,6 @@ describe('useProgressiveRecommendationPipeline', () => {
       expect(result.current.planningEntries.length).toBeGreaterThan(0)
     })
 
-    // Genres should be extracted from planning entries
     expect(result.current.availableGenres).toBeDefined()
     expect(Array.isArray(result.current.availableGenres)).toBe(true)
   })
@@ -120,7 +119,7 @@ describe('useProgressiveRecommendationPipeline', () => {
     expect(result.current.tasteProfile).toBeInstanceOf(Map)
   })
 
-  it('includes totalCount in return value', async () => {
+  it('includes totalCount matching planning entries in return value', async () => {
     const { result } = renderHook(() =>
       useProgressiveRecommendationPipeline({
         entries: mockEntries,
@@ -132,7 +131,8 @@ describe('useProgressiveRecommendationPipeline', () => {
       expect(result.current.totalCount).toBeDefined()
     })
 
-    expect(result.current.totalCount).toBe(mockEntries.length)
+    expect(result.current.totalCount).toBe(result.current.planningEntries.length)
+    expect(result.current.totalCount).toBe(1)
   })
 
   it('respects selectedFilterGenre parameter', async () => {
@@ -175,12 +175,11 @@ describe('useProgressiveRecommendationPipeline', () => {
     })
 
     // Rerender with a search query
-    rerender({ query: 'Anime 1' })
+    rerender({ query: 'Anime 3' })
 
     await waitFor(() => {
-      // Should filter results
       const filtered = result.current.recommendations.filter((r) =>
-        r.title?.toLowerCase().includes('Anime 1'.toLowerCase())
+        r.title?.toLowerCase().includes('anime 3')
       )
       expect(filtered.length).toBeGreaterThanOrEqual(0)
     })
@@ -219,31 +218,47 @@ describe('useProgressiveRecommendationPipeline', () => {
     expect(resultUndefined.current.recommendations).toEqual([])
   })
 
-  it('respects batchSize parameter', async () => {
+  it('respects batchSize parameter and transitions to Phase 2 for medium-size lists', async () => {
     const batchSize = 5
-    const manyEntries = Array.from({ length: 20 }, (_, i) => ({
-      id: i + 1,
+    const completed = [
+      {
+        id: 1,
+        media: { id: 101, title: { english: 'Base 1' }, genres: ['Action'] },
+        status: 'COMPLETED',
+        score: 9,
+      },
+    ]
+    const planning = Array.from({ length: 25 }, (_, i) => ({
+      id: 200 + i,
       media: {
-        id: 100 + i,
-        title: { english: `Anime ${i + 1}`, romaji: `Anime ${i + 1}` },
+        id: 1000 + i,
+        title: { english: `Planning Anime ${i + 1}`, romaji: `Planning Anime ${i + 1}` },
         genres: ['Action'],
         status: 'FINISHED',
+        averageScore: 75,
       },
-      status: 'COMPLETED',
-      score: 8,
+      status: 'PLANNING',
+      score: 0,
     }))
 
     const { result } = renderHook(() =>
       useProgressiveRecommendationPipeline({
-        entries: manyEntries,
+        entries: [...completed, ...planning],
         activeScope: 'anilist',
         batchSize,
       })
     )
 
+    // Phase 1 immediately limits initial batch to batchSize and signals loading more
     await waitFor(() => {
-      // Phase 1 should show at most batchSize items initially
-      expect(result.current.recommendations.length).toBeLessThanOrEqual(batchSize + 5) // Allow some margin
+      expect(result.current.recommendations.length).toBe(batchSize)
     })
+    expect(result.current.isLoadingMore).toBe(true)
+
+    // Phase 2 loads all planning candidates asynchronously
+    await waitFor(() => {
+      expect(result.current.recommendations.length).toBe(25)
+    })
+    expect(result.current.isLoadingMore).toBe(false)
   })
 })
