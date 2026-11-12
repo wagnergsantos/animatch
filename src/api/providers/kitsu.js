@@ -55,13 +55,14 @@ function normalizeEntry(entry, included) {
   if (!anime) return null
   if (anime.attributes?.nsfw === true || anime.attributes?.ageRating === 'R18') return null
 
-  // Resolve Categories (Genres)
+  // Resolve Categories (Genres) — filter by CANONICAL_GENRES
   const genres = []
   if (anime.relationships?.categories?.data) {
     anime.relationships.categories.data.forEach(catRef => {
       const cat = included.find(inc => inc.type === 'categories' && inc.id === catRef.id)
-      if (cat?.attributes?.title && !genres.includes(cat.attributes.title)) {
-        genres.push(cat.attributes.title)
+      const title = cat?.attributes?.title
+      if (title && CANONICAL_GENRES.has(title) && !genres.includes(title)) {
+        genres.push(title)
       }
     })
   }

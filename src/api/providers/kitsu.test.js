@@ -107,7 +107,7 @@ describe('kitsuFetchAll', () => {
     expect(result[0].media.format).toBe('TV')
     expect(result[0].media.seasonYear).toBe(2011)
     expect(result[0].media.startDate).toEqual({ year: 2011, month: 4, day: 6 })
-    expect(result[0].media.genres).toEqual(['Sci-Fi', 'Germany'])
+    expect(result[0].media.genres).toEqual(['Sci-Fi'])
     expect(result[0].media.averageScore).toBe(89)
     expect(result[0].media.coverImage.large).toBe('https://media.kitsu.io/anime/poster/999/large.jpg')
     expect(result[0].media.siteUrl).toBe('https://kitsu.io/anime/999')

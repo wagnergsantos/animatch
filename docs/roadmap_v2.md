@@ -151,7 +151,7 @@ Monitorar latência de APIs externas (AniList/Kitsu/MAL), taxas de erro de rende
 
 ---
 
-### [ ] A13. Higiene de Código — Zerar Warnings de Lint, Bug `CANONICAL_GENRES` no Kitsu e Teste Pulado (#24)
+### [x] A13. Higiene de Código — Zerar Warnings de Lint, Bug `CANONICAL_GENRES` no Kitsu e Teste Pulado (#24) (Concluído ✅)
 
 **Onde:** `src/api/providers/kitsu.js`, `src/components/Dashboard.test.jsx`, `src/auth/AuthContext.jsx` e arquivos de teste/hooks
 

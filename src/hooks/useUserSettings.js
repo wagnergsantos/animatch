@@ -146,7 +146,7 @@ export function useUserSettings({ debounceMs = 400 } = {}) {
         settingsRef.current = merged
         saveToLocalStorage(merged)
         setSyncStatus('synced')
-      } catch (err) {
+      } catch {
         if (isSubscribed && isMountedRef.current) {
           setSyncStatus(typeof navigator !== 'undefined' && navigator.onLine === false ? 'offline' : 'error')
         }
@@ -207,7 +207,7 @@ export function useUserSettings({ debounceMs = 400 } = {}) {
             } else {
               setSyncStatus('synced')
             }
-          } catch (err) {
+          } catch {
             if (isMountedRef.current) {
               setSyncStatus(typeof navigator !== 'undefined' && navigator.onLine === false ? 'offline' : 'error')
             }

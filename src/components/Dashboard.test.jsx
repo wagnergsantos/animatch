@@ -88,7 +88,7 @@ describe('Dashboard', () => {
     expect(screen.getAllByText(/Action/)[0]).toBeInTheDocument()
   })
 
-  it.skip('clicking a taste profile badge filters the grid by that genre instead of opening a modal', async () => {
+  it('clicking a taste profile badge opens GenreOriginModal and allows filtering the grid by that genre', async () => {
     render(<Dashboard allEntries={mockEntries} username="testuser" onLogout={() => {}} />)
 
     await waitFor(() => {
@@ -98,12 +98,12 @@ describe('Dashboard', () => {
     const adventureBadge = screen.getAllByText(/Adventure/)[0]
     fireEvent.click(adventureBadge)
 
-    // The FilterBar's "Adventure" pill button should become active as a result.
-    const adventureFilterButtons = screen.getAllByRole('button', { name: 'Adventure' })
-    expect(adventureFilterButtons.some((btn) => btn.className.includes('filter-bar__btn--active'))).toBe(true)
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    const filterBtn = screen.getByRole('button', { name: /Filtrar recomendações por Adventure/i })
+    fireEvent.click(filterBtn)
 
-    // No modal/dialog should be rendered.
-    expect(screen.queryByLabelText('Fechar modal')).not.toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.getByText('Made in Abyss')).toBeInTheDocument()
   })
 
   it('renders recommendation cards, opens modal on card click and opens AniList on quick button click', async () => {

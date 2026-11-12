@@ -8,7 +8,7 @@ function detectInitialLang() {
   try {
     const stored = localStorage.getItem('animatch_lang')
     if (stored) return stored
-  } catch (e) {
+  } catch {
     // ignore
   }
   const nav = (navigator.language || navigator.userLanguage || 'pt-BR').toLowerCase()

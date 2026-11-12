@@ -19,13 +19,13 @@ vi.mock('react-i18next', () => ({
           })
         }
         return v
-      } catch (e) {
+      } catch {
         return key
       }
     },
     i18n: {
       language: 'pt-BR',
-      changeLanguage: (lng) => {
+      changeLanguage: (_lng) => {
         // noop for tests; if needed, tests can mock localStorage separately
         return Promise.resolve()
       }

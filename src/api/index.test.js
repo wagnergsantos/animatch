@@ -21,7 +21,7 @@ vi.mock("../cache/cloudListSync.js", async (importOriginal) => {
   }
 })
 
-import { fetchUserEntries, clearProviderCache, isValidUsername } from "./index.js"
+import { fetchUserEntries, isValidUsername } from "./index.js"
 import { fetchAllLists as anilistFetchAll } from "./providers/anilist.js"
 import { kitsuFetchAll } from "./providers/kitsu.js"
 import { RetryableError, UserNotFoundError } from "./errors.js"

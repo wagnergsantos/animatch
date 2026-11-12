@@ -1,4 +1,4 @@
-import { normalizeEntry, normalizeEntries, dedupeByMediaId, aggregateGenreStats, buildHistogram, buildMetricsSummary } from './statistics'
+import { normalizeEntries, dedupeByMediaId, aggregateGenreStats, buildHistogram, buildMetricsSummary } from './statistics'
 
 const sample = [
   { media: { id: 1, title: { english: 'A' }, episodes: 12, genres: ['Action', 'Sci-Fi'], averageScore: 80 }, predictedScore: 8.5, status: 'COMPLETED' },
