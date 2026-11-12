@@ -7,6 +7,8 @@ export const STREAMING_SERVICES = [
   'HIDIVE',
 ]
 
+export const STREAMING_BOOST_MULTIPLIER = 1.02
+
 const NORMALIZATION_MAP = {
   crunchyroll: 'Crunchyroll',
   netflix: 'Netflix',
@@ -51,15 +53,26 @@ export function matchesUserSubscriptions(anime, userSubscriptions = []) {
   return animeServices.some((service) => userSubscriptions.includes(service))
 }
 
-export function applyStreamingBoost(recommendations = [], userSubscriptions = [], boostAmount = 0.3) {
-  if (!userSubscriptions || userSubscriptions.length === 0 || !boostAmount) {
-    return recommendations
+export function applyStreamingBoost(
+  recommendations = [],
+  userSubscriptions = [],
+  boostMultiplier = STREAMING_BOOST_MULTIPLIER
+) {
+  if (
+    !Array.isArray(recommendations) ||
+    !userSubscriptions ||
+    userSubscriptions.length === 0 ||
+    !boostMultiplier ||
+    boostMultiplier <= 1.0
+  ) {
+    return Array.isArray(recommendations) ? recommendations : []
   }
   return recommendations.map((rec) => {
+    if (!rec) return rec
     const isAvailable = matchesUserSubscriptions(rec, userSubscriptions)
     if (!isAvailable) return rec
     const originalScore = rec.predictedScore ?? 0
-    const boostedScore = Math.round((originalScore + boostAmount) * 100) / 100
+    const boostedScore = Math.min(10.0, Math.round(originalScore * boostMultiplier * 100) / 100)
     return {
       ...rec,
       predictedScore: boostedScore,
