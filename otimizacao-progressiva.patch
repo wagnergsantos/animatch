@@ -1,0 +1,192 @@
+diff --git a/index.html b/index.html
+index c9b0264..d1d4088 100644
+--- a/index.html
++++ b/index.html
+@@ -9,6 +9,13 @@
+     />
+     <meta name="description" content="Recomendações personalizadas de anime baseadas no seu gosto real, não no que é popular." />
+     <meta name="theme-color" content="#0e1117" />
++    <!-- Aquece DNS/TLS das origens de capas antes do primeiro <img>, reduzindo a latência percebida -->
++    <link rel="preconnect" href="https://s4.anilist.co" crossorigin />
++    <link rel="preconnect" href="https://cdn.myanimelist.net" crossorigin />
++    <link rel="preconnect" href="https://kitsu.io" crossorigin />
++    <link rel="dns-prefetch" href="//s4.anilist.co" />
++    <link rel="dns-prefetch" href="//cdn.myanimelist.net" />
++    <link rel="dns-prefetch" href="//kitsu.io" />
+     <link rel="canonical" href="https://wagnergsantos.github.io/animatch/" />
+ 
+     <!-- Open Graph / Facebook -->
+diff --git a/src/components/AnimeCard.jsx b/src/components/AnimeCard.jsx
+index 596333c..ef35d2d 100644
+--- a/src/components/AnimeCard.jsx
++++ b/src/components/AnimeCard.jsx
+@@ -129,6 +129,7 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
+             alt={t('labels.coverAlt', { title })}
+             loading={priority ? 'eager' : 'lazy'}
+             fetchPriority={priority ? 'high' : 'auto'}
++            decoding="async"
+           />
+           <div className={styles['anime-card__badges-overlay']}>
+             {anime?.predictionSource === 'community' && (
+diff --git a/src/components/AnimeRow.jsx b/src/components/AnimeRow.jsx
+index 5104ee7..ce161cd 100644
+--- a/src/components/AnimeRow.jsx
++++ b/src/components/AnimeRow.jsx
+@@ -88,6 +88,7 @@ export default function AnimeRow({ anime, titlePref = 'english', priority = fals
+           src={anime?.coverImage || undefined}
+           alt={t('labels.coverAlt', { title })}
+           loading={priority ? 'eager' : 'lazy'}
++          decoding="async"
+         />
+ 
+         <div className={styles['anime-row-main']}>
+diff --git a/src/components/RecommendationGrid.jsx b/src/components/RecommendationGrid.jsx
+index 4e280de..c82c238 100644
+--- a/src/components/RecommendationGrid.jsx
++++ b/src/components/RecommendationGrid.jsx
+@@ -1,4 +1,4 @@
+-import { useMemo } from 'react'
++import { useEffect, useMemo, useRef, useState } from 'react'
+ import { useTranslation } from 'react-i18next'
+ import AnimeCard from './AnimeCard.jsx'
+ import AnimeRow from './AnimeRow.jsx'
+@@ -6,6 +6,13 @@ import { resolveYear } from '../logic/recommender.js'
+ import styles from './RecommendationGrid.module.css'
+ import cardStyles from './AnimeCard.module.css'
+ 
++// Progressive rendering: mostra apenas os primeiros itens imediatamente e
++// revela o restante conforme o usuário rola (via IntersectionObserver).
++// Isso reduz drasticamente o número de requisições de capas (que vêm de
++// anilist.co / kitsu.io / myanimelist.net) no primeiro paint.
++export const INITIAL_BATCH_SIZE = 15
++const BATCH_STEP = 15
++
+ // O skeleton de loading reaproveita classes reais de AnimeCard.module.css
+ // (anime-card, anime-card__image-wrapper, anime-card__body) pra ter a mesma
+ // "silhueta" visual do card de verdade enquanto carrega. `anime-card--skeleton`
+@@ -26,9 +33,42 @@ function SkeletonCard() {
+   )
+ }
+ 
+-export default function RecommendationGrid({ recommendations = [], isLoading = false, sortBy = 'predicted', provider = 'anilist', titlePref = 'english', viewMode = 'grid', headerActions = null }) {
++export default function RecommendationGrid({ recommendations = [], isLoading = false, sortBy = 'predicted', provider = 'anilist', titlePref = 'english', viewMode = 'grid', headerActions = null, initialBatchSize = INITIAL_BATCH_SIZE }) {
+   const { t } = useTranslation()
+ 
++  // Lote visível (progressive rendering). Reinicia ao trocar de lista/filtro.
++  const [visibleCount, setVisibleCount] = useState(initialBatchSize)
++  const sentinelRef = useRef(null)
++
++  const listKey = `${provider}|${viewMode}|${sortBy}|${recommendations.length}:${recommendations[0]?.id ?? ''}`
++
++  useEffect(() => {
++    setVisibleCount(initialBatchSize)
++  }, [listKey, initialBatchSize])
++
++  // Observa o "sentinela" no fim da lista: quando ele aparece na viewport,
++  // libera mais um lote. Assim as capas do resto só são requisitadas à medida
++  // que o usuário rola — em vez de dezenas de imagens externas de uma vez.
++  useEffect(() => {
++    const el = sentinelRef.current
++    if (!el) return undefined
++    if (typeof IntersectionObserver === 'undefined') {
++      // Ambiente sem IO (ex.: jsdom): mostra tudo para não esconder conteúdo.
++      setVisibleCount(Number.POSITIVE_INFINITY)
++      return undefined
++    }
++    const observer = new IntersectionObserver(
++      (entries) => {
++        if (entries.some((entry) => entry.isIntersecting)) {
++          setVisibleCount((prev) => (Number.isFinite(prev) ? prev + BATCH_STEP : prev))
++        }
++      },
++      { rootMargin: '600px 0px' }
++    )
++    observer.observe(el)
++    return () => observer.disconnect()
++  }, [listKey, visibleCount])
++
+   const displayRecommendations = useMemo(() => {
+     if (!recommendations || recommendations.length === 0) return []
+ 
+@@ -74,6 +114,12 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
+     return sorted
+   }, [recommendations, sortBy])
+ 
++  const visibleRecommendations = useMemo(
++    () => displayRecommendations.slice(0, visibleCount),
++    [displayRecommendations, visibleCount]
++  )
++  const hasMore = displayRecommendations.length > visibleRecommendations.length
++
+   if (isLoading) {
+     return (
+       <section className="recommendation-grid">
+@@ -108,7 +154,7 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
+       </div>
+       {viewMode === 'list' ? (
+         <div className={styles['recommendation-grid__list']}>
+-          {displayRecommendations.map((rec, index) => (
++          {visibleRecommendations.map((rec, index) => (
+             <AnimeRow
+               key={rec.id}
+               anime={rec}
+@@ -119,7 +165,7 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
+         </div>
+       ) : (
+         <div className={styles['recommendation-grid__grid']}>
+-          {displayRecommendations.map((rec, index) => (
++          {visibleRecommendations.map((rec, index) => (
+             <AnimeCard
+               key={rec.id}
+               anime={rec}
+@@ -129,6 +175,7 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
+           ))}
+         </div>
+       )}
++      {hasMore && <div ref={sentinelRef} data-testid="grid-sentinel" aria-hidden="true" style={{ height: 1 }} />}
+     </section>
+   )
+ }
+diff --git a/src/components/RecommendationGrid.test.jsx b/src/components/RecommendationGrid.test.jsx
+index 2afea09..ff62be1 100644
+--- a/src/components/RecommendationGrid.test.jsx
++++ b/src/components/RecommendationGrid.test.jsx
+@@ -91,6 +91,38 @@ describe('RecommendationGrid', () => {
+     const rows = screen.getAllByTestId('anime-row')
+     expect(rows).toHaveLength(2)
+   })
++
++  describe('progressive rendering (lote inicial)', () => {
++    const manyRecs = Array.from({ length: 40 }, (_, i) => ({
++      id: i + 1,
++      title: `Anime ${i + 1}`,
++      predictedScore: 9 - i * 0.1,
++      communityScore: 8,
++      coverImage: '',
++    }))
++
++    it('renderiza apenas os 15 primeiros itens quando a lista é maior que o lote inicial', () => {
++      render(<RecommendationGrid isLoading={false} recommendations={manyRecs} />)
++      expect(screen.getByText('Anime 1')).toBeInTheDocument()
++      expect(screen.getByText('Anime 15')).toBeInTheDocument()
++      expect(screen.queryByText('Anime 16')).not.toBeInTheDocument()
++      expect(screen.getByTestId('grid-sentinel')).toBeInTheDocument()
++    })
++
++    it('não mostra sentinela nem corta a lista quando há poucos itens', () => {
++      const fewRecs = manyRecs.slice(0, 10)
++      render(<RecommendationGrid isLoading={false} recommendations={fewRecs} />)
++      expect(screen.getByText('Anime 10')).toBeInTheDocument()
++      expect(screen.queryByTestId('grid-sentinel')).not.toBeInTheDocument()
++    })
++
++    it('mostra todos os itens em ambiente sem IntersectionObserver (jsdom)', () => {
++      // jsdom não implementa IntersectionObserver — o fallback deve revelar tudo
++      expect(typeof globalThis.IntersectionObserver).toBe('undefined')
++      render(<RecommendationGrid isLoading={false} recommendations={manyRecs} />)
++      expect(screen.getByText('Anime 40')).toBeInTheDocument()
++    })
++  })
+ })
+ 
+ 

@@ -1,10 +1,17 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import AnimeCard from './AnimeCard.jsx'
 import AnimeRow from './AnimeRow.jsx'
 import { resolveYear } from '../logic/recommender.js'
 import styles from './RecommendationGrid.module.css'
 import cardStyles from './AnimeCard.module.css'
+
+// Progressive rendering: mostra apenas os primeiros itens imediatamente e
+// revela o restante conforme o usuário rola (via IntersectionObserver).
+// Isso reduz drasticamente o número de requisições de capas (que vêm de
+// anilist.co / kitsu.io / myanimelist.net) no primeiro paint.
+export const INITIAL_BATCH_SIZE = 15
+const BATCH_STEP = 15
 
 // O skeleton de loading reaproveita classes reais de AnimeCard.module.css
 // (anime-card, anime-card__image-wrapper, anime-card__body) pra ter a mesma
@@ -26,13 +33,62 @@ function SkeletonCard() {
   )
 }
 
-export default function RecommendationGrid({ recommendations = [], isLoading = false, sortBy = 'predicted', provider = 'anilist', titlePref = 'english', viewMode = 'grid', headerActions = null }) {
+export default function RecommendationGrid({ 
+  recommendations = [], 
+  isLoading = false, 
+  sortBy = 'predicted', 
+  provider = 'anilist', 
+  titlePref = 'english', 
+  viewMode = 'grid', 
+  headerActions = null, 
+  isLoadingMore = false,
+  initialBatchSize = INITIAL_BATCH_SIZE 
+}) {
   const { t } = useTranslation()
 
-  const displayRecommendations = useMemo(() => {
-    if (!recommendations || recommendations.length === 0) return []
+  // Garantir que sempre temos um array
+  const safeRecommendations = useMemo(
+    () => (Array.isArray(recommendations) ? recommendations : []),
+    [recommendations]
+  )
 
-    const sorted = [...recommendations].sort((a, b) => {
+  // Lote visível (progressive rendering). Reinicia ao trocar de lista/filtro.
+  const [visibleCount, setVisibleCount] = useState(initialBatchSize)
+  const sentinelRef = useRef(null)
+
+  const listKey = `${provider}|${viewMode}|${sortBy}|${safeRecommendations.length}:${safeRecommendations[0]?.id ?? ''}`
+
+  useEffect(() => {
+    setVisibleCount(initialBatchSize)
+  }, [listKey, initialBatchSize])
+
+  // Observa o "sentinela" no fim da lista: quando ele aparece na viewport,
+  // libera mais um lote. Assim as capas do resto só são requisitadas à medida
+  // que o usuário rola — em vez de dezenas de imagens externas de uma vez.
+  useEffect(() => {
+    const el = sentinelRef.current
+    if (!el) return undefined
+    if (typeof IntersectionObserver === 'undefined') {
+      // Ambiente sem IO (ex.: jsdom): mostra tudo para não esconder conteúdo.
+      setVisibleCount(Number.POSITIVE_INFINITY)
+      return undefined
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setVisibleCount((prev) => (Number.isFinite(prev) ? prev + BATCH_STEP : prev))
+        }
+      },
+      { rootMargin: '600px 0px' }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [listKey, visibleCount])
+
+  const displayRecommendations = useMemo(() => {
+    if (!safeRecommendations || safeRecommendations.length === 0) return []
+
+    const sorted = [...safeRecommendations].sort((a, b) => {
       if (sortBy === 'year_desc') {
         const yA = resolveYear(a)
         const yB = resolveYear(b)
@@ -72,7 +128,13 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
     })
 
     return sorted
-  }, [recommendations, sortBy])
+  }, [safeRecommendations, sortBy])
+
+  const visibleRecommendations = useMemo(
+    () => displayRecommendations.slice(0, visibleCount),
+    [displayRecommendations, visibleCount]
+  )
+  const hasMore = displayRecommendations.length > visibleRecommendations.length
 
   if (isLoading) {
     return (
@@ -108,7 +170,7 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
       </div>
       {viewMode === 'list' ? (
         <div className={styles['recommendation-grid__list']}>
-          {displayRecommendations.map((rec, index) => (
+          {visibleRecommendations.map((rec, index) => (
             <AnimeRow
               key={rec.id}
               anime={rec}
@@ -119,7 +181,7 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
         </div>
       ) : (
         <div className={styles['recommendation-grid__grid']}>
-          {displayRecommendations.map((rec, index) => (
+          {visibleRecommendations.map((rec, index) => (
             <AnimeCard
               key={rec.id}
               anime={rec}
@@ -127,6 +189,15 @@ export default function RecommendationGrid({ recommendations = [], isLoading = f
               priority={index < 4}
             />
           ))}
+        </div>
+      )}
+      {hasMore && <div ref={sentinelRef} data-testid="grid-sentinel" aria-hidden="true" style={{ height: 1 }} />}
+      {isLoadingMore && (
+        <div className={styles['loading-footer']}>
+          <div className="skeleton" style={{ height: '1.5rem', width: '60%', margin: 'var(--space-4) auto' }} />
+          <p style={{ textAlign: 'center', color: 'var(--color-text-muted)', fontSize: 'var(--font-size-sm)' }}>
+            {t('recommendationGrid.loadingMore', { count: displayRecommendations.length - visibleRecommendations.length })}
+          </p>
         </div>
       )}
     </section>

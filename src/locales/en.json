@@ -237,7 +237,8 @@
     "calculating": "Calculating your recommendations...",
     "none": "No recommendations at the moment",
     "planToWatchPrompt": "Add more anime to your \"Plan to Watch\" list on {{provider}}!",
-    "header": "Recommendations — What to watch now ({{count}})"
+    "header": "Recommendations — What to watch now ({{count}})",
+    "loadingMore": "Loading {{count}} more anime..."
   },
   "modals": {
     "genreOrigin": {

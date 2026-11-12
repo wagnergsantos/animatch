@@ -1,0 +1,157 @@
+diff --git a/src/api/providers/kitsu.js b/src/api/providers/kitsu.js
+--- a/src/api/providers/kitsu.js
++++ b/src/api/providers/kitsu.js
+@@ -37,9 +37,6 @@ const FORMAT_MAP = {
+   music: 'OTHER',
+ }
+-const CANONICAL_GENRES = new Set([
+-  'Action', 'Adventure', 'Comedy', 'Drama', 'Ecchi', 'Fantasy', 'Horror', 'Mahou Shoujo', 'Mecha', 'Music', 'Mystery', 'Psychological', 'Romance', 'Sci-Fi', 'Slice of Life', 'Sports', 'Supernatural', 'Thriller'
+-])
+ 
+ export function clearKitsuCache(username) {
+   clearCache(KITSU_CACHE_PREFIX + username)
+@@ -118,7 +115,9 @@ function normalizeEntry(entry, included) {
+       startDate: startDateObj,
+       genres: genres,
+-      averageScore: anime.attributes.averageRating ? Math.round(parseFloat(anime.attributes.averageRating)) : 0,
++      // Kitsu usa escala 0-100 (ex.: '89.23'); normalizar explicitamente para
++      // manter contrato comum com AniList (averageScore 0-100).
++      averageScore: anime.attributes.averageRating ? Math.round(parseFloat(anime.attributes.averageRating)) : 0,
+       coverImage: {
+         large: anime.attributes.posterImage?.large || ''
+       },
+
+diff --git a/src/api/providers/anilist.js b/src/api/providers/anilist.js
+--- a/src/api/providers/anilist.js
++++ b/src/api/providers/anilist.js
+@@ -115,8 +115,15 @@ async function queryAniList(query, variables, retries = 2, delayMs = 100) {
+       }
+ 
+       if (response.status === 429) {
+-        throw new NonRetryableError('O AniList está temporariamente indisponível.')
++        // 429 é rate limit: retentável. Respeitar Retry-After quando presente.
++        const retryAfterSec = Number(response.headers?.get?.('Retry-After')) || 0
++        const err = new RateLimitError('AniList', Math.max(1, Math.ceil(retryAfterSec / 60)))
++        err.isRetryable = true
++        lastError = err
++        if (attempt < retries) {
++          await new Promise((resolve) => setTimeout(resolve, retryAfterSec > 0 ? retryAfterSec * 1000 : delayMs * Math.pow(2, attempt)))
++          continue
++        }
++        throw err
+       }
+       if (response.status === 404) {
+         throw new UserNotFoundError('AniList')
+
+diff --git a/src/logic/recommender.js b/src/logic/recommender.js
+--- a/src/logic/recommender.js
++++ b/src/logic/recommender.js
+@@ -6,6 +6,10 @@ export const DISCOVERY_MAX_SCORED_COUNT = 15
+ export const DISCOVERY_MIN_REAL_AVERAGE = 8.0
+ export const DISCOVERY_MIN_COMMUNITY_SCORE = 7.5
+ export const DISCOVERY_FALLBACK_COMMUNITY_SCORE = 8.0
++// Pesos do preditor híbrido (devem somar 1.0).
++export const TASTE_WEIGHT = 0.85
++export const COMMUNITY_WEIGHT = 0.15
++
+ 
+ export function resolveYear(item) {
+@@ -136,7 +140,7 @@ export function isEligiblePlanningEntry(entry) {
+   return isPlanning && isEligiblePlanningMedia(entry)
+ }
+ 
+-export function scoreRecommendations(planningEntries = [], tasteProfile = new Map(), selectedGenre = 'ALL') {
++export function scoreRecommendations(planningEntries = [], tasteProfile = new Map(), selectedGenre = 'ALL', options = {}) {
++  const tasteWeight = options.tasteWeight ?? TASTE_WEIGHT
++  const communityWeight = options.communityWeight ?? COMMUNITY_WEIGHT
+   const filtered = planningEntries.filter((entry) => {
+     if (!isEligiblePlanningMedia(entry)) return false
+@@ -172,8 +177,8 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
+       const sum = scoredMatchingGenres.reduce((acc, item) => acc + item.score, 0)
+       baseTasteScore = Math.round((sum / matchingGenres.length) * 100) / 100
+ 
+-      // Híbrido: 85% perfil de gosto + 15% nota da comunidade
+-      predictedScore = Math.round((baseTasteScore * 0.85 + communityScore * 0.15) * 100) / 100
++      // Híbrido: peso do perfil de gosto + peso da nota da comunidade (configurável)
++      predictedScore = Math.round((baseTasteScore * tasteWeight + communityScore * communityWeight) * 100) / 100
+       predictionSource = 'taste'
+ 
+       // Gêneros com maior pontuação
+
+diff --git a/src/lib/storageKeys.js b/src/lib/storageKeys.js
+new file mode 100644
+--- /dev/null
++++ b/src/lib/storageKeys.js
+@@ -0,0 +1,15 @@
++/**
++ * Fonte única de verdade para chaves de localStorage/IndexedDB.
++ * Evita strings mágicas espalhadas (animatch_theme, animatch_lang, etc.)
++ */
++export const STORAGE_KEYS = {
++  USERNAME: 'animatch_username',
++  THEME: 'animatch_theme',
++  LANG: 'animatch_lang',
++  SETTINGS: 'animatch_settings',
++  PROVIDER: 'animatch_provider',
++  VIEW_MODE: 'animatch_view_mode',
++  SUBSCRIPTIONS: 'animatch_subscriptions',
++  STREAMING_BOOST: 'animatch_streaming_boost',
++  CACHE_INDEX: 'animatch_cache_index',
++}
+
+diff --git a/src/hooks/useUserSettings.js b/src/hooks/useUserSettings.js
+--- a/src/hooks/useUserSettings.js
++++ b/src/hooks/useUserSettings.js
+@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
+ import { useAuth } from '../auth/AuthContext'
+ import { supabaseClient } from '../supabase'
++import { STORAGE_KEYS } from '../lib/storageKeys.js'
+ 
+ export const DEFAULT_SETTINGS = {
+@@ -18,7 +19,7 @@ export const DEFAULT_SETTINGS = {
+   view_mode: 'grid',
+ }
+ 
+-export const SETTINGS_STORAGE_KEY = 'animatch_settings'
++export const SETTINGS_STORAGE_KEY = STORAGE_KEYS.SETTINGS
+ 
+ function mergeSettings(base, incoming) {
+   if (!incoming) return { ...base }
+
+diff --git a/src/components/Dashboard.jsx b/src/components/Dashboard.jsx
+--- a/src/components/Dashboard.jsx
++++ b/src/components/Dashboard.jsx
+@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
+ import { useEnsembleData } from '../hooks/useEnsembleData.js'
+ import { buildTasteProfile, scoreRecommendations, resolveYear, isEligiblePlanningEntry } from '../logic/recommender.js'
++import { STORAGE_KEYS } from '../lib/storageKeys.js'
+ 
+@@ -74,9 +75,9 @@ function Dashboard({
+   const [sortBy, setSortBy] = useState('predicted')
+ 
+-  const [localViewMode, setLocalViewMode] = useLocalStorage('animatch_view_mode', 'grid')
+-  const [localSubscriptions, setLocalSubscriptions] = useLocalStorage('animatch_subscriptions', ['Crunchyroll', 'Netflix'])
+-  const [localStreamingBoost, setLocalStreamingBoost] = useLocalStorage('animatch_streaming_boost', false)
++  const [localViewMode, setLocalViewMode] = useLocalStorage(STORAGE_KEYS.VIEW_MODE, 'grid')
++  const [localSubscriptions, setLocalSubscriptions] = useLocalStorage(STORAGE_KEYS.SUBSCRIPTIONS, ['Crunchyroll', 'Netflix'])
++  const [localStreamingBoost, setLocalStreamingBoost] = useLocalStorage(STORAGE_KEYS.STREAMING_BOOST, false)
+
+diff --git a/src/api/providers/anilist.test.js b/src/api/providers/anilist.test.js
+--- a/src/api/providers/anilist.test.js
++++ b/src/api/providers/anilist.test.js
+@@ -153,14 +153,16 @@ describe('fetchCompletedList', () => {
+     await expect(fetchCompletedList('testuser')).rejects.toThrow(RetryableError)
+   })
+ 
+-  it('throws NonRetryableError on rate limit (HTTP 429)', async () => {
++  it('retries and eventually throws RateLimitError on HTTP 429', async () => {
+     mockFetch.mockResolvedValueOnce({
+       ok: false,
+       status: 429,
++      headers: { get: () => null },
+     })
+ 
+-    await expect(fetchCompletedList('testuser')).rejects.toThrow(NonRetryableError)
++    await expect(fetchCompletedList('testuser')).rejects.toThrow(RateLimitError)
+   })
+ })

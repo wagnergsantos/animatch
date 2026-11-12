@@ -234,7 +234,8 @@
     "calculating": "おすすめを計算中...",
     "none": "現在おすすめはありません",
     "planToWatchPrompt": "{{provider}} の「Plan to Watch」リストにアニメを追加してください！",
-    "header": "おすすめ — 今見るべき作品 ({{count}})"
+    "header": "おすすめ — 今見るべき作品 ({{count}})",
+    "loadingMore": "{{count}}個のアニメを読み込み中..."
   },
   "modals": {
     "genreOrigin": {

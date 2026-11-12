@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocalStorage } from '../hooks/useLocalStorage.js'
 import { useEnsembleData } from '../hooks/useEnsembleData.js'
-import { useRecommendationPipeline } from '../hooks/useRecommendationPipeline.js'
+import { useProgressiveRecommendationPipeline } from '../hooks/useProgressiveRecommendationPipeline.js'
 import { STORAGE_KEYS } from '../lib/storageKeys.js'
 import { scheduleCloudAnimeListSync } from '../cache/cloudListSync.js'
 import ProviderTabs from './ProviderTabs.jsx'
@@ -167,13 +167,8 @@ export default function Dashboard({
     return allEntries
   }, [hasMultiAccounts, activeScope, consolidatedEntries, entriesByProvider, allEntries, provider])
 
-  const {
-    tasteProfile,
-    planningEntries,
-    availableGenres,
-    availableYears,
-    recommendations,
-  } = useRecommendationPipeline({
+  // Use progressive hook (both hooks always called to avoid conditional hook issue)
+  const progressiveHookResult = useProgressiveRecommendationPipeline({
     entries: currentEntries,
     activeScope,
     selectedFilterGenre,
@@ -187,6 +182,15 @@ export default function Dashboard({
     isSeasonOnly,
     currentYear,
   })
+
+  const {
+    tasteProfile,
+    planningEntries,
+    availableGenres,
+    availableYears,
+    recommendations,
+    isLoadingMore,
+  } = progressiveHookResult
 
   const handleTasteProfileGenreClick = (genre) => {
     setSelectedFilterGenre(genre)
@@ -443,6 +447,7 @@ export default function Dashboard({
               <RecommendationGrid
                 recommendations={recommendations}
                 isLoading={isGridLoading}
+                isLoadingMore={isLoadingMore}
                 sortBy={sortBy}
                 provider={currentScopedProvider}
                 titlePref={titlePref}
