@@ -2,6 +2,7 @@ import {
   buildTasteProfile,
   scoreRecommendations,
   resolveYear,
+  calculateWeightedGenreAverage,
   DEFAULT_MIN_GENRE_COUNT,
   DEFAULT_CONFIDENCE_CONSTANT,
 } from './recommender.js'
@@ -354,11 +355,13 @@ describe('scoreRecommendations', () => {
 
     const result = scoreRecommendations(planning, tasteProfile)
 
-    // Taste average: (5 + 9) / 2 = 7.0
+    // Taste average ponderado por sqrt(count):
+    // Action (score 5, count 10 -> w=3.162) + Adventure (score 9, count 4 -> w=2.0)
+    // baseTasteScore = (5 * 3.162 + 9 * 2) / 5.162 = 6.55
     // Community score: 8.0
-    // Hybrid: 7.0 * 0.85 + 8.0 * 0.15 = 5.95 + 1.2 = 7.15
-    expect(result[0].predictedScore).toBe(7.15)
-    expect(result[0].baseTasteScore).toBe(7)
+    // Hybrid: 6.55 * 0.85 + 8.0 * 0.15 = 5.5675 + 1.2 = 6.7675 -> 6.77
+    expect(result[0].predictedScore).toBe(6.77)
+    expect(result[0].baseTasteScore).toBe(6.55)
     expect(result[0].predictionSource).toBe('taste')
     expect(result[0].matchingGenres).toEqual([
       { genre: 'Action', score: 5 },
@@ -732,6 +735,41 @@ describe('scoreRecommendations', () => {
       const resultWithUnreleased = scoreRecommendations(planningWithUnreleased, discoveryProfile)
       expect(resultWithUnreleased.find((r) => r.id === 208)).toBeUndefined()
     })
+  })
+})
+
+describe('calculateWeightedGenreAverage', () => {
+  it('retorna null quando a lista de gêneros coincidentes está vazia', () => {
+    expect(calculateWeightedGenreAverage([], new Map())).toBeNull()
+    expect(calculateWeightedGenreAverage(null, new Map())).toBeNull()
+  })
+
+  it('pondera nota de gêneros pela raiz quadrada do volume de avaliações (scoredCount)', () => {
+    const tasteProfile = new Map([
+      ['Action', { adjustedAverage: 9.0, scoredCount: 50 }],
+      ['Psychological', { adjustedAverage: 6.0, scoredCount: 2 }],
+    ])
+    const matchingGenres = [
+      { genre: 'Action', score: 9.0 },
+      { genre: 'Psychological', score: 6.0 },
+    ]
+    // sqrt(50) = 7.0710678; sqrt(2) = 1.41421356. Total weight = 8.485281
+    // (9.0 * 7.0710678 + 6.0 * 1.41421356) / 8.485281 = (63.63961 + 8.485281) / 8.485281 = 8.50
+    const weightedAvg = calculateWeightedGenreAverage(matchingGenres, tasteProfile)
+    expect(weightedAvg).toBe(8.5)
+  })
+
+  it('faz fallback para peso 1 quando scoredCount é nulo ou ausente', () => {
+    const tasteProfile = new Map([
+      ['Action', { adjustedAverage: 8.0 }],
+      ['Drama', { adjustedAverage: 6.0 }],
+    ])
+    const matchingGenres = [
+      { genre: 'Action', score: 8.0 },
+      { genre: 'Drama', score: 6.0 },
+    ]
+    const weightedAvg = calculateWeightedGenreAverage(matchingGenres, tasteProfile)
+    expect(weightedAvg).toBe(7.0)
   })
 })
 

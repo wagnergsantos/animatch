@@ -129,6 +129,22 @@ export function isEligiblePlanningMedia(entry) {
   return score != null && score > 0
 }
 
+export function calculateWeightedGenreAverage(scoredMatchingGenres, tasteProfile) {
+  if (!scoredMatchingGenres || scoredMatchingGenres.length === 0) return null
+  let weightedSum = 0
+  let totalWeight = 0
+
+  for (const item of scoredMatchingGenres) {
+    const stats = tasteProfile?.get?.(item.genre)
+    const count = stats?.scoredCount ?? stats?.count ?? 1
+    const weight = Math.sqrt(Math.max(1, count))
+    weightedSum += item.score * weight
+    totalWeight += weight
+  }
+
+  return totalWeight > 0 ? Math.round((weightedSum / totalWeight) * 100) / 100 : null
+}
+
 export function isEligiblePlanningEntry(entry) {
   const rawStatus = (entry?.status || '').toUpperCase()
   const isPlanning = rawStatus === 'PLANNING' || rawStatus === 'PLAN_TO_WATCH' || rawStatus === 'PLANNED'
@@ -167,8 +183,7 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
     let anchorAnimes = []
 
     if (matchingGenres.length > 0) {
-      const sum = scoredMatchingGenres.reduce((acc, item) => acc + item.score, 0)
-      baseTasteScore = Math.round((sum / matchingGenres.length) * 100) / 100
+      baseTasteScore = calculateWeightedGenreAverage(scoredMatchingGenres, tasteProfile)
       
       // Híbrido: 85% perfil de gosto + 15% nota da comunidade
       predictedScore = Math.round((baseTasteScore * 0.85 + communityScore * 0.15) * 100) / 100
