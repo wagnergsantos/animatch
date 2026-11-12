@@ -7,6 +7,8 @@ export const DISCOVERY_MAX_SCORED_COUNT = 15
 export const DISCOVERY_MIN_REAL_AVERAGE = 8.0
 export const DISCOVERY_MIN_COMMUNITY_SCORE = 7.5
 export const DISCOVERY_FALLBACK_COMMUNITY_SCORE = 8.0
+export const DEFAULT_TASTE_WEIGHT = 0.85
+export const DEFAULT_COMMUNITY_WEIGHT = 0.15
 
 export function resolveYear(item) {
   if (!item) return null
@@ -151,7 +153,16 @@ export function isEligiblePlanningEntry(entry) {
   return isPlanning && isEligiblePlanningMedia(entry)
 }
 
-export function scoreRecommendations(planningEntries = [], tasteProfile = new Map(), selectedGenre = 'ALL') {
+export function scoreRecommendations(planningEntries = [], tasteProfile = new Map(), selectedGenre = 'ALL', options = {}) {
+  const tasteWeight =
+    Number.isFinite(options?.tasteWeight) && options.tasteWeight >= 0
+      ? options.tasteWeight
+      : DEFAULT_TASTE_WEIGHT
+  const communityWeight =
+    Number.isFinite(options?.communityWeight) && options.communityWeight >= 0
+      ? options.communityWeight
+      : DEFAULT_COMMUNITY_WEIGHT
+
   const filtered = planningEntries.filter((entry) => {
     if (!isEligiblePlanningMedia(entry)) return false
     const score = entry?.media?.averageScore
@@ -185,8 +196,8 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
     if (matchingGenres.length > 0) {
       baseTasteScore = calculateWeightedGenreAverage(scoredMatchingGenres, tasteProfile)
       
-      // Híbrido: 85% perfil de gosto + 15% nota da comunidade
-      predictedScore = Math.round((baseTasteScore * 0.85 + communityScore * 0.15) * 100) / 100
+      // Híbrido: tasteWeight * perfil de gosto + communityWeight * nota da comunidade
+      predictedScore = Math.round((baseTasteScore * tasteWeight + communityScore * communityWeight) * 100) / 100
       predictionSource = 'taste'
 
       // Gêneros com maior pontuação

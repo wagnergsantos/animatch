@@ -5,6 +5,8 @@ import {
   calculateWeightedGenreAverage,
   DEFAULT_MIN_GENRE_COUNT,
   DEFAULT_CONFIDENCE_CONSTANT,
+  DEFAULT_TASTE_WEIGHT,
+  DEFAULT_COMMUNITY_WEIGHT,
 } from './recommender.js'
 
 describe('resolveYear', () => {
@@ -245,6 +247,29 @@ describe('scoreRecommendations', () => {
     const result = scoreRecommendations()
 
     expect(result).toEqual([])
+  })
+
+  it('permite sobrescrever pesos híbridos via options.tasteWeight e options.communityWeight', () => {
+    const planning = [
+      {
+        media: {
+          id: 1,
+          title: { romaji: 'Test A' },
+          genres: ['Action'],
+          averageScore: 80,
+        },
+      },
+    ]
+    const singleProfile = new Map([['Action', { adjustedAverage: 10.0, scoredCount: 10 }]])
+    // baseTasteScore = 10.0; communityScore = 8.0
+    // Com 50% / 50%: 10 * 0.5 + 8 * 0.5 = 9.0
+    const recs = scoreRecommendations(planning, singleProfile, 'ALL', {
+      tasteWeight: 0.5,
+      communityWeight: 0.5,
+    })
+    expect(recs[0].predictedScore).toBe(9.0)
+    expect(DEFAULT_TASTE_WEIGHT).toBe(0.85)
+    expect(DEFAULT_COMMUNITY_WEIGHT).toBe(0.15)
   })
 
   it('safely handles missing or null media, genres, title, and coverImage', () => {
