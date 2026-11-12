@@ -1,6 +1,6 @@
 import { useEffect, useState, useContext } from 'react'
 import { useTranslation } from 'react-i18next'
-import { fetchUserEntries } from './api/index.js'
+import { fetchUserEntries, isValidUsername } from './api/index.js'
 import LoginScreen from './components/LoginScreen.jsx'
 import Dashboard from './components/Dashboard.jsx'
 import AuthModal from './components/AuthModal.jsx'
@@ -23,7 +23,7 @@ export function AppContent() {
     const urlUser = params.get('user')
     const urlProvider = params.get('provider')
     const validProviders = ['anilist', 'kitsu', 'mal']
-    const hasUrlAuth = urlUser && urlProvider && validProviders.includes(urlProvider.toLowerCase())
+    const hasUrlAuth = isValidUsername(urlUser) && urlProvider && validProviders.includes(urlProvider.toLowerCase())
 
     let localUser = null
     try {
@@ -124,14 +124,14 @@ export function AppContent() {
     const urlProvider = params.get('provider')
     const validProviders = ['anilist', 'kitsu', 'mal']
 
-    if (urlUser) {
+    if (urlUser && isValidUsername(urlUser)) {
       if (urlProvider && validProviders.includes(urlProvider.toLowerCase())) {
         handleLogin(urlUser, urlProvider.toLowerCase())
       } else {
         setUsername(urlUser)
         setScreen('login')
       }
-    } else if (storedUsername) {
+    } else if (storedUsername && isValidUsername(storedUsername)) {
       handleLogin(storedUsername, provider || 'anilist')
     } else {
       setScreen('login')

@@ -275,6 +275,34 @@ describe('kitsuFetchAll', () => {
     expect(result).toHaveLength(1)
     expect(result[0].media.id).toBe(201)
   })
+
+  it('stops pagination if links.next does not start with https://kitsu.io/api/edge/ (SSRF protection)', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({
+        data: [{ id: '1', type: 'users', attributes: { name: 'ssrfuser' } }],
+      }),
+    })
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({
+        data: [
+          { id: '1', type: 'libraryEntries', attributes: { status: 'completed', ratingTwenty: 16 }, relationships: { anime: { data: { type: 'anime', id: '301' } } } },
+        ],
+        included: [
+          { id: '301', type: 'anime', attributes: { canonicalTitle: 'Page 1 Anime', titles: {}, episodeCount: 12, status: 'finished', subtype: 'TV' }, relationships: {} },
+        ],
+        links: {
+          next: 'https://evil.example.com/steal-headers',
+        },
+      }),
+    })
+
+    const result = await kitsuFetchAll('ssrfuser')
+    expect(result).toHaveLength(1)
+    expect(mockFetch).toHaveBeenCalledTimes(2)
+  })
 })
 
 

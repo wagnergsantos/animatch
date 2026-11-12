@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import AnimeDetailModal from './AnimeDetailModal.jsx'
+import { isSafeExternalUrl } from '../logic/streaming.js'
 import styles from './AnimeCard.module.css'
 
 const PROVIDER_SHORT_LABELS = {
@@ -32,25 +33,26 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
     : (sourceProviders.length > 0 ? sourceProviders : (anime?.provider ? [anime.provider] : ['anilist']))
 
   const getProviderUrl = (providerKey) => {
-    if (anime?.providerUrls && anime.providerUrls[providerKey]) {
+    const safeSiteUrl = isSafeExternalUrl(anime?.siteUrl) ? anime.siteUrl : '#'
+    if (anime?.providerUrls && isSafeExternalUrl(anime.providerUrls[providerKey])) {
       return anime.providerUrls[providerKey]
     }
-    if (anime?.provider === providerKey && anime?.siteUrl) {
+    if (anime?.provider === providerKey && isSafeExternalUrl(anime?.siteUrl)) {
       return anime.siteUrl
     }
     if (providerKey === 'anilist') {
       const id = (anime?.provider === 'anilist' ? anime?.id : null) || anime?.media?.id || anime?.id
-      return id ? `https://anilist.co/anime/${id}` : (anime?.siteUrl || '#')
+      return id ? `https://anilist.co/anime/${id}` : safeSiteUrl
     }
     if (providerKey === 'mal') {
       const malId = anime?.idMal || anime?.media?.idMal || (anime?.provider === 'mal' ? (anime?.id || anime?.media?.id) : null)
-      return malId ? `https://myanimelist.net/anime/${malId}` : (anime?.siteUrl || '#')
+      return malId ? `https://myanimelist.net/anime/${malId}` : safeSiteUrl
     }
     if (providerKey === 'kitsu') {
       const kitsuId = (anime?.provider === 'kitsu' ? (anime?.id || anime?.media?.id) : null)
-      return kitsuId ? `https://kitsu.io/anime/${kitsuId}` : (anime?.siteUrl || '#')
+      return kitsuId ? `https://kitsu.io/anime/${kitsuId}` : safeSiteUrl
     }
-    return anime?.siteUrl || '#'
+    return safeSiteUrl
   }
 
   // Extrai titulo principal e secundario
@@ -76,7 +78,7 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
   const streamingLinks = []
   const seenSites = new Set()
   for (const link of (anime?.streamingLinks ?? [])) {
-    if (!seenSites.has(link.site)) {
+    if (link?.site && isSafeExternalUrl(link?.url) && !seenSites.has(link.site)) {
       seenSites.add(link.site)
       streamingLinks.push(link)
     }
@@ -104,7 +106,7 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
   const handleProviderLinkClick = (e, providerKey) => {
     e.stopPropagation()
     const url = getProviderUrl(providerKey)
-    if (url && url !== '#') {
+    if (isSafeExternalUrl(url)) {
       window.open(url, '_blank', 'noopener,noreferrer')
     }
   }

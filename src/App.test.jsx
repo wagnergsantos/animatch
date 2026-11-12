@@ -2,10 +2,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import App from './App.jsx'
 
-// Mock the API module
-vi.mock('./api/index.js', () => ({
-  fetchUserEntries: vi.fn(),
-}))
+// Mock the API module while preserving validation helpers
+vi.mock('./api/index.js', async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    fetchUserEntries: vi.fn(),
+  }
+})
 
 import { fetchUserEntries } from './api/index.js'
 
@@ -217,6 +221,15 @@ describe('App', () => {
     await waitFor(() => {
       expect(screen.queryByRole('dialog', { name: /conta animatch/i })).not.toBeInTheDocument()
     })
+  })
+
+  it('ignores invalid ?user= parameter from URL on initial load', () => {
+    window.history.replaceState({}, '', '/?user=../bad<script>&provider=anilist')
+
+    render(<App />)
+
+    expect(fetchUserEntries).not.toHaveBeenCalled()
+    expect(screen.getByLabelText('Username do AniList')).toBeInTheDocument()
   })
 })
 

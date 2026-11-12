@@ -183,4 +183,23 @@ describe('DecisionModal', () => {
     fireEvent.click(detailsBtn)
     expect(handleSelect).toHaveBeenCalledWith(expect.objectContaining({ id: expect.any(Number) }))
   })
+
+  it('filters out unsafe javascript: streaming links', () => {
+    const unsafeRecs = [
+      {
+        id: 99,
+        title: 'Unsafe Streaming Anime',
+        predictedScore: 9.0,
+        episodes: 12,
+        streamingLinks: [
+          { site: 'Crunchyroll', url: 'javascript:alert(1)' },
+          { site: 'Netflix', url: 'https://www.netflix.com/title/99' },
+        ],
+      },
+    ]
+
+    render(<DecisionModal isOpen={true} onClose={vi.fn()} recommendations={unsafeRecs} />)
+    expect(screen.queryByRole('link', { name: /Crunchyroll/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Netflix/i })).toHaveAttribute('href', 'https://www.netflix.com/title/99')
+  })
 })

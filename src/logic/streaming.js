@@ -22,6 +22,11 @@ const NORMALIZATION_MAP = {
   hidive: 'HIDIVE',
 }
 
+export function isSafeExternalUrl(url) {
+  if (typeof url !== 'string') return false
+  return /^https?:\/\//i.test(url.trim())
+}
+
 export function normalizeServiceName(name) {
   if (!name || typeof name !== 'string') return ''
   const lower = name.toLowerCase().trim()

@@ -21,7 +21,7 @@ vi.mock("../cache/cloudListSync.js", async (importOriginal) => {
   }
 })
 
-import { fetchUserEntries, clearProviderCache } from "./index.js"
+import { fetchUserEntries, clearProviderCache, isValidUsername } from "./index.js"
 import { fetchAllLists as anilistFetchAll } from "./providers/anilist.js"
 import { kitsuFetchAll } from "./providers/kitsu.js"
 import { RetryableError, UserNotFoundError } from "./errors.js"
@@ -191,5 +191,18 @@ describe("fetchUserEntries", () => {
     anilistFetchAll.mockRejectedValueOnce(new UserNotFoundError("AniList"))
 
     await expect(fetchUserEntries("deleteduser", "anilist")).rejects.toThrow(UserNotFoundError)
+  })
+
+  it("validates username with isValidUsername and rejects invalid usernames before network call", async () => {
+    expect(isValidUsername("wagner_santos-1.0")).toBe(true)
+    expect(isValidUsername("")).toBe(false)
+    expect(isValidUsername("a".repeat(51))).toBe(false)
+    expect(isValidUsername("../admin")).toBe(false)
+    expect(isValidUsername("user name")).toBe(false)
+    expect(isValidUsername("user<script>")).toBe(false)
+
+    await expect(fetchUserEntries("../etc/passwd", "anilist")).rejects.toThrow(/usuário inválido/i)
+    await expect(fetchUserEntries("a".repeat(51), "anilist")).rejects.toThrow(/usuário inválido/i)
+    expect(anilistFetchAll).not.toHaveBeenCalled()
   })
 })

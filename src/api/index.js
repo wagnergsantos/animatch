@@ -1,7 +1,7 @@
 import { fetchAllLists as anilistFetchAll, clearUserCache as anilistClearCache } from './providers/anilist.js'
 import { kitsuFetchAll, clearKitsuCache } from './providers/kitsu.js'
 import { malFetchAll, clearMalCache } from './providers/mal.js'
-import { UserNotFoundError, PrivateListError } from './errors.js'
+import { UserNotFoundError, PrivateListError, NonRetryableError } from './errors.js'
 import {
   readIdbCache,
   writeIdbCache,
@@ -18,6 +18,11 @@ import {
 export * from './errors.js'
 
 const SUPPORTED_PROVIDERS = ['anilist', 'kitsu', 'mal']
+export const USERNAME_REGEX = /^[a-zA-Z0-9_.-]{1,50}$/
+
+export function isValidUsername(username) {
+  return typeof username === 'string' && USERNAME_REGEX.test(username.trim())
+}
 
 /**
  * Anexa metadados de cache não-enumeráveis ao array de entries para manter
@@ -58,6 +63,9 @@ async function callProviderAdapter(username, provider, options) {
 export async function fetchUserEntries(username, provider = 'anilist', options = {}) {
   if (!SUPPORTED_PROVIDERS.includes(provider)) {
     throw new Error(`Provedor "${provider}" não é suportado.`)
+  }
+  if (!isValidUsername(username)) {
+    throw new NonRetryableError('Nome de usuário inválido.')
   }
 
   const cacheKey = buildProviderCacheKey(provider, username)

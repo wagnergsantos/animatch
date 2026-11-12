@@ -5,6 +5,7 @@ import {
   getAnimeStreamingServices,
   matchesUserSubscriptions,
   applyStreamingBoost,
+  isSafeExternalUrl,
 } from './streaming.js'
 
 describe('streaming logic', () => {
@@ -91,5 +92,15 @@ describe('streaming logic', () => {
     expect(applyStreamingBoost(recs, null)).toBe(recs)
     expect(applyStreamingBoost(recs, ['Netflix'], 0)).toBe(recs)
     expect(applyStreamingBoost([], ['Netflix'], 0.3)).toEqual([])
+  })
+
+  it('validates external URLs with isSafeExternalUrl against javascript: and non-http protocols', () => {
+    expect(isSafeExternalUrl('https://www.crunchyroll.com/watch/123')).toBe(true)
+    expect(isSafeExternalUrl('http://myanimelist.net/anime/1')).toBe(true)
+    expect(isSafeExternalUrl('javascript:alert(1)')).toBe(false)
+    expect(isSafeExternalUrl('JAVASCRIPT:alert(document.cookie)')).toBe(false)
+    expect(isSafeExternalUrl('data:text/html,<script>alert(1)</script>')).toBe(false)
+    expect(isSafeExternalUrl('')).toBe(false)
+    expect(isSafeExternalUrl(null)).toBe(false)
   })
 })

@@ -245,6 +245,32 @@ describe('AnimeCard', () => {
     render(<AnimeCard anime={anime} />)
     expect(screen.getByTitle('🧭 Fora da Zona')).toBeInTheDocument()
   })
+
+  it('blocks unsafe javascript: URLs in provider quick-link and modal streaming links', () => {
+    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
+    const unsafeAnime = {
+      id: 77,
+      title: 'Unsafe Links Anime',
+      provider: 'anilist',
+      siteUrl: 'javascript:alert(1)',
+      providerUrls: { anilist: 'javascript:alert(2)' },
+      streamingLinks: [
+        { site: 'Crunchyroll', url: 'javascript:alert(3)' },
+        { site: 'Netflix', url: 'https://www.netflix.com/title/77' },
+      ],
+    }
+
+    render(<AnimeCard anime={unsafeAnime} />)
+    const quickLinkBtn = screen.getByTestId('anime-card-quick-link')
+    fireEvent.click(quickLinkBtn)
+    expect(openSpy).not.toHaveBeenCalledWith(expect.stringMatching(/^javascript:/i), expect.anything(), expect.anything())
+
+    // Open modal and check streaming links
+    fireEvent.click(screen.getByRole('link'))
+    expect(screen.queryByRole('link', { name: /Crunchyroll/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Netflix/i })).toHaveAttribute('href', 'https://www.netflix.com/title/77')
+    openSpy.mockRestore()
+  })
 })
 
 

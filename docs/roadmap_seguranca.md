@@ -39,7 +39,7 @@
 
 ---
 
-### [ ] S2 — Validação de Parâmetros (`username`), Prevenção de SSRF em Paginação e Sanitização de URLs (#31)
+### [x] S2 — Validação de Parâmetros (`username`), Prevenção de SSRF em Paginação e Sanitização de URLs (#31)
 
 **Onde:** `src/api/index.js`, `src/App.jsx`, `supabase/functions/mal-proxy/index.ts`, `src/api/providers/kitsu.js`, `src/logic/streaming.js`, `src/components/AnimeCard.jsx`, `src/components/AnimeDetailModal.jsx`, `src/components/DecisionModal.jsx`
 
@@ -92,6 +92,6 @@
 | Ordem | Issue | Código | Entrega | Prioridade | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **1** | **#26** | **S1 (A14)** | CORS restrito, rate-limit por IP, teto de paginação, retry `429` e CSP | 🔥 Crítica | 📋 Aberto |
-| **2** | **#31** | **S2** | Validação de `username`, proteção SSRF em `paging.next` e sanitização de URLs | 🔥 Alta | 📋 Aberto |
+| **2** | **#31** | **S2** | Validação de `username`, proteção SSRF em `paging.next` e sanitização de URLs | 🔥 Alta | ✅ Concluído |
 | **3** | **#32** | **S3** | Constraints SQL de tamanho máximo (`jsonb`) e formato nas tabelas com RLS | 🟡 Alta | ✅ Concluído |
 | **4** | **#33** | **S4** | Desrastrear `.env.development`, travar deploy sem secrets, `config.toml` e docs | 🟡 Alta | ✅ Concluído |

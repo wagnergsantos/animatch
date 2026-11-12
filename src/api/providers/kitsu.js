@@ -169,7 +169,11 @@ export async function kitsuFetchAll(username, options = {}) {
         }
       })
       
-      nextUrl = data.links?.next || null
+      const nextCandidate = data.links?.next || null
+      nextUrl =
+        typeof nextCandidate === 'string' && nextCandidate.startsWith('https://kitsu.io/api/edge/')
+          ? nextCandidate
+          : null
     }
 
     const seen = new Set()

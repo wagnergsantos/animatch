@@ -114,7 +114,11 @@ async function fetchAllPages(username: string, status: string): Promise<MALListE
 
     const json = await res.json()
     all.push(...(json.data ?? []))
-    url = json.paging?.next ?? null
+    const nextCandidate = json.paging?.next ?? null
+    url =
+      typeof nextCandidate === 'string' && nextCandidate.startsWith('https://api.myanimelist.net/v2/')
+        ? nextCandidate
+        : null
   }
 
   return all.filter((entry) => {
@@ -143,6 +147,13 @@ Deno.serve(async (req: Request) => {
     if (!username || !status) {
       return new Response(
         JSON.stringify({ error: 'username e status são obrigatórios.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    if (typeof username !== 'string' || !/^[a-zA-Z0-9_.-]{1,50}$/.test(username.trim())) {
+      return new Response(
+        JSON.stringify({ error: 'Nome de usuário inválido.' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }

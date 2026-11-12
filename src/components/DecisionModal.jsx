@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { DECISION_MODES, makeDecision } from '../logic/decision.js'
 import RecommendationReason from './RecommendationReason.jsx'
 import { useModalFocusTrap } from '../hooks/useModalFocusTrap.js'
+import { isSafeExternalUrl } from '../logic/streaming.js'
 import styles from './DecisionModal.module.css'
 
 export default function DecisionModal({
@@ -114,7 +115,7 @@ export default function DecisionModal({
   const streamingLinks = []
   const seenSites = new Set()
   for (const link of selectedAnime?.streamingLinks ?? selectedAnime?.media?.streamingLinks ?? []) {
-    if (link?.site && !seenSites.has(link.site)) {
+    if (link?.site && isSafeExternalUrl(link?.url) && !seenSites.has(link.site)) {
       seenSites.add(link.site)
       streamingLinks.push(link)
     }
