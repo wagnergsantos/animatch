@@ -19,6 +19,20 @@ import { applyMultiPresenceBoost } from '../logic/ensemble.js'
 const EMPTY_ARRAY = []
 const EMPTY_OBJECT = {}
 
+/**
+ * Assinatura barata (O(N)) dos campos que afetam scoring/elegibilidade.
+ * Permite estabilizar a referência de `entries` quando o consumidor recria o
+ * array a cada render com o mesmo conteúdo — evita loop Phase 1 ↔ Phase 2.
+ */
+function buildEntriesSignature(list) {
+  let sig = `${list.length}`
+  for (const e of list) {
+    const m = e?.media
+    sig += `|${m?.id ?? e?.id}:${e?.status}:${e?.score ?? ''}:${m?.averageScore ?? ''}:${m?.status ?? ''}:${e?.planningProviders?.length ?? 0}`
+  }
+  return sig
+}
+
 export const INITIAL_BATCH_SIZE = 15
 
 export function useProgressiveRecommendationPipeline({
@@ -38,10 +52,25 @@ export function useProgressiveRecommendationPipeline({
   batchSize = INITIAL_BATCH_SIZE,
   onLoadComplete = null,
 } = EMPTY_OBJECT) {
+  const stableEntriesRef = useRef({ signature: '0', value: EMPTY_ARRAY })
   const safeEntries = useMemo(() => {
-    if (!Array.isArray(entries) || entries.length === 0) return EMPTY_ARRAY
+    if (!Array.isArray(entries) || entries.length === 0) {
+      stableEntriesRef.current = { signature: '0', value: EMPTY_ARRAY }
+      return EMPTY_ARRAY
+    }
+    const signature = buildEntriesSignature(entries)
+    if (signature === stableEntriesRef.current.signature) {
+      return stableEntriesRef.current.value
+    }
+    stableEntriesRef.current = { signature, value: entries }
     return entries
   }, [entries])
+
+  // Callback via ref: consumidor pode passar função inline sem re-disparar o pipeline
+  const onLoadCompleteRef = useRef(onLoadComplete)
+  useEffect(() => {
+    onLoadCompleteRef.current = onLoadComplete
+  }, [onLoadComplete])
 
   const tasteProfile = useMemo(() => {
     return buildTasteProfile(safeEntries)
@@ -263,7 +292,7 @@ export function useProgressiveRecommendationPipeline({
       setError(null)
 
       if (!hasMoreToLoad) {
-        onLoadComplete?.(batchRecs)
+        onLoadCompleteRef.current?.(batchRecs)
       } else {
         // ===== PHASE 2: Background (próx. 1–2s) =====
         // Score de TODOS os animes
@@ -291,7 +320,7 @@ export function useProgressiveRecommendationPipeline({
               return phase2Recs
             })
             setIsLoadingMore(false)
-            onLoadComplete?.(phase2Recs)
+            onLoadCompleteRef.current?.(phase2Recs)
           } catch (err) {
             console.error('Error in Phase 2 (background scoring):', err)
             setError(err)
@@ -326,7 +355,6 @@ export function useProgressiveRecommendationPipeline({
     recommenderOptions,
     batchSize,
     applyFilters,
-    onLoadComplete,
   ])
 
   return {

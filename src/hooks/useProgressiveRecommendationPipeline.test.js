@@ -261,4 +261,47 @@ describe('useProgressiveRecommendationPipeline', () => {
     })
     expect(result.current.isLoadingMore).toBe(false)
   })
+
+  it('settles (no Phase1/Phase2 oscillation) when caller passes a new entries array each render', async () => {
+    const completed = {
+      id: 1,
+      media: { id: 101, title: { english: 'Base 1' }, genres: ['Action'] },
+      status: 'COMPLETED',
+      score: 9,
+    }
+    const planning = Array.from({ length: 25 }, (_, i) => ({
+      id: 200 + i,
+      media: {
+        id: 1000 + i,
+        title: { english: `Planning Anime ${i + 1}` },
+        genres: ['Action'],
+        status: 'FINISHED',
+        averageScore: 75,
+      },
+      status: 'PLANNING',
+      score: 0,
+    }))
+
+    let renders = 0
+    const { result } = renderHook(() => {
+      renders += 1
+      // Array literal novo a cada render (padrão comum em consumidores não memoizados)
+      return useProgressiveRecommendationPipeline({
+        entries: [completed, ...planning],
+        batchSize: 5,
+      })
+    })
+
+    await waitFor(() => {
+      expect(result.current.recommendations.length).toBe(25)
+      expect(result.current.isLoadingMore).toBe(false)
+    })
+
+    const rendersAfterSettle = renders
+    await new Promise((r) => setTimeout(r, 50))
+
+    expect(renders).toBe(rendersAfterSettle)
+    expect(result.current.recommendations.length).toBe(25)
+    expect(result.current.isLoadingMore).toBe(false)
+  })
 })
