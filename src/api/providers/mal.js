@@ -1,8 +1,9 @@
 import { supabaseClient } from '../../supabase.js'
 import { UserNotFoundError, RetryableError, NonRetryableError, RateLimitError } from '../errors.js'
 import { readCache, writeCache, clearCache, DEFAULT_CACHE_TTL } from '../../cache/apiCache.js'
+import { CACHE_PREFIXES } from '../../lib/storageKeys.js'
 
-const CACHE_PREFIX = 'animatch_mal_cache_'
+const CACHE_PREFIX = CACHE_PREFIXES.MAL
 const CACHE_TTL = DEFAULT_CACHE_TTL // 6 horas
 
 export function clearMalCache(username) {

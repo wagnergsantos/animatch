@@ -253,7 +253,7 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
       predictionSource,
       badges,
       format: media.format || 'OTHER',
-      year: media.seasonYear || media.startDate?.year || null,
+      year: resolveYear(entry),
       episodes: media.episodes || null,
       status: media.status || null,
       predictedScore,

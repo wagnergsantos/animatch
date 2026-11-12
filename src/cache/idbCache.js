@@ -5,10 +5,15 @@ import {
   clearCache,
   clearAllApiCache,
 } from './apiCache.js'
+import {
+  CACHE_PREFIXES,
+  IDB_CONFIG,
+  KNOWN_LOCAL_STORAGE_KEYS,
+} from '../lib/storageKeys.js'
 
-const DB_NAME = 'animatch_db'
+const DB_NAME = IDB_CONFIG.DB_NAME
 const DB_VERSION = 1
-const STORE_NAME = 'anime_lists'
+const STORE_NAME = IDB_CONFIG.STORE_NAME
 export const MAX_IDB_ENTRIES = 20
 
 function getIdbFactory() {
@@ -52,10 +57,10 @@ function openDatabase() {
 export function buildProviderCacheKey(provider = 'anilist', username = '') {
   const normUser = String(username).trim().toLowerCase()
   const normProvider = String(provider).trim().toLowerCase()
-  if (normProvider === 'kitsu') return `animatch_kitsu_cache_${normUser}`
-  if (normProvider === 'mal') return `animatch_mal_cache_${normUser}`
-  if (normProvider === 'ensemble') return `animatch_ensemble_cache_${normUser}`
-  return `animatch_cache_${normUser}`
+  if (normProvider === 'kitsu') return `${CACHE_PREFIXES.KITSU}${normUser}`
+  if (normProvider === 'mal') return `${CACHE_PREFIXES.MAL}${normUser}`
+  if (normProvider === 'ensemble') return `${CACHE_PREFIXES.ENSEMBLE}${normUser}`
+  return `${CACHE_PREFIXES.ANILIST}${normUser}`
 }
 
 /**
@@ -186,19 +191,6 @@ export async function clearIdbCache(cacheKey) {
     }
   })
 }
-
-const KNOWN_LOCAL_STORAGE_KEYS = [
-  'animatch_settings',
-  'animatch_username',
-  'animatch_provider',
-  'animatch_recent_users',
-  'animatch_theme',
-  'animatch_lang',
-  'animatch_view_mode',
-  'animatch_subscriptions',
-  'animatch_streaming_boost',
-  'animatch_cache_index',
-]
 
 /**
  * Remove todos os dados locais do AniMatch:

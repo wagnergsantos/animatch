@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
+import { STORAGE_KEYS } from '../lib/storageKeys.js'
 import styles from './ThemeToggle.module.css'
 
 export default function ThemeToggle() {
   const [theme, setTheme] = useState(() => {
     if (typeof window !== 'undefined' && window.localStorage) {
-      const saved = localStorage.getItem('animatch_theme')
+      const saved = localStorage.getItem(STORAGE_KEYS.THEME)
       if (saved) return saved
     }
     if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
@@ -16,7 +17,7 @@ export default function ThemeToggle() {
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
     if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.setItem('animatch_theme', theme)
+      localStorage.setItem(STORAGE_KEYS.THEME, theme)
     }
   }, [theme])
 

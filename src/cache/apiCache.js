@@ -11,7 +11,9 @@
  *   (LRU) antes de gravar a nova, em vez de acumular para sempre.
  */
 
-const INDEX_KEY = 'animatch_cache_index'
+import { STORAGE_KEYS } from '../lib/storageKeys.js'
+
+const INDEX_KEY = STORAGE_KEYS.CACHE_INDEX
 const MAX_CACHED_USERS = 15 // mesmo teto usado por recentUsers em App.jsx
 export const DEFAULT_CACHE_TTL = 6 * 60 * 60 * 1000 // 6 horas em ms
 

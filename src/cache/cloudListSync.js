@@ -1,5 +1,6 @@
 import { supabaseClient } from '../supabase.js'
 import { DEFAULT_CACHE_TTL } from './apiCache.js'
+import { STORAGE_KEYS } from '../lib/storageKeys.js'
 
 export const MAX_ENTRIES_PAYLOAD_BYTES = 5242880 // 5 MB
 export const ALLOWED_PROVIDERS = new Set(['anilist', 'kitsu', 'mal', 'ensemble'])
@@ -25,7 +26,7 @@ export function isLinkedProviderAccount(provider, username, linkedUsernamesOptio
   let linkedMap = linkedUsernamesOption
   if (!linkedMap && typeof window !== 'undefined' && window.localStorage) {
     try {
-      const raw = window.localStorage.getItem('animatch_settings')
+      const raw = window.localStorage.getItem(STORAGE_KEYS.SETTINGS)
       if (raw) {
         const parsed = JSON.parse(raw)
         linkedMap = parsed?.linked_usernames

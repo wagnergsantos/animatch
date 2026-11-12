@@ -2,8 +2,9 @@ import { UserNotFoundError, RetryableError, ProviderError } from '../errors.js'
 
 const KITSU_API = 'https://kitsu.io/api/edge'
 import { readCache, writeCache, clearCache, DEFAULT_CACHE_TTL } from '../../cache/apiCache.js'
+import { CACHE_PREFIXES } from '../../lib/storageKeys.js'
 
-const KITSU_CACHE_PREFIX = 'animatch_kitsu_cache_'
+const KITSU_CACHE_PREFIX = CACHE_PREFIXES.KITSU
 const KITSU_CACHE_TTL = DEFAULT_CACHE_TTL // 6 hours
 export const MAX_PAGES = 20
 

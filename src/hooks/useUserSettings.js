@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import { supabaseClient } from '../supabase'
+import { STORAGE_KEYS } from '../lib/storageKeys.js'
 
 export const DEFAULT_SETTINGS = {
   default_provider: 'anilist',
@@ -17,7 +18,7 @@ export const DEFAULT_SETTINGS = {
   view_mode: 'grid',
 }
 
-export const SETTINGS_STORAGE_KEY = 'animatch_settings'
+export const SETTINGS_STORAGE_KEY = STORAGE_KEYS.SETTINGS
 export const MAX_SETTINGS_PAYLOAD_BYTES = 65536 // 64 KB
 
 function mergeSettings(base, incoming) {

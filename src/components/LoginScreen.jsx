@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import ThemeToggle from './ThemeToggle.jsx'
 import { useTranslation } from 'react-i18next'
 import useLocalStorage from '../hooks/useLocalStorage.js'
+import { STORAGE_KEYS } from '../lib/storageKeys.js'
 import styles from './LoginScreen.module.css'
 
 export default function LoginScreen({
@@ -18,7 +19,7 @@ export default function LoginScreen({
   linkedUsernames = null,
 }) {
   const { t } = useTranslation()
-  const [provider, setProvider] = useLocalStorage('animatch_provider', 'anilist')
+  const [provider, setProvider] = useLocalStorage(STORAGE_KEYS.PROVIDER, 'anilist')
   const [username, setUsername] = useState(() => initialUsername || (linkedUsernames && linkedUsernames[provider]) || '')
   const inputRef = useRef(null)
 
@@ -170,7 +171,7 @@ export default function LoginScreen({
                 data-testid="clear-recent-users-btn"
                 onClick={() => {
                   try {
-                    localStorage.removeItem('animatch_recent_users')
+                    localStorage.removeItem(STORAGE_KEYS.RECENT_USERS)
                   } catch {
                     // ignore
                   }

@@ -1,12 +1,13 @@
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
+import { STORAGE_KEYS } from './lib/storageKeys.js'
 import ptBR from './locales/pt-BR.json'
 import en from './locales/en.json'
 import ja from './locales/ja.json'
 
 function detectInitialLang() {
   try {
-    const stored = localStorage.getItem('animatch_lang')
+    const stored = localStorage.getItem(STORAGE_KEYS.LANG)
     if (stored) return stored
   } catch {
     // ignore

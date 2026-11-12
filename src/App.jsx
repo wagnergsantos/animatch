@@ -9,6 +9,7 @@ import useLocalStorage from './hooks/useLocalStorage.js'
 import { useAsyncAction } from './hooks/useAsyncAction.js'
 import { AuthContext, AuthProvider, useAuth } from './auth/AuthContext.jsx'
 import useUserSettings from './hooks/useUserSettings.js'
+import { STORAGE_KEYS } from './lib/storageKeys.js'
 
 export function AppContent() {
   const { user, signOut, deleteAccount } = useAuth()
@@ -27,7 +28,7 @@ export function AppContent() {
 
     let localUser = null
     try {
-      const item = window.localStorage.getItem('animatch_username')
+      const item = window.localStorage.getItem(STORAGE_KEYS.USERNAME)
       localUser = item ? JSON.parse(item) : null
     } catch {
       localUser = null
@@ -35,18 +36,18 @@ export function AppContent() {
 
     return (hasUrlAuth || localUser) ? 'loading' : 'login'
   })
-  const [storedUsername, setStoredUsername] = useLocalStorage('animatch_username', null)
+  const [storedUsername, setStoredUsername] = useLocalStorage(STORAGE_KEYS.USERNAME, null)
   const [username, setUsername] = useState('')
-  const [provider, setProvider] = useLocalStorage('animatch_provider', settings?.default_provider || 'anilist')
+  const [provider, setProvider] = useLocalStorage(STORAGE_KEYS.PROVIDER, settings?.default_provider || 'anilist')
   const [allEntries, setAllEntries] = useState([])
-  const [recentUsers, setRecentUsers] = useLocalStorage('animatch_recent_users', [])
+  const [recentUsers, setRecentUsers] = useLocalStorage(STORAGE_KEYS.RECENT_USERS, [])
 
   // Sync theme to DOM
   useEffect(() => {
     if (settings?.theme) {
       document.documentElement.setAttribute('data-theme', settings.theme)
       try {
-        localStorage.setItem('animatch_theme', settings.theme)
+        localStorage.setItem(STORAGE_KEYS.THEME, settings.theme)
       } catch {}
     }
   }, [settings?.theme])
@@ -56,7 +57,7 @@ export function AppContent() {
     if (settings?.language && i18n.language !== settings.language) {
       i18n.changeLanguage(settings.language)
       try {
-        localStorage.setItem('animatch_lang', settings.language)
+        localStorage.setItem(STORAGE_KEYS.LANG, settings.language)
       } catch {}
     }
   }, [settings?.language, i18n])

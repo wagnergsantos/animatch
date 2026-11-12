@@ -5,6 +5,7 @@ import { clearProviderCache } from '../api/index.js'
 import { deleteCloudAnimeList } from '../cache/cloudListSync.js'
 import { clearAllLocalData } from '../cache/idbCache.js'
 import { deleteOwnAccount } from '../auth/session.js'
+import { STORAGE_KEYS } from '../lib/storageKeys.js'
 import styles from './SettingsPage.module.css'
 
 const LANG_OPTIONS = [
@@ -42,7 +43,7 @@ export default function SettingsPage({
 
   const [theme, setTheme] = useState(() => {
     if (typeof window !== 'undefined' && window.localStorage) {
-      const saved = localStorage.getItem('animatch_theme')
+      const saved = localStorage.getItem(STORAGE_KEYS.THEME)
       if (saved) return saved
     }
     if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
@@ -56,7 +57,7 @@ export default function SettingsPage({
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
     if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.setItem('animatch_theme', theme)
+      localStorage.setItem(STORAGE_KEYS.THEME, theme)
     }
   }, [theme])
 
@@ -67,7 +68,7 @@ export default function SettingsPage({
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng)
     try {
-      localStorage.setItem('animatch_lang', lng)
+      localStorage.setItem(STORAGE_KEYS.LANG, lng)
     } catch {
       // ignore
     }

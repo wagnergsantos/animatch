@@ -1,4 +1,5 @@
 // statistics.js — normalization and aggregation helpers for Statistics page
+import { resolveYear } from './recommender.js'
 
 export function normalizeScore(raw) {
   if (raw == null) return null
@@ -10,6 +11,20 @@ export function normalizeScore(raw) {
 }
 
 export function normalizeEntry(entry) {
+  if (!entry) {
+    return {
+      id: null,
+      title: 'Untitled',
+      episodes: null,
+      genres: [],
+      predictedScore: null,
+      communityScore: null,
+      status: null,
+      provider: null,
+      year: null,
+      format: null,
+    }
+  }
   // Accept different shapes: entry.media (anilist) or flat
   const media = entry.media || entry
   const id = media?.id ?? entry?.id ?? null
@@ -26,8 +41,10 @@ export function normalizeEntry(entry) {
     genres: Array.isArray(genres) ? genres.filter(Boolean) : [],
     predictedScore: normalizeScore(predictedScoreRaw),
     communityScore: normalizeScore(communityRaw),
-    status: entry?.status ?? null,
-    provider: entry?.provider ?? null,
+    status: entry?.status ?? media?.status ?? null,
+    provider: entry?.provider ?? media?.provider ?? null,
+    year: resolveYear(entry),
+    format: media?.format ?? entry?.format ?? null,
   }
 }
 

@@ -126,7 +126,7 @@ Monitorar latência de APIs externas (AniList/Kitsu/MAL), taxas de erro de rende
 
 ---
 
-### [ ] A11. Refatoração de Arquitetura — Hook `useRecommendationPipeline`, `STORAGE_KEYS` e Normalização (#25)
+### [x] A11. Refatoração de Arquitetura — Hook `useRecommendationPipeline`, `STORAGE_KEYS` e Normalização (#25) (Concluído ✅)
 
 **Onde:** `src/components/Dashboard.jsx`, `src/lib/storageKeys.js`, `src/api/providers/*`, `src/logic/statistics.js`
 
