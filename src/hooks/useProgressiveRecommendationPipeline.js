@@ -7,6 +7,7 @@ import {
 } from '../logic/recommender.js'
 import { applyStreamingBoost, matchesUserSubscriptions } from '../logic/streaming.js'
 import { applyMultiPresenceBoost } from '../logic/ensemble.js'
+import { mark, measure } from '../lib/perfMarks.js'
 
 /**
  * Hook para rendering progressivo de recomendações.
@@ -216,6 +217,7 @@ export function useProgressiveRecommendationPipeline({
 
   const computePhase1 = (planningList, profile) => {
     if (!planningList || planningList.length === 0) return EMPTY_ARRAY
+    mark('phase1:start')
     const firstBatch = planningList.slice(0, Math.min(100, planningList.length))
     let recs = scoreRecommendations(
       firstBatch,
@@ -225,7 +227,10 @@ export function useProgressiveRecommendationPipeline({
     )
     recs = enrichRecommendations(recs, planningList)
     recs = applyFilters(recs)
-    return recs.slice(0, batchSize)
+    const result = recs.slice(0, batchSize)
+    mark('phase1:end')
+    measure('phase1', 'phase1:start', 'phase1:end')
+    return result
   }
 
   // Phase 1 data
@@ -254,6 +259,7 @@ export function useProgressiveRecommendationPipeline({
     try {
       // ===== PHASE 1: Instant (< 200ms) =====
       // Score apenas dos primeiros 100 animes (para ter 15 bons no top)
+      mark('phase1:start')
       const firstBatchPlanningEntries = planningEntries.slice(
         0,
         Math.min(100, planningEntries.length)
@@ -272,6 +278,8 @@ export function useProgressiveRecommendationPipeline({
 
       // Pega só os N primeiros (default: 15)
       const batchRecs = phase1Recs.slice(0, batchSize)
+      mark('phase1:end')
+      measure('phase1', 'phase1:start', 'phase1:end')
 
       setRecommendations((prev) => {
         if (prev === batchRecs) return prev
@@ -298,6 +306,7 @@ export function useProgressiveRecommendationPipeline({
         // Score de TODOS os animes
         timeoutRef.current = setTimeout(() => {
           try {
+            mark('phase2:start')
             let phase2Recs = scoreRecommendations(
               planningEntries,
               tasteProfile,
@@ -308,6 +317,9 @@ export function useProgressiveRecommendationPipeline({
             // Enrich e filtrar
             phase2Recs = enrichRecommendations(phase2Recs, planningEntries)
             phase2Recs = applyFilters(phase2Recs)
+
+            mark('phase2:end')
+            measure('phase2', 'phase2:start', 'phase2:end')
 
             setRecommendations((prev) => {
               if (prev === phase2Recs) return prev
