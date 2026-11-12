@@ -8,20 +8,36 @@ describe('LegalModal', () => {
     expect(container).toBeEmptyDOMElement()
   })
 
-  it('renders the 4 legal/privacy sections when isOpen is true and closes on Escape or close button', () => {
+  it('renders the 3 legal tabs and allows switching between Sobre, Privacidade and Termos', () => {
     const onClose = vi.fn()
     render(<LegalModal isOpen={true} onClose={onClose} />)
 
     expect(screen.getByRole('dialog')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /Sobre.*Direitos Autorais/i })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /Privacidade.*Dados/i })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /Termos.*Idade Mínima/i })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /Contato.*Código-Fonte/i })).toBeInTheDocument()
 
-    // Mentions 16+ age requirement and API attributions
-    expect(screen.getByText(/16 anos/i)).toBeInTheDocument()
-    expect(screen.getByText(/AniList, Kitsu e MyAnimeList/i)).toBeInTheDocument()
+    // 3 tabs present
+    const aboutTab = screen.getByRole('tab', { name: /Sobre o AniMatch/i })
+    const privacyTab = screen.getByRole('tab', { name: /Política de Privacidade/i })
+    const termsTab = screen.getByRole('tab', { name: /Termos de Uso/i })
+    expect(aboutTab).toBeInTheDocument()
+    expect(privacyTab).toBeInTheDocument()
+    expect(termsTab).toBeInTheDocument()
 
+    // Initially on "Sobre" tab
+    expect(screen.getByRole('heading', { name: /1\. O que é o AniMatch/i })).toBeInTheDocument()
+    expect(screen.getAllByText(/AniList, Kitsu e MyAnimeList/i).length).toBeGreaterThanOrEqual(1)
+
+    // Switch to "Privacidade" tab
+    fireEvent.click(privacyTab)
+    expect(screen.getByRole('heading', { name: /1\. Responsável pelo tratamento/i })).toBeInTheDocument()
+    expect(screen.getByText(/Wagner Santos/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/IndexedDB/i).length).toBeGreaterThanOrEqual(1)
+
+    // Switch to "Termos" tab
+    fireEvent.click(termsTab)
+    expect(screen.getByRole('heading', { name: /4\. Idade mínima/i })).toBeInTheDocument()
+    expect(screen.getAllByText(/16 anos/i).length).toBeGreaterThanOrEqual(1)
+
+    // Close button & Escape key
     const closeBtn = screen.getByRole('button', { name: /Fechar/i })
     fireEvent.click(closeBtn)
     expect(onClose).toHaveBeenCalledTimes(1)
