@@ -107,4 +107,35 @@ describe('useRecommendationPipeline', () => {
     const boostedPluto = boostedResult.current.recommendations.find((r) => r.id === 10)
     expect(boostedPluto.predictedScore).toBeGreaterThan(basePluto.predictedScore)
   })
+
+  it('resgata obras sem averageScore compatíveis com o gosto e respeita recommenderOptions', () => {
+    const entriesWithUnrated = [
+      ...sampleEntries,
+      {
+        status: 'PLANNING',
+        media: {
+          id: 99,
+          title: { romaji: 'Unrated Cult', english: 'Unrated Cult' },
+          genres: ['Drama'],
+          format: 'MOVIE',
+          seasonYear: 2020,
+          status: 'FINISHED',
+          averageScore: null,
+        },
+      },
+    ]
+
+    const { result } = renderHook(() =>
+      useRecommendationPipeline({
+        entries: entriesWithUnrated,
+        recommenderOptions: { tasteWeight: 0.9, communityWeight: 0.1 },
+      })
+    )
+
+    const unrated = result.current.recommendations.find((r) => r.id === 99)
+    expect(unrated).toBeDefined()
+    expect(unrated.communityScore).toBeNull()
+    expect(unrated.predictionSource).toBe('taste')
+    expect(result.current.planningEntries.some((e) => e.media?.id === 99)).toBe(true)
+  })
 })

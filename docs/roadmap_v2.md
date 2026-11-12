@@ -138,7 +138,7 @@ Monitorar latência de APIs externas (AniList/Kitsu/MAL), taxas de erro de rende
 
 ---
 
-### [ ] A12. Evolução do Algoritmo de Recomendação (#23)
+### [x] A12. Evolução do Algoritmo de Recomendação (#23) (Concluído ✅)
 
 **Onde:** `src/logic/recommender.js`, `src/logic/streaming.js`, `src/logic/ensemble.js`
 
@@ -282,9 +282,9 @@ Novas funcionalidades sugeridas para evolução de produto, separadas das melhor
 | 11 | B8 — Offline-First & Supabase Sync (#16) | Produto / Infra | 🚀 Features | ✅ Concluído | IndexedDB (TTL 6h + SWR offline) + persistência multi-dispositivo no Supabase. |
 | 12 | B5 — Exportação Visual ("Wrapped") (#15) | Produto (v2) | 🚀 Features | ✅ Concluído | Exportação visual 1200x630 de perfil de gosto e top animes em PNG/Clipboard. |
 | 13 | B4a — filtrar `NOT_YET_RELEASED` (#22) | Produto (v2) | 🚀 Features | ✅ Concluído | Ocultar animes não lançados das sugestões e filtros de ano (ex: 2027). |
-| 14 | A13 — Higiene, Lint & Bug Kitsu (#24) | Melhoria Técnica | 🔥 Alta | 📋 Aberto | Corrige poluição de gêneros no Kitsu, zera 12 warnings e resolve teste pulado. |
-| 15 | A12 — Evolução do Algoritmo (#23) | Melhoria Técnica | 🟡 Média | 📋 Aberto | Ponderação de gêneros, pesos configuráveis, boost unificado e animes sem nota. |
-| 16 | A11 — Refatoração Dashboard & Keys (#25) | Arquitetura | 🟡 Média | 📋 Aberto | Extrai `useRecommendationPipeline`, centraliza `STORAGE_KEYS` e normalização. |
+| 14 | A13 — Higiene, Lint & Bug Kitsu (#24) | Melhoria Técnica | 🔥 Alta | ✅ Concluído | Corrige poluição de gêneros no Kitsu, zera 12 warnings e resolve teste pulado. |
+| 15 | A12 — Evolução do Algoritmo (#23) | Melhoria Técnica | 🟡 Média | ✅ Concluído | Ponderação de gêneros, pesos configuráveis, boost unificado e animes sem nota. |
+| 16 | A11 — Refatoração Dashboard & Keys (#25) | Arquitetura | 🟡 Média | ✅ Concluído | Extrai `useRecommendationPipeline`, centraliza `STORAGE_KEYS` e normalização. |
 | 17 | B3 — comparação entre usuários (#21) | Produto (v2/v3) | 💤 Nice-to-Have | 🛑 Backlog | Reusa `buildTasteProfile()`; aguardando validação de demanda. |
 | 18 | C1–C7 — Novas Features (Roadmap v3) | Produto (v3) | 🚀 Backlog v3 | 💡 Proposto | PWA (`C1`), Export XML (`C2`), Watch Queue (`C3`), Feedback (`C4`), Diff (`C5`). |
 | 19 | A7 — Web Worker Performance (#3) | Correção/Infra | ⏸️ Baixa | 🛑 Arquivado | Ganho nulo (~2ms de CPU vs ~2ms de overhead de serialização). |

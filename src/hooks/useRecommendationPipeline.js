@@ -26,6 +26,7 @@ export function useRecommendationPipeline({
   isStreamingOnly = false,
   isSeasonOnly = false,
   currentYear = new Date().getFullYear(),
+  recommenderOptions = {},
 } = {}) {
   const safeEntries = useMemo(() => (Array.isArray(entries) ? entries : []), [entries])
 
@@ -34,8 +35,8 @@ export function useRecommendationPipeline({
   }, [safeEntries])
 
   const planningEntries = useMemo(() => {
-    return safeEntries.filter(isEligiblePlanningEntry)
-  }, [safeEntries])
+    return safeEntries.filter((entry) => isEligiblePlanningEntry(entry, tasteProfile))
+  }, [safeEntries, tasteProfile])
 
   const availableGenres = useMemo(() => {
     const genreCounts = new Map()
@@ -62,7 +63,7 @@ export function useRecommendationPipeline({
   }, [planningEntries])
 
   const recommendations = useMemo(() => {
-    let recs = scoreRecommendations(planningEntries, tasteProfile, selectedFilterGenre)
+    let recs = scoreRecommendations(planningEntries, tasteProfile, selectedFilterGenre, recommenderOptions)
     const planningMap = new Map()
     for (const e of planningEntries) {
       if (e.media?.id != null) planningMap.set(e.media.id, e)
@@ -160,6 +161,7 @@ export function useRecommendationPipeline({
     selectedBadge,
     isSeasonOnly,
     currentYear,
+    recommenderOptions,
   ])
 
   return {
