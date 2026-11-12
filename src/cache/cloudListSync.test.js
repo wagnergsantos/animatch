@@ -145,5 +145,30 @@ describe('cloudListSync', () => {
     expect(eqProviderMock).toHaveBeenCalledWith('provider', 'kitsu')
     expect(eqUsernameMock).toHaveBeenCalledWith('username', 'kitsu_hero')
   })
+
+  it('rejeita provedor não suportado ou username fora do limite (1 a 60 caracteres)', async () => {
+    const invalidProvider = await scheduleCloudAnimeListSync('user-123', 'unsupported_prov', 'validuser', [{ id: 1 }])
+    const emptyUser = await scheduleCloudAnimeListSync('user-123', 'anilist', '', [{ id: 1 }])
+    const tooLongUser = await scheduleCloudAnimeListSync('user-123', 'anilist', 'a'.repeat(61), [{ id: 1 }])
+
+    expect(invalidProvider).toBe(false)
+    expect(emptyUser).toBe(false)
+    expect(tooLongUser).toBe(false)
+    expect(supabaseClient.from).not.toHaveBeenCalled()
+  })
+
+  it('rejeita payload de animes superior a 5 MB', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    // String serializada que excede 5MB
+    const bigString = 'x'.repeat(5242881)
+    const giantEntries = [{ dummy: bigString }]
+
+    const res = await scheduleCloudAnimeListSync('user-123', 'anilist', 'validuser', giantEntries)
+
+    expect(res).toBe(false)
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('5 MB'))
+    expect(supabaseClient.from).not.toHaveBeenCalled()
+    warnSpy.mockRestore()
+  })
 })
 

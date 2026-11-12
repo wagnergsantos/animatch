@@ -296,5 +296,31 @@ describe('useUserSettings', () => {
 
       Object.defineProperty(navigator, 'onLine', { value: originalOnLine, configurable: true })
     })
+
+    it('sets syncStatus to error if settings exceed 64 KB', async () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      mockAuthUser = { id: 'user-big', email: 'big@test.com' }
+      mockSupabaseSelect.mockResolvedValueOnce({
+        data: { settings: DEFAULT_SETTINGS },
+        error: null,
+      })
+
+      const { result } = renderHook(() => useUserSettings({ debounceMs: 50 }))
+
+      await waitFor(() => {
+        expect(result.current.syncStatus).toBe('synced')
+      })
+
+      act(() => {
+        result.current.updateSetting('huge_field', 'x'.repeat(65537))
+      })
+
+      await waitFor(() => {
+        expect(result.current.syncStatus).toBe('error')
+      })
+
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('64 KB'))
+      warnSpy.mockRestore()
+    })
   })
 })

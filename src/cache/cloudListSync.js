@@ -1,6 +1,9 @@
 import { supabaseClient } from '../supabase.js'
 import { DEFAULT_CACHE_TTL } from './apiCache.js'
 
+export const MAX_ENTRIES_PAYLOAD_BYTES = 5242880 // 5 MB
+export const ALLOWED_PROVIDERS = new Set(['anilist', 'kitsu', 'mal', 'ensemble'])
+
 const pendingSyncTimers = new Map()
 
 /**
@@ -119,12 +122,30 @@ export function scheduleCloudAnimeListSync(
   if (!userId || !provider || !username || !Array.isArray(entries) || entries.length === 0) {
     return Promise.resolve(false)
   }
-  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-    return Promise.resolve(false)
-  }
 
   const normProvider = String(provider).trim().toLowerCase()
   const normUsername = String(username).trim().toLowerCase()
+
+  if (!ALLOWED_PROVIDERS.has(normProvider)) {
+    return Promise.resolve(false)
+  }
+  if (normUsername.length < 1 || normUsername.length > 60) {
+    return Promise.resolve(false)
+  }
+
+  try {
+    const serialized = JSON.stringify(entries)
+    if (serialized.length > MAX_ENTRIES_PAYLOAD_BYTES) {
+      console.warn('[cloudListSync] Payload de animes excede o limite máximo permitido (5 MB).')
+      return Promise.resolve(false)
+    }
+  } catch {
+    return Promise.resolve(false)
+  }
+
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    return Promise.resolve(false)
+  }
   const timerKey = `${userId}:${normProvider}:${normUsername}`
 
   if (pendingSyncTimers.has(timerKey)) {

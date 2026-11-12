@@ -18,6 +18,7 @@ export const DEFAULT_SETTINGS = {
 }
 
 export const SETTINGS_STORAGE_KEY = 'animatch_settings'
+export const MAX_SETTINGS_PAYLOAD_BYTES = 65536 // 64 KB
 
 function mergeSettings(base, incoming) {
   if (!incoming) return { ...base }
@@ -181,6 +182,13 @@ export function useUserSettings({ debounceMs = 400 } = {}) {
           try {
             if (typeof navigator !== 'undefined' && navigator.onLine === false) {
               if (isMountedRef.current) setSyncStatus('offline')
+              return
+            }
+
+            const payloadStr = JSON.stringify(settingsRef.current)
+            if (payloadStr.length > MAX_SETTINGS_PAYLOAD_BYTES) {
+              console.warn('[useUserSettings] Settings excedem o limite de 64 KB.')
+              if (isMountedRef.current) setSyncStatus('error')
               return
             }
 

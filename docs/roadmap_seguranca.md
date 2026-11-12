@@ -53,7 +53,7 @@
 
 ---
 
-### [ ] S3 — Hardening de Banco de Dados: Limites de Payload JSONB e Constraints nas Tabelas RLS (#32)
+### [x] S3 — Hardening de Banco de Dados: Limites de Payload JSONB e Constraints nas Tabelas RLS (#32)
 
 **Onde:** `supabase/migrations/`
 
@@ -61,7 +61,7 @@
    - `user_settings`: `CHECK (pg_column_size(settings) <= 65536)` (máx. 64 KB).
    - `user_anime_lists`:
      - `CHECK (pg_column_size(entries) <= 5242880)` (máx. 5 MB).
-     - `CHECK (provider in ('anilist', 'kitsu', 'mal'))`.
+     - `CHECK (provider in ('anilist', 'kitsu', 'mal', 'ensemble'))`.
      - `CHECK (char_length(username) between 1 and 60)`.
    - *(Complementa a migration da Issue **#29 / L3**, que adiciona a policy `FOR DELETE` em `user_settings` e a RPC `delete_own_account()`).*
 
@@ -93,5 +93,5 @@
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **1** | **#26** | **S1 (A14)** | CORS restrito, rate-limit por IP, teto de paginação, retry `429` e CSP | 🔥 Crítica | 📋 Aberto |
 | **2** | **#31** | **S2** | Validação de `username`, proteção SSRF em `paging.next` e sanitização de URLs | 🔥 Alta | 📋 Aberto |
-| **3** | **#32** | **S3** | Constraints SQL de tamanho máximo (`jsonb`) e formato nas tabelas com RLS | 🟡 Alta | 📋 Aberto |
+| **3** | **#32** | **S3** | Constraints SQL de tamanho máximo (`jsonb`) e formato nas tabelas com RLS | 🟡 Alta | ✅ Concluído |
 | **4** | **#33** | **S4** | Desrastrear `.env.development`, travar deploy sem secrets, `config.toml` e docs | 🟡 Alta | ✅ Concluído |
