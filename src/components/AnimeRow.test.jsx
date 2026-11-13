@@ -71,4 +71,22 @@ describe('AnimeRow', () => {
 
     openSpy.mockRestore()
   })
+
+  it('renders image with priority attributes when priority=true', () => {
+    render(<AnimeRow anime={mockAnime} priority />)
+    const img = screen.getByRole('img', { name: /Steins;Gate/i })
+    expect(img).toHaveAttribute('loading', 'eager')
+    expect(img).toHaveAttribute('fetchpriority', 'high')
+    expect(img).toHaveAttribute('decoding', 'async')
+    expect(img).toHaveAttribute('width', '52')
+    expect(img).toHaveAttribute('height', '74')
+  })
+
+  it('renders image with lazy loading when priority is false', () => {
+    render(<AnimeRow anime={mockAnime} priority={false} />)
+    const img = screen.getByRole('img', { name: /Steins;Gate/i })
+    expect(img).toHaveAttribute('loading', 'lazy')
+    expect(img).toHaveAttribute('fetchpriority', 'auto')
+    expect(img).toHaveAttribute('decoding', 'async')
+  })
 })

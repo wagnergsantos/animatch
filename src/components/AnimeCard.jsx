@@ -127,6 +127,9 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
             className={styles['anime-card__image']}
             src={anime?.coverImage || undefined}
             alt={t('labels.coverAlt', { title })}
+            width={230}
+            height={325}
+            decoding="async"
             loading={priority ? 'eager' : 'lazy'}
             fetchPriority={priority ? 'high' : 'auto'}
           />

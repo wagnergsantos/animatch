@@ -87,7 +87,11 @@ export default function AnimeRow({ anime, titlePref = 'english', priority = fals
           className={styles['anime-row-cover']}
           src={anime?.coverImage || undefined}
           alt={t('labels.coverAlt', { title })}
+          width={52}
+          height={74}
+          decoding="async"
           loading={priority ? 'eager' : 'lazy'}
+          fetchPriority={priority ? 'high' : 'auto'}
         />
 
         <div className={styles['anime-row-main']}>

@@ -271,6 +271,32 @@ describe('AnimeCard', () => {
     expect(screen.getByRole('link', { name: /Netflix/i })).toHaveAttribute('href', 'https://www.netflix.com/title/77')
     openSpy.mockRestore()
   })
+
+  it('renders image with priority attributes when priority=true', () => {
+    const anime = {
+      title: 'Priority Anime',
+      coverImage: 'https://s4.anilist.co/cover.jpg',
+    }
+    render(<AnimeCard anime={anime} priority />)
+    const img = screen.getByRole('img', { name: /Priority Anime/i })
+    expect(img).toHaveAttribute('loading', 'eager')
+    expect(img).toHaveAttribute('fetchpriority', 'high')
+    expect(img).toHaveAttribute('decoding', 'async')
+    expect(img).toHaveAttribute('width', '230')
+    expect(img).toHaveAttribute('height', '325')
+  })
+
+  it('renders image with lazy loading when priority is false', () => {
+    const anime = {
+      title: 'Non Priority Anime',
+      coverImage: 'https://s4.anilist.co/cover2.jpg',
+    }
+    render(<AnimeCard anime={anime} priority={false} />)
+    const img = screen.getByRole('img', { name: /Non Priority Anime/i })
+    expect(img).toHaveAttribute('loading', 'lazy')
+    expect(img).toHaveAttribute('fetchpriority', 'auto')
+    expect(img).toHaveAttribute('decoding', 'async')
+  })
 })
 
 
