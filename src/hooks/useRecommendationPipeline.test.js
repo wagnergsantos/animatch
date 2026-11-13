@@ -67,6 +67,8 @@ describe('useRecommendationPipeline', () => {
       'Drama',
       'Mystery',
     ])
+    const dramaGenre = result.current.availableGenres.find((g) => g.name === 'Drama')
+    expect(typeof dramaGenre.score).toBe('number')
     expect(result.current.recommendations).toHaveLength(2)
   })
 

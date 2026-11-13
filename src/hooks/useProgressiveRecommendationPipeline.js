@@ -94,9 +94,18 @@ export function useProgressiveRecommendationPipeline({
       }
     }
     return Array.from(genreCounts.entries())
-      .map(([name, count]) => ({ name, count }))
+      .map(([name, count]) => {
+        const stats = tasteProfile?.get?.(name)
+        const score =
+          typeof stats?.adjustedAverage === 'number'
+            ? stats.adjustedAverage
+            : typeof stats?.average === 'number'
+              ? stats.average
+              : null
+        return { name, count, score }
+      })
       .sort((a, b) => a.name.localeCompare(b.name))
-  }, [planningEntries])
+  }, [planningEntries, tasteProfile])
 
   const availableYears = useMemo(() => {
     const set = new Set()

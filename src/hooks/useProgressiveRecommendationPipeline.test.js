@@ -73,9 +73,30 @@ describe('useProgressiveRecommendationPipeline', () => {
   })
 
   it('returns correct availableGenres from planningEntries', async () => {
+    const testEntries = [
+      {
+        id: 1,
+        media: { id: 101, genres: ['Action'] },
+        status: 'COMPLETED',
+        score: 8,
+      },
+      {
+        id: 2,
+        media: { id: 102, genres: ['Action'] },
+        status: 'COMPLETED',
+        score: 9,
+      },
+      {
+        id: 3,
+        media: { id: 103, genres: ['Action', 'Drama'], averageScore: 80 },
+        status: 'PLANNING',
+        score: 0,
+      },
+    ]
+
     const { result } = renderHook(() =>
       useProgressiveRecommendationPipeline({
-        entries: mockEntries,
+        entries: testEntries,
         activeScope: 'anilist',
       })
     )
@@ -86,6 +107,12 @@ describe('useProgressiveRecommendationPipeline', () => {
 
     expect(result.current.availableGenres).toBeDefined()
     expect(Array.isArray(result.current.availableGenres)).toBe(true)
+    const actionGenre = result.current.availableGenres.find((g) => g.name === 'Action')
+    expect(actionGenre).toBeDefined()
+    expect(typeof actionGenre.score).toBe('number')
+    const dramaGenre = result.current.availableGenres.find((g) => g.name === 'Drama')
+    expect(dramaGenre).toBeDefined()
+    expect(dramaGenre.score).toBeNull()
   })
 
   it('returns correct availableYears from planningEntries', async () => {
