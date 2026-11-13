@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import styles from './FilterBar.module.css'
 
@@ -78,8 +78,19 @@ export default function FilterBar({
   onSeasonOnlyChange,
   isStreamingOnly = false,
   onStreamingOnlyChange,
+  genreSortMode = 'score',
+  onGenreSortModeChange,
 }) {
   const { t } = useTranslation()
+  const [uncontrolledSortMode, setUncontrolledSortMode] = useState(genreSortMode || 'score')
+  const effectiveGenreSortMode = genreSortMode ?? uncontrolledSortMode
+
+  const handleToggleGenreSort = () => {
+    const nextMode = effectiveGenreSortMode === 'score' ? 'alphabetical' : 'score'
+    setUncontrolledSortMode(nextMode)
+    onGenreSortModeChange?.(nextMode)
+  }
+
   const [isFiltersOpen, setIsFiltersOpen] = useState(false)
   const filtersBtnRef = useRef(null)
   const filtersPanelRef = useRef(null)
@@ -88,21 +99,61 @@ export default function FilterBar({
 
   useDismiss(isFiltersOpen, closeFilters, filtersRefs)
 
-  const genresToRender =
-    availableGenres && availableGenres.length > 0
-      ? [
-          {
-            id: 'ALL',
-            label: totalPlanningCount != null ? t('filter.allGenresWithCount', { count: totalPlanningCount }) : t('filter.allGenres'),
-          },
-          ...availableGenres.map((g) => {
-            if (typeof g === 'object' && g !== null) {
-              return { id: g.name, label: `${g.name} (${g.count})` }
-            }
-            return { id: g, label: g }
-          }),
-        ]
-      : DEFAULT_MAIN_GENRES.map((g) => ({ id: g.id, label: t(g.key) }))
+  const genresToRender = useMemo(() => {
+    if (!availableGenres || availableGenres.length === 0) {
+      return DEFAULT_MAIN_GENRES.map((g) => ({ id: g.id, label: t(g.key) }))
+    }
+
+    const items = availableGenres.map((g) => {
+      if (typeof g === 'object' && g !== null) {
+        return {
+          id: g.name,
+          name: g.name,
+          count: g.count,
+          score: typeof g.score === 'number' ? g.score : null,
+        }
+      }
+      return { id: g, name: g, count: null, score: null }
+    })
+
+    if (effectiveGenreSortMode === 'score') {
+      items.sort((a, b) => {
+        const hasScoreA = a.score !== null
+        const hasScoreB = b.score !== null
+        if (hasScoreA && hasScoreB) {
+          if (b.score !== a.score) return b.score - a.score
+          return (b.count || 0) - (a.count || 0)
+        }
+        if (hasScoreA) return -1
+        if (hasScoreB) return 1
+        return a.name.localeCompare(b.name)
+      })
+    } else {
+      items.sort((a, b) => a.name.localeCompare(b.name))
+    }
+
+    const formatted = items.map((item) => {
+      let label = item.name
+      if (item.score !== null && effectiveGenreSortMode === 'score') {
+        label = `${item.name} ★ ${item.score.toFixed(2)}`
+      }
+      if (item.count != null) {
+        label += ` (${item.count})`
+      }
+      return { id: item.id, label }
+    })
+
+    return [
+      {
+        id: 'ALL',
+        label:
+          totalPlanningCount != null
+            ? t('filter.allGenresWithCount', { count: totalPlanningCount })
+            : t('filter.allGenres'),
+      },
+      ...formatted,
+    ]
+  }, [availableGenres, effectiveGenreSortMode, totalPlanningCount, t])
 
   const hasYears = availableYears && availableYears.length > 0
   const hasSecondaryFilters =
@@ -173,19 +224,44 @@ export default function FilterBar({
           onChange={(e) => onSearchChange && onSearchChange(e.target.value)}
         />
 
-        <select
-          id="filter-genre"
-          className={`${styles['filter-select']} ${styles['filter-select--genre']}`}
-          value={selectedGenre}
-          onChange={(e) => onSelectGenre && onSelectGenre(e.target.value)}
-          aria-label={t('filter.allGenres')}
-        >
-          {genresToRender.map((genre) => (
-            <option key={genre.id} value={genre.id}>
-              {genre.label}
-            </option>
-          ))}
-        </select>
+        <div className={styles['filter-genre-group']}>
+          <select
+            id="filter-genre"
+            className={`${styles['filter-select']} ${styles['filter-select--genre']}`}
+            value={selectedGenre}
+            onChange={(e) => onSelectGenre && onSelectGenre(e.target.value)}
+            aria-label={t('filter.allGenres')}
+          >
+            {genresToRender.map((genre) => (
+              <option key={genre.id} value={genre.id}>
+                {genre.label}
+              </option>
+            ))}
+          </select>
+
+          {availableGenres && availableGenres.length > 0 && (
+            <button
+              id="filter-genre-sort-btn"
+              type="button"
+              className={`${styles['filter-select']} ${styles['filter-genre-sort-btn']} ${effectiveGenreSortMode === 'score' ? styles['filter-genre-sort-btn--score'] : ''}`}
+              onClick={handleToggleGenreSort}
+              title={
+                effectiveGenreSortMode === 'score'
+                  ? t('filter.genreSortToAlphabetical')
+                  : t('filter.genreSortToScore')
+              }
+              aria-label={
+                effectiveGenreSortMode === 'score'
+                  ? t('filter.genreSortToAlphabetical')
+                  : t('filter.genreSortToScore')
+              }
+            >
+              {effectiveGenreSortMode === 'score'
+                ? t('filter.genreSortScoreLabel')
+                : t('filter.genreSortAlphabeticalLabel')}
+            </button>
+          )}
+        </div>
 
         {onSortChange && (
           <select

@@ -8,6 +8,7 @@ export const STORAGE_KEYS = Object.freeze({
   VIEW_MODE: 'animatch_view_mode',
   SUBSCRIPTIONS: 'animatch_subscriptions',
   STREAMING_BOOST: 'animatch_streaming_boost',
+  GENRE_SORT_MODE: 'animatch_genre_sort_mode',
   CACHE_INDEX: 'animatch_cache_index',
 })
 

@@ -139,6 +139,81 @@ describe('FilterBar', () => {
     expect(screen.getByText('Comedy (3)')).toBeInTheDocument()
   })
 
+  it('renders genres sorted by score descending by default and includes score in label', () => {
+    const genres = [
+      { name: 'Comedy', count: 3, score: 7.2 },
+      { name: 'Action', count: 5, score: 8.5 },
+      { name: 'Drama', count: 2, score: null },
+    ]
+
+    render(
+      <FilterBar
+        availableGenres={genres}
+        totalPlanningCount={10}
+        selectedGenre="ALL"
+        onSelectGenre={() => {}}
+      />
+    )
+
+    const options = screen.getAllByRole('option')
+    expect(options[0]).toHaveTextContent('Todos os Gêneros (10)')
+    expect(options[1]).toHaveTextContent('Action ★ 8.50 (5)')
+    expect(options[2]).toHaveTextContent('Comedy ★ 7.20 (3)')
+    expect(options[3]).toHaveTextContent('Drama (2)')
+  })
+
+  it('sorts genres alphabetically when genreSortMode is alphabetical', () => {
+    const genres = [
+      { name: 'Drama', count: 2, score: 9.0 },
+      { name: 'Action', count: 5, score: 7.5 },
+      { name: 'Comedy', count: 3, score: 8.2 },
+    ]
+
+    render(
+      <FilterBar
+        availableGenres={genres}
+        totalPlanningCount={10}
+        selectedGenre="ALL"
+        genreSortMode="alphabetical"
+        onSelectGenre={() => {}}
+      />
+    )
+
+    const options = screen.getAllByRole('option')
+    expect(options[0]).toHaveTextContent('Todos os Gêneros (10)')
+    expect(options[1]).toHaveTextContent('Action (5)')
+    expect(options[2]).toHaveTextContent('Comedy (3)')
+    expect(options[3]).toHaveTextContent('Drama (2)')
+  })
+
+  it('calls onGenreSortModeChange when the sort button is clicked', () => {
+    const onGenreSortModeChange = vi.fn()
+    const { rerender } = render(
+      <FilterBar
+        availableGenres={[{ name: 'Action', count: 1 }]}
+        genreSortMode="score"
+        onGenreSortModeChange={onGenreSortModeChange}
+      />
+    )
+
+    const sortBtn = screen.getByRole('button', { name: /Alternar para ordem alfabética/i })
+    expect(sortBtn).toBeInTheDocument()
+    fireEvent.click(sortBtn)
+    expect(onGenreSortModeChange).toHaveBeenCalledWith('alphabetical')
+
+    rerender(
+      <FilterBar
+        availableGenres={[{ name: 'Action', count: 1 }]}
+        genreSortMode="alphabetical"
+        onGenreSortModeChange={onGenreSortModeChange}
+      />
+    )
+
+    const alphaSortBtn = screen.getByRole('button', { name: /Alternar para ordem por afinidade/i })
+    fireEvent.click(alphaSortBtn)
+    expect(onGenreSortModeChange).toHaveBeenCalledWith('score')
+  })
+
   it('renders view mode toggle and export icon button in ResultsActions', () => {
     const handleViewModeChange = vi.fn()
     const handleExportCSV = vi.fn()

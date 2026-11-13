@@ -165,6 +165,10 @@
   "filter": {
     "allGenres": "All Genres",
     "allGenresWithCount": "All Genres ({{count}})",
+    "genreSortToAlphabetical": "Switch to alphabetical order (A-Z)",
+    "genreSortToScore": "Switch to affinity order (score)",
+    "genreSortScoreLabel": "★ Score",
+    "genreSortAlphabeticalLabel": "A-Z",
     "searchPlaceholder": "🔍 Search by name...",
     "allYears": "All Years",
     "noYear": "No Year",
