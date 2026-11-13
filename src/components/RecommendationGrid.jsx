@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, useDeferredValue } from 'react'
 import { useTranslation } from 'react-i18next'
 import AnimeCard from './AnimeCard.jsx'
 import AnimeRow from './AnimeRow.jsx'
@@ -136,6 +136,7 @@ export default function RecommendationGrid({
     [displayRecommendations, visibleCount]
   )
   const hasMore = displayRecommendations.length > visibleRecommendations.length
+  const deferredCount = useDeferredValue(displayRecommendations.length)
 
   if (isLoading) {
     return (
@@ -163,6 +164,11 @@ export default function RecommendationGrid({
 
   return (
     <section className="recommendation-grid">
+      <p className="sr-only" aria-live="polite" aria-atomic="true">
+        {isLoadingMore
+          ? t('recommendationGrid.srLoading')
+          : t('recommendationGrid.srCount', { count: deferredCount })}
+      </p>
       <div className={styles['recommendation-grid__header']}>
         <h2 className={styles['recommendation-grid__title']} style={{ marginBottom: 0 }}>
           {t('recommendationGrid.header', { count: displayRecommendations.length })}

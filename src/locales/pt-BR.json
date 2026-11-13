@@ -170,6 +170,8 @@
     "genreSortScoreLabel": "★ Nota",
     "genreSortAlphabeticalLabel": "A-Z",
     "searchPlaceholder": "🔍 Buscar por nome...",
+    "searchLabel": "Buscar anime por nome",
+    "genreLabel": "Filtrar por gênero",
     "allYears": "Todos os Anos",
     "noYear": "Sem Ano",
     "allBadges": "Todos os Destaques",
@@ -242,7 +244,9 @@
     "none": "Sem recomendações no momento",
     "planToWatchPrompt": "Adicione mais animes na sua lista \"Plan to Watch\" no {{provider}}!",
     "header": "Recomendações — O Que Assistir Agora ({{count}})",
-    "loadingMore": "Carregando {{count}} animes..."
+    "loadingMore": "Carregando {{count}} animes...",
+    "srCount": "{{count}} recomendações encontradas",
+    "srLoading": "Atualizando recomendações..."
   },
   "modals": {
     "genreOrigin": {

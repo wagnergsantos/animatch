@@ -330,6 +330,12 @@ describe('FilterBar', () => {
     fireEvent.change(badgeSelect, { target: { value: 'DISCOVERY' } })
     expect(handleBadgeChange).toHaveBeenCalledWith('DISCOVERY')
   })
+
+  it('has accessible names for search and genre controls (WCAG B4)', () => {
+    render(<FilterBar />)
+    expect(screen.getByRole('searchbox', { name: /Buscar anime por nome/i })).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: /Filtrar por gênero/i })).toBeInTheDocument()
+  })
 })
 
 

@@ -170,6 +170,8 @@
     "genreSortScoreLabel": "★ スコア",
     "genreSortAlphabeticalLabel": "A-Z",
     "searchPlaceholder": "🔍 名前で検索...",
+    "searchLabel": "タイトルでアニメを検索",
+    "genreLabel": "ジャンルで絞り込み",
     "allYears": "すべての年",
     "noYear": "年なし",
     "allBadges": "すべてのハイライト",
@@ -239,7 +241,9 @@
     "none": "現在おすすめはありません",
     "planToWatchPrompt": "{{provider}} の「Plan to Watch」リストにアニメを追加してください！",
     "header": "おすすめ — 今見るべき作品 ({{count}})",
-    "loadingMore": "{{count}}個のアニメを読み込み中..."
+    "loadingMore": "{{count}}個のアニメを読み込み中...",
+    "srCount": "{{count}} 件のおすすめが見つかりました",
+    "srLoading": "おすすめを更新中..."
   },
   "modals": {
     "genreOrigin": {

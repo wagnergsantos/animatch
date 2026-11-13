@@ -220,6 +220,7 @@ export default function FilterBar({
           type="search"
           className={styles['filter-search']}
           placeholder={t('filter.searchPlaceholder')}
+          aria-label={t('filter.searchLabel')}
           value={searchQuery}
           onChange={(e) => onSearchChange && onSearchChange(e.target.value)}
         />
@@ -230,7 +231,7 @@ export default function FilterBar({
             className={`${styles['filter-select']} ${styles['filter-select--genre']}`}
             value={selectedGenre}
             onChange={(e) => onSelectGenre && onSelectGenre(e.target.value)}
-            aria-label={t('filter.allGenres')}
+            aria-label={t('filter.genreLabel')}
           >
             {genresToRender.map((genre) => (
               <option key={genre.id} value={genre.id}>

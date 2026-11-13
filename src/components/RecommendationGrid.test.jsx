@@ -91,6 +91,21 @@ describe('RecommendationGrid', () => {
     const rows = screen.getAllByTestId('anime-row')
     expect(rows).toHaveLength(2)
   })
+
+  it('announces filtered recommendations count in aria-live region (WCAG B4)', () => {
+    const mockRecs = [
+      { id: 1, title: 'Anime 1', predictedScore: 8.5, coverImage: '' },
+      { id: 2, title: 'Anime 2', predictedScore: 9.0, coverImage: '' },
+    ]
+    const { container, rerender } = render(<RecommendationGrid isLoading={false} recommendations={mockRecs} />)
+    const liveRegion = container.querySelector('[aria-live="polite"]')
+    expect(liveRegion).toBeInTheDocument()
+    expect(liveRegion).toHaveAttribute('aria-atomic', 'true')
+    expect(liveRegion).toHaveTextContent('2 recomendações encontradas')
+
+    rerender(<RecommendationGrid isLoading={false} recommendations={mockRecs} isLoadingMore={true} />)
+    expect(liveRegion).toHaveTextContent('Atualizando recomendações...')
+  })
 })
 
 
