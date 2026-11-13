@@ -6,7 +6,6 @@ import { useProgressiveRecommendationPipeline } from '../hooks/useProgressiveRec
 import { STORAGE_KEYS } from '../lib/storageKeys.js'
 import { scheduleCloudAnimeListSync } from '../cache/cloudListSync.js'
 import ProviderTabs from './ProviderTabs.jsx'
-import TasteProfile from './TasteProfile.jsx'
 import RecommendationGrid from './RecommendationGrid.jsx'
 import FilterBar from './FilterBar.jsx'
 import ResultsActions from './ResultsActions.jsx'
@@ -95,6 +94,7 @@ export default function Dashboard({
   const [modalGenre, setModalGenre] = useState(null)
   const [isWrappedModalOpen, setIsWrappedModalOpen] = useState(false)
   const [isSeasonOnly, setIsSeasonOnly] = useState(false)
+  const [genreSortMode, setGenreSortMode] = useLocalStorage(STORAGE_KEYS.GENRE_SORT_MODE, 'score')
   const currentYear = new Date().getFullYear()
   const gridRef = useRef(null)
 
@@ -192,11 +192,6 @@ export default function Dashboard({
     isLoadingMore,
     totalCount,
   } = progressiveHookResult
-
-  const handleTasteProfileGenreClick = (genre) => {
-    setSelectedFilterGenre(genre)
-    gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
 
   const currentScopedProvider = activeScope !== 'ensemble' ? activeScope : provider
   const currentScopedUsername =
@@ -413,12 +408,6 @@ export default function Dashboard({
         )}
         {activeTab === 'recommendations' ? (
           <>
-            {tasteProfile.size > 0 && (
-              <TasteProfile 
-                profile={tasteProfile} 
-                onGenreClick={handleTasteProfileGenreClick} 
-              />
-            )}
             <FilterBar
               selectedGenre={selectedFilterGenre}
               onSelectGenre={(genre) => {
@@ -426,6 +415,8 @@ export default function Dashboard({
                 setActiveTab('recommendations')
                 gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
               }}
+              genreSortMode={genreSortMode}
+              onGenreSortModeChange={setGenreSortMode}
               availableGenres={availableGenres}
               totalPlanningCount={planningEntries.length}
               searchQuery={searchQuery}

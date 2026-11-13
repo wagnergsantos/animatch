@@ -75,7 +75,7 @@ describe('Dashboard', () => {
     expect(screen.getByText('testuser')).toBeInTheDocument()
   })
 
-  it('renders top genre badges sorted by average', () => {
+  it('does not render TasteProfile bar and renders genre filter with affinity score sort', async () => {
     render(
       <Dashboard
         allEntries={mockEntries}
@@ -84,26 +84,32 @@ describe('Dashboard', () => {
       />
     )
 
-    expect(screen.getAllByText(/Adventure/)[0]).toBeInTheDocument()
-    expect(screen.getAllByText(/Action/)[0]).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.queryByTestId('skeleton')).not.toBeInTheDocument()
+    })
+
+    expect(screen.queryByText(/O que você mais gosta\?/i)).not.toBeInTheDocument()
+
+    const sortBtn = screen.getByRole('button', { name: /Alternar para ordem alfabética/i })
+    expect(sortBtn).toBeInTheDocument()
+
+    const options = screen.getAllByRole('option')
+    const adventureOption = options.find((opt) => opt.value === 'Adventure')
+    expect(adventureOption).toBeDefined()
+    expect(adventureOption.textContent).toMatch(/Adventure ★ \d+\.\d{2} \(1\)/)
   })
 
-  it('clicking a taste profile badge opens GenreOriginModal and allows filtering the grid by that genre', async () => {
+  it('toggles genre sort mode in Dashboard FilterBar between score and alphabetical', async () => {
     render(<Dashboard allEntries={mockEntries} username="testuser" onLogout={() => {}} />)
 
     await waitFor(() => {
       expect(screen.queryByTestId('skeleton')).not.toBeInTheDocument()
     })
 
-    const adventureBadge = screen.getAllByText(/Adventure/)[0]
-    fireEvent.click(adventureBadge)
+    const sortBtn = screen.getByRole('button', { name: /Alternar para ordem alfabética/i })
+    fireEvent.click(sortBtn)
 
-    expect(screen.getByRole('dialog')).toBeInTheDocument()
-    const filterBtn = screen.getByRole('button', { name: /Filtrar recomendações por Adventure/i })
-    fireEvent.click(filterBtn)
-
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    expect(screen.getByText('Made in Abyss')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Alternar para ordem por afinidade/i })).toBeInTheDocument()
   })
 
   it('renders recommendation cards, opens modal on card click and opens AniList on quick button click', async () => {
