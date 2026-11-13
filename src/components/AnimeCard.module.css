@@ -24,6 +24,14 @@
   outline-offset: 2px;
 }
 
+.anime-card[data-score-tier='excellent'] {
+  border-color: var(--color-primary);
+}
+
+.anime-card[data-score-tier='excellent']:not(:hover) {
+  box-shadow: 0 0 12px var(--color-primary-glow);
+}
+
 .anime-card__image-wrapper {
   position: relative;
   aspect-ratio: 3 / 4;
@@ -162,6 +170,13 @@
   border-color: #facc15;
   background: rgba(234, 179, 8, 0.85);
   color: #ffffff;
+}
+
+.anime-card__badge-floating--excellent {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #000000;
+  font-weight: 700;
 }
 
 .anime-card__badge-floating--personal_bet {

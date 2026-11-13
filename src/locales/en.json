@@ -135,6 +135,7 @@
     "year": "Year",
     "fallbackBadge": "Community score",
     "fallbackTooltip": "Not enough history in this anime's genres; using community score as prediction.",
+    "topMatch": "Top Match",
     "recommendationBreakdown": "Recommendation Breakdown",
     "badge_ACCLAIMED": "💎 Highly Acclaimed",
     "badge_PERSONAL_BET": "🧪 Personal Bet",

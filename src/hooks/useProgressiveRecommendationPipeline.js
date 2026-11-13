@@ -21,6 +21,32 @@ const EMPTY_ARRAY = []
 const EMPTY_OBJECT = {}
 
 /**
+ * B1: Marca scoreTier='excellent' para animes com predictedScore >= 8.5
+ * e no top 10% da lista (evita inflação visual).
+ */
+export function enrichWithScoreTiers(recs) {
+  if (!Array.isArray(recs) || recs.length === 0) return []
+  const topCount = Math.max(1, Math.ceil(recs.length * 0.1))
+  const p90Threshold =
+    recs.length >= 10 && typeof recs[topCount - 1]?.predictedScore === 'number'
+      ? recs[topCount - 1].predictedScore
+      : 8.5
+  const threshold = Math.max(8.5, p90Threshold)
+
+  return recs.map((r, index) => {
+    const score = typeof r.predictedScore === 'number' ? r.predictedScore : 0
+    if (score >= threshold && (recs.length < 10 || index < topCount)) {
+      return { ...r, scoreTier: 'excellent' }
+    }
+    if (r.scoreTier) {
+      const { scoreTier: _, ...rest } = r
+      return rest
+    }
+    return r
+  })
+}
+
+/**
  * Assinatura barata (O(N)) dos campos que afetam scoring/elegibilidade.
  * Permite estabilizar a referência de `entries` quando o consumidor recria o
  * array a cada render com o mesmo conteúdo — evita loop Phase 1 ↔ Phase 2.
@@ -208,7 +234,8 @@ export function useProgressiveRecommendationPipeline({
           return (b.communityScore || 0) - (a.communityScore || 0)
         })
 
-        return filtered
+        // B1: Destaque para scores excelentes
+        return enrichWithScoreTiers(filtered)
       },
     [
       activeScope,

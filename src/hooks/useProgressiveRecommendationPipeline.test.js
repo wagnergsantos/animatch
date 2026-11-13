@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
-import { useProgressiveRecommendationPipeline } from './useProgressiveRecommendationPipeline.js'
+import { useProgressiveRecommendationPipeline, enrichWithScoreTiers } from './useProgressiveRecommendationPipeline.js'
 
 describe('useProgressiveRecommendationPipeline', () => {
   const mockEntries = [
@@ -330,5 +330,35 @@ describe('useProgressiveRecommendationPipeline', () => {
     expect(renders).toBe(rendersAfterSettle)
     expect(result.current.recommendations.length).toBe(25)
     expect(result.current.isLoadingMore).toBe(false)
+  })
+
+  describe('enrichWithScoreTiers (B1)', () => {
+    it('returns empty array for empty inputs', () => {
+      expect(enrichWithScoreTiers([])).toEqual([])
+      expect(enrichWithScoreTiers(null)).toEqual([])
+    })
+
+    it('marks scoreTier="excellent" for top 10% items with predictedScore >= 8.5', () => {
+      // 20 items: top 10% = 2 items
+      const recs = Array.from({ length: 20 }, (_, i) => ({
+        id: i + 1,
+        predictedScore: 9.5 - i * 0.2, // item 1: 9.5, item 2: 9.3, item 3: 9.1...
+      }))
+
+      const result = enrichWithScoreTiers(recs)
+      expect(result[0].scoreTier).toBe('excellent')
+      expect(result[1].scoreTier).toBe('excellent')
+      // Item 3 has 9.1 (>= 8.5) but is outside top 10% (10% of 20 = 2)
+      expect(result[2].scoreTier).toBeUndefined()
+    })
+
+    it('does not mark items as excellent if predictedScore < 8.5 even if in top 10%', () => {
+      const recs = [
+        { id: 1, predictedScore: 8.0 },
+        { id: 2, predictedScore: 7.5 },
+      ]
+      const result = enrichWithScoreTiers(recs)
+      expect(result.every((r) => !r.scoreTier)).toBe(true)
+    })
   })
 })

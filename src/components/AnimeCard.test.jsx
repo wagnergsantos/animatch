@@ -297,6 +297,30 @@ describe('AnimeCard', () => {
     expect(img).toHaveAttribute('fetchpriority', 'auto')
     expect(img).toHaveAttribute('decoding', 'async')
   })
+
+  it('renders top match badge and data-score-tier when scoreTier="excellent"', () => {
+    const anime = {
+      title: 'Top Tier Anime',
+      predictedScore: 9.2,
+      scoreTier: 'excellent',
+    }
+    const { container } = render(<AnimeCard anime={anime} />)
+    const article = container.querySelector('article')
+    expect(article).toHaveAttribute('data-score-tier', 'excellent')
+    expect(screen.getByTestId('top-match-badge')).toBeInTheDocument()
+    expect(screen.getByTestId('top-match-badge')).toHaveTextContent(/Top Match/i)
+  })
+
+  it('does not render top match badge when scoreTier is not excellent', () => {
+    const anime = {
+      title: 'Normal Anime',
+      predictedScore: 7.2,
+    }
+    const { container } = render(<AnimeCard anime={anime} />)
+    const article = container.querySelector('article')
+    expect(article).not.toHaveAttribute('data-score-tier')
+    expect(screen.queryByTestId('top-match-badge')).not.toBeInTheDocument()
+  })
 })
 
 

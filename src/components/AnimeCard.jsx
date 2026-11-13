@@ -115,6 +115,7 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
     <>
       <article
         className={styles['anime-card']}
+        data-score-tier={anime?.scoreTier || undefined}
         onClick={handleCardClick}
         onKeyDown={handleKeyDown}
         tabIndex={0}
@@ -134,6 +135,16 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
             fetchPriority={priority ? 'high' : 'auto'}
           />
           <div className={styles['anime-card__badges-overlay']}>
+            {anime?.scoreTier === 'excellent' && (
+              <span
+                className={`${styles['anime-card__badge-floating']} ${styles['anime-card__badge-floating--excellent']} ${styles['anime-card__tier-badge']}`}
+                data-testid="top-match-badge"
+                title={t('labels.topMatch')}
+              >
+                <span className={styles['anime-card__badge-icon']} aria-hidden="true">★</span>
+                <span className={styles['anime-card__badge-label']}>{t('labels.topMatch')}</span>
+              </span>
+            )}
             {anime?.predictionSource === 'community' && (
               <span
                 className={`${styles['anime-card__badge-floating']} ${styles['anime-card__badge-floating--community']}`}

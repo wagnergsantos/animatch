@@ -135,6 +135,7 @@
     "year": "年",
     "fallbackBadge": "コミュニティスコア",
     "fallbackTooltip": "このアニメのジャンルの履歴が不足しているため、コミュニティスコアを予測値として使用しています。",
+    "topMatch": "トップマッチ",
     "recommendationBreakdown": "推薦理由の詳細",
     "badge_ACCLAIMED": "💎 大好評の話題作",
     "badge_PERSONAL_BET": "🧪 個人的な穴場",
