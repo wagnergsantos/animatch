@@ -198,5 +198,27 @@ describe('idbCache', () => {
     expect(localStorage.getItem('animatch_recent_users')).toBeNull()
     expect(localStorage.getItem('other_app_key')).toBe('keep_me')
   })
+
+  it('limpa todas as caches do CacheStorage em clearAllLocalData quando disponivel', async () => {
+    const deletedCaches = []
+    const mockCaches = {
+      keys: vi.fn().mockResolvedValue(['animatch-v1', 'animatch-v2']),
+      delete: vi.fn().mockImplementation((name) => {
+        deletedCaches.push(name)
+        return Promise.resolve(true)
+      }),
+    }
+    vi.stubGlobal('caches', mockCaches)
+
+    try {
+      await clearAllLocalData()
+      expect(mockCaches.keys).toHaveBeenCalledTimes(1)
+      expect(mockCaches.delete).toHaveBeenCalledWith('animatch-v1')
+      expect(mockCaches.delete).toHaveBeenCalledWith('animatch-v2')
+      expect(deletedCaches).toEqual(['animatch-v1', 'animatch-v2'])
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
 })
 

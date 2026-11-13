@@ -228,6 +228,16 @@ export async function clearAllLocalData() {
     // ignore storage errors
   }
 
+  // Purga completa de caches do Service Worker (PWA) para conformidade legal (LGPD Art. 18 / GDPR Art. 17)
+  if (typeof caches !== 'undefined' && typeof caches.keys === 'function' && typeof caches.delete === 'function') {
+    try {
+      const cacheNames = await caches.keys()
+      await Promise.all(cacheNames.map((name) => caches.delete(name)))
+    } catch {
+      // ignore cache storage errors
+    }
+  }
+
   const db = await openDatabase()
   if (!db) return
 
