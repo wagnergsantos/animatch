@@ -12,10 +12,16 @@
               transform var(--transition-default);
 }
 
-.anime-card:hover {
+.anime-card:hover,
+.anime-card:focus-visible {
   box-shadow: 0 0 20px 2px var(--color-primary-glow);
   transform: translateY(-2px);
   z-index: 50;
+}
+
+.anime-card:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .anime-card__image-wrapper {
@@ -44,7 +50,8 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
 }
 
-.anime-card:hover .anime-card__anilist-quickbtn {
+.anime-card:hover .anime-card__anilist-quickbtn,
+.anime-card:focus-within .anime-card__anilist-quickbtn {
   opacity: 1;
 }
 
@@ -139,12 +146,14 @@
 }
 
 .anime-card:hover .anime-card__badge-floating,
+.anime-card:focus-within .anime-card__badge-floating,
 .anime-card__badge-floating:hover {
   max-width: 220px;
   padding: 4px 10px;
 }
 
 .anime-card:hover .anime-card__badge-label,
+.anime-card:focus-within .anime-card__badge-label,
 .anime-card__badge-floating:hover .anime-card__badge-label {
   opacity: 1;
 }
@@ -289,6 +298,17 @@
   background: rgba(46, 81, 162, 0.92);
   border-color: #2e51a2;
   color: #ffffff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anime-card:hover,
+  .anime-card:focus-visible {
+    transform: none;
+  }
+
+  .anime-card__anilist-quickbtn:hover {
+    transform: none;
+  }
 }
 
 

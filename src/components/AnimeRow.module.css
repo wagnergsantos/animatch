@@ -9,9 +9,15 @@
   margin-bottom: var(--space-3, 12px);
 }
 
-.anime-row-container:hover {
+.anime-row-container:hover,
+.anime-row-container:focus-within {
   border-color: var(--color-primary, #3b82f6);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.anime-row-header:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .anime-row-header {
@@ -220,5 +226,15 @@
     align-items: center;
     width: 100%;
     justify-content: space-between;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anime-row-details {
+    animation: none;
+  }
+
+  .anime-row-expand-icon {
+    transition: none;
   }
 }
