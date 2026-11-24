@@ -34,12 +34,12 @@ O robô do Google AdSense não interage com caixas de busca nem pesquisa usernam
 ---
 
 ### Fase AD2 — Adequação Legal Obrigatória (Google + LGPD + GDPR)
-- [ ] **Atualização da Política de Privacidade**:
+- [x] **Atualização da Política de Privacidade**:
   - Declarar veiculação de anúncios por terceiros (Google).
   - Explicar uso de cookies DoubleClick / Google Ads para personalização com base em visitas anteriores.
   - Incluir link obrigatório do Google: *[Como o Google usa dados ao usar sites de parceiros](https://policies.google.com/technologies/partner-sites)*.
   - Incluir links de opt-out: [Google Ads Settings](https://adssettings.google.com) e [aboutads.info](https://www.aboutads.info).
-- [ ] **Atualização dos Termos de Uso**:
+- [x] **Atualização dos Termos de Uso**:
   - Cláusula de isenção de responsabilidade sobre produtos, serviços ou links veiculados nos anúncios de terceiros.
 
 ---

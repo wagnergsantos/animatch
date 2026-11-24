@@ -124,7 +124,7 @@ export default function LegalModal({ isOpen, onClose }) {
           {activeTab === 'privacy' && (
             <div id="panel-privacy" role="tabpanel" aria-labelledby="tab-privacy" className={styles.section}>
               <h3 className={styles.sectionTitle}>Política de Privacidade</h3>
-              <p className={styles.lastUpdated}>Última atualização: 12 de novembro de 2026</p>
+              <p className={styles.lastUpdated}>Última atualização: 24 de novembro de 2026</p>
               <p className={styles.paragraph}>
                 Esta Política de Privacidade explica como o AniMatch coleta, consulta, utiliza, armazena e protege informações durante a utilização do serviço. O AniMatch busca limitar o tratamento de informações ao necessário para oferecer suas funcionalidades de análise de preferências e recomendação personalizada.
               </p>
@@ -213,14 +213,42 @@ export default function LegalModal({ isOpen, onClose }) {
                 As informações são utilizadas para consultar listas públicas, identificar preferências individuais, calcular afinidades estatísticas, gerar recomendações personalizadas, permitir sincronização multi-dispositivo e proteger o acesso às funcionalidades. O AniMatch não comercializa listas pessoais, avaliações individuais ou perfis de gosto.
               </p>
 
-              <h4 className={styles.subHeading}>8. Cookies e tecnologias de armazenamento</h4>
+              <h4 className={styles.subHeading}>8. Cookies, Armazenamento Local e Publicidade</h4>
               <p className={styles.paragraph}>
-                O AniMatch utiliza apenas recursos de armazenamento do próprio navegador (localStorage e IndexedDB) estritamente necessários ao funcionamento. O AniMatch não utiliza cookies publicitários nem ferramentas de rastreamento de terceiros para publicidade comportamental.
+                O AniMatch utiliza recursos de armazenamento do próprio navegador (<strong>localStorage</strong> e <strong>IndexedDB</strong>) estritamente necessários ao funcionamento e cache local das preferências.
               </p>
+              <p className={styles.paragraph}>
+                <strong>Publicidade de Terceiros e Cookies do Google:</strong> Para auxiliar na sustentabilidade da plataforma, o AniMatch veicula anúncios fornecidos pelo <strong>Google AdSense</strong> e seus parceiros comerciais:
+              </p>
+              <ul className={styles.list}>
+                <li>Fornecedores terceirizados, incluindo o Google, utilizam cookies (como o cookie DoubleClick) para veicular anúncios com base nas visitas anteriores do usuário a este ou a outros websites.</li>
+                <li>O uso de cookies de publicidade pelo Google permite que ele e seus parceiros veiculem anúncios com base nas visitas feitas ao AniMatch e/ou a outros sites na Internet.</li>
+                <li>O usuário pode obter mais detalhes sobre como seus dados são tratados lendo a página oficial:{' '}
+                  <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener noreferrer">
+                    Como o Google usa dados ao usar sites de parceiros
+                  </a>.
+                </li>
+              </ul>
+              <p className={styles.paragraph}>
+                <strong>Desativação de Anúncios Personalizados (Opt-out):</strong> O usuário pode, a qualquer momento, desativar a personalização de publicidade baseada em interesses através das seguintes opções:
+              </p>
+              <ul className={styles.list}>
+                <li>Acessando as{' '}
+                  <a href="https://adssettings.google.com" target="_blank" rel="noopener noreferrer">
+                    Configurações de Anúncios do Google (Google Ads Settings)
+                  </a>;
+                </li>
+                <li>Visitando o portal de autorregulação da indústria em{' '}
+                  <a href="https://www.aboutads.info/choices/" target="_blank" rel="noopener noreferrer">
+                    aboutads.info/choices
+                  </a>;
+                </li>
+                <li>Ajustando as configurações de privacidade e bloqueio de cookies de terceiros diretamente no seu navegador de internet.</li>
+              </ul>
 
               <h4 className={styles.subHeading}>9. Compartilhamento de informações</h4>
               <p className={styles.paragraph}>
-                O AniMatch não vende dados pessoais. As informações podem ser processadas por fornecedores tecnológicos estritamente necessários: Supabase (autenticação e banco de dados), Google (autenticação OAuth, quando acionada), GitHub Pages (hospedagem) e provedores AniList, Kitsu e MyAnimeList (fornecimento de metadados públicos).
+                O AniMatch não vende dados pessoais. As informações podem ser processadas por fornecedores tecnológicos estritamente necessários: Supabase (autenticação e banco de dados), Cloudflare (hospedagem e CDN), Google (autenticação OAuth e veiculação de anúncios/métricas pelo AdSense) e provedores AniList, Kitsu e MyAnimeList (fornecimento de metadados públicos).
               </p>
 
               <h4 className={styles.subHeading}>10. Armazenamento e transferência internacional</h4>
@@ -261,7 +289,7 @@ export default function LegalModal({ isOpen, onClose }) {
           {activeTab === 'terms' && (
             <div id="panel-terms" role="tabpanel" aria-labelledby="tab-terms" className={styles.section}>
               <h3 className={styles.sectionTitle}>Termos de Uso</h3>
-              <p className={styles.lastUpdated}>Última atualização: 12 de novembro de 2026</p>
+              <p className={styles.lastUpdated}>Última atualização: 24 de novembro de 2026</p>
               <p className={styles.paragraph}>
                 Ao utilizar o AniMatch, o usuário declara que leu e compreendeu estes Termos de Uso.
               </p>
@@ -306,9 +334,12 @@ export default function LegalModal({ isOpen, onClose }) {
                 O serviço é disponibilizado gratuitamente "no estado em que se encontra" (<em>as is</em>). Não há garantia de funcionamento ininterrupto ou compatibilidade permanente com todos os navegadores.
               </p>
 
-              <h4 className={styles.subHeading}>9. Responsabilidades</h4>
+              <h4 className={styles.subHeading}>9. Responsabilidades e Anúncios de Terceiros</h4>
               <p className={styles.paragraph}>
                 O usuário é responsável por suas credenciais e pelo uso em conformidade com a legislação. O AniMatch não se responsabiliza por indisponibilidades de terceiros nem por decisões tomadas exclusivamente com base nas notas estimadas.
+              </p>
+              <p className={styles.paragraph}>
+                <strong>Isenção sobre Anúncios e Conteúdos Externos:</strong> O AniMatch pode exibir anúncios publicitários e links de terceiros fornecidos por redes automatizadas (como o Google AdSense). O AniMatch não controla, endossa ou garante os produtos, serviços, ofertas ou conteúdos apresentados nesses anúncios. Qualquer interação, compra ou contratação realizada pelo usuário com anunciantes de terceiros constitui relação jurídica exclusiva entre o usuário e o respectivo anunciante, sem qualquer responsabilidade do AniMatch.
               </p>
 
               <h4 className={styles.subHeading}>10. Privacidade e proteção de dados</h4>
