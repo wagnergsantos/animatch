@@ -185,13 +185,18 @@ Ao clicar ou expandir um card/modal de recomendação, apresentar a justificativ
 
 ---
 
-### [x] B2. Modo Decisão & Descoberta ("Escolha pra mim") (#9, #20) (Concluído ✅)
+### [x] B2. Modo Decisão & Descoberta ("Escolha pra mim") (#9, #20) (Concluído ✅ / Botão em UI Comentado)
 
-Em listas extensas (200+ itens no Planning), a ordenação tradicional gera **paralisia por análise**. O Modo Decisão resolve esse problema oferecendo um botão flutuante/destacado `✨ Escolher por mim` com suporte a 3 modos principais:
+Em listas extensas (200+ itens no Planning), a ordenação tradicional gera **paralisia por análise**. O Modo Decisão resolve esse problema oferecendo um modal de decisão e sorteio com suporte a 3 modos principais:
 
 1. 🎯 **Melhor Escolha**: Retorna estritamente o recomendador #1 com alta compatibilidade.
 2. 🎲 **Surpreenda-me (Sorteio Ponderado Top 20)**: Amostragem probabilística decrescente entre o Top 20 da recomendação.
 3. ⚡ **Quero Começar Hoje**: Prioriza animes do Planning com poucos episódios ($\le$ 12-24 eps), disponíveis nas assinaturas ativas do usuário.
+
+> **Nota de Interface & Backlog de Habilitação:**
+> - O botão flutuante (`FloatingRandomizerButton` / "Escolha pra mim") foi temporariamente comentado em `src/components/Dashboard.jsx` para simplificar e despoluir a visualização padrão.
+> - A infraestrutura completa (`decision.js`, `DecisionModal.jsx`, `streaming.js`) permanece funcional e testada.
+> - **Proposta de reativação configurável:** Adicionar opção de alternância (toggle) em `SettingsPage.jsx` (ex: "Exibir botão 'Escolha pra mim'") persistida no `user_settings` (Supabase / `localStorage`), permitindo que cada usuário escolha se deseja manter o botão ativo na tela de recomendações. Alternativamente, expor o acionamento via atalho de teclado ou menu secundário de visualização.
 
 ---
 
@@ -277,7 +282,7 @@ Novas funcionalidades sugeridas para evolução de produto, separadas das melhor
 | 5 | A5 — hook `useLocalStorage` (#6) | Correção | 🟡 Média | ✅ Concluído | Hook centralizado e limpo em `App.jsx`. |
 | 6 | A1 + A4 (#7) | Correção | 🟡 Média | ✅ Concluído | LRU cache com índice + desacoplamento de constantes e options. |
 | 7 | A6 — cleanup legados (#8) | Correção | 🟡 Média | ✅ Concluído | Remoção de artefatos legados na raiz do repositório. |
-| 8 | B2 — Modo Decisão (#9, #20) | Produto (v2) | 🚀 Features | ✅ Concluído | Sorteio ponderado Top 20, filtros de streaming e modo rápido. |
+| 8 | B2 — Modo Decisão (#9, #20) | Produto (v2) | 🚀 Features | ✅ Concluído (UI comentada) | Lógica pronta; botão comentado no Dashboard; mapeada reativação configurável. |
 | 9 | B6 — Sync Supabase (#1, #10) | Produto (v2) | 🚀 Features | ✅ Concluído | Login Supabase Auth, settings sync, multi-provider accounts e SettingsPage. |
 | 10 | B7 — Recomendação Multi-Provider (#14) | Produto (v2) | 🚀 Features | ✅ Concluído | Fusão de perfis e deduplicação com multi-presence boost. |
 | 11 | B8 — Offline-First & Supabase Sync (#16) | Produto / Infra | 🚀 Features | ✅ Concluído | IndexedDB (TTL 6h + SWR offline) + persistência multi-dispositivo no Supabase. |

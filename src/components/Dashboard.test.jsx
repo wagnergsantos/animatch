@@ -442,7 +442,8 @@ describe('Dashboard', () => {
     expect(screen.queryByText('Old Anime')).not.toBeInTheDocument()
   })
 
-  it('renders FloatingRandomizerButton and opens and closes DecisionModal', async () => {
+  // Teste pulado: botão FloatingRandomizerButton temporariamente comentado na UI (ver docs/roadmap_v2.md B2).
+  it.skip('renders FloatingRandomizerButton and opens and closes DecisionModal', async () => {
     render(<Dashboard allEntries={mockEntries} username="testuser" onLogout={vi.fn()} />)
 
     await waitFor(() => {

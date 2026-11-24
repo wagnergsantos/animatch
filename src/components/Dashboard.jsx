@@ -12,7 +12,7 @@ import ResultsActions from './ResultsActions.jsx'
 import StatisticsPage from './StatisticsPage.jsx'
 import GenreRecommendationModal from './GenreRecommendationModal.jsx'
 import SettingsPage from './SettingsPage.jsx'
-import FloatingRandomizerButton from './FloatingRandomizerButton.jsx'
+// import FloatingRandomizerButton from './FloatingRandomizerButton.jsx'
 import DecisionModal from './DecisionModal.jsx'
 import AnimeDetailModal from './AnimeDetailModal.jsx'
 import WrappedModal from './WrappedModal.jsx'
@@ -512,12 +512,13 @@ export default function Dashboard({
 
       <InstitutionalFooter onOpenLegalModal={onOpenLegalModal} />
 
-      {activeTab === 'recommendations' && recommendations.length > 0 && (
+      {/* Botão "Escolha pra mim" temporariamente comentado. Possibilidade de habilitar via configuração mapeada no docs/roadmap_v2.md (B2). */}
+      {/* {activeTab === 'recommendations' && recommendations.length > 0 && (
         <FloatingRandomizerButton
           onClick={() => setIsDecisionModalOpen(true)}
           count={recommendations.length}
         />
-      )}
+      )} */}
 
       <DecisionModal
         isOpen={isDecisionModalOpen}
