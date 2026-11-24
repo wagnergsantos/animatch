@@ -99,11 +99,9 @@ export default function LoginScreen({
       {/* 2. Hero: Chamada Expressiva + Slogan */}
       <section className={styles['hero-section']}>
         <h1 className={styles['hero-headline']}>
-          Descubra animes que combinam com seu gosto
+          Seu gosto por anime é único.<br />
+          Suas recomendações também.
         </h1>
-        <p className={styles['hero-slogan']}>
-          Seu gosto por anime é único. Suas recomendações também deveriam ser.
-        </p>
       </section>
 
       {/* Conteúdo Principal */}
@@ -118,21 +116,35 @@ export default function LoginScreen({
           </div>
           <div className={styles['feature-grid']}>
             <div className={styles['feature-card']}>
-              <span className={styles['feature-icon']} aria-hidden="true">🔗</span>
+              <div className={styles['feature-icon-wrapper']} aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18.2929 5.7071C16.4743 3.88849 13.5257 3.88849 11.7071 5.7071L10.7071 6.7071C10.3166 7.09763 9.68341 7.09763 9.29289 6.7071C8.90236 6.31658 8.90236 5.68341 9.29289 5.29289L10.2929 4.29289C12.8926 1.69322 17.1074 1.69322 19.7071 4.29289C22.3068 6.89255 22.3068 11.1074 19.7071 13.7071L18.7071 14.7071C18.3166 15.0976 17.6834 15.0976 17.2929 14.7071C16.9024 14.3166 16.9024 13.6834 17.2929 13.2929L18.2929 12.2929C20.1115 10.4743 20.1115 7.52572 18.2929 5.7071ZM15.7071 8.29289C16.0976 8.68341 16.0976 9.31658 15.7071 9.7071L9.7071 15.7071C9.31658 16.0976 8.68341 16.0976 8.29289 15.7071C7.90236 15.3166 7.90236 14.6834 8.29289 14.2929L14.2929 8.29289C14.6834 7.90236 15.3166 7.90236 15.7071 8.29289ZM6.7071 9.29289C7.09763 9.68341 7.09763 10.3166 6.7071 10.7071L5.7071 11.7071C3.88849 13.5257 3.88849 16.4743 5.7071 18.2929C7.52572 20.1115 10.4743 20.1115 12.2929 18.2929L13.2929 17.2929C13.6834 16.9024 14.3166 16.9024 14.7071 17.2929C15.0976 17.6834 15.0976 18.3166 14.7071 18.7071L13.7071 19.7071C11.1074 22.3068 6.89255 22.3068 4.29289 19.7071C1.69322 17.1074 1.69322 12.8926 4.29289 10.2929L5.29289 9.29289C5.68341 8.90236 6.31658 8.90236 6.7071 9.29289Z" />
+                </svg>
+              </div>
               <h3 className={styles['feature-title']}>1. Conecte sua lista</h3>
               <p className={styles['feature-desc']}>
                 Informe seu usuário do AniList, Kitsu ou MyAnimeList. Utilizamos apenas os dados públicos das suas listas.
               </p>
             </div>
             <div className={styles['feature-card']}>
-              <span className={styles['feature-icon']} aria-hidden="true">📊</span>
+              <div className={styles['feature-icon-wrapper']} aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M11.33 5H12.66C13.2123 5 13.66 5.44771 13.66 6V19H10.33V6C10.33 5.44772 10.7777 5 11.33 5ZM15.66 19V9H18C18.5523 9 19 9.44772 19 10V18C19 18.5523 18.5523 19 18 19H15.66ZM15.66 7V6C15.66 4.34315 14.3169 3 12.66 3H11.33C9.67315 3 8.33 4.34315 8.33 6V11H6C4.34314 11 3 12.3431 3 14V18C3 19.6569 4.34315 21 6 21H18C19.6569 21 21 19.6569 21 18V10C21 8.34315 19.6569 7 18 7H15.66ZM8.33 13V19H6C5.44772 19 5 18.5523 5 18V14C5 13.4477 5.44771 13 6 13H8.33Z" />
+                </svg>
+              </div>
               <h3 className={styles['feature-title']}>2. Descubra seu perfil</h3>
               <p className={styles['feature-desc']}>
                 Analisamos suas avaliações para identificar os gêneros que você mais gosta, utilizando uma análise estatística.
               </p>
             </div>
             <div className={styles['feature-card']}>
-              <span className={styles['feature-icon']} aria-hidden="true">🎯</span>
+              <div className={styles['feature-icon-wrapper']} aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <circle cx="12" cy="12" r="6" />
+                  <circle cx="12" cy="12" r="2" />
+                </svg>
+              </div>
               <h3 className={styles['feature-title']}>3. Encontre seu próximo anime</h3>
               <p className={styles['feature-desc']}>
                 Comparamos seu perfil com sua lista para assistir e estimamos quais animes têm maior chance de agradar você.
@@ -304,28 +316,50 @@ export default function LoginScreen({
 
         {/* 6. Perguntas Frequentes (FAQ) */}
         <section className={styles['faq-section']} aria-labelledby="faq-title">
-          <h2 id="faq-title" className={styles['section-title']}>Perguntas Frequentes (FAQ)</h2>
+          <div className={styles['section-header']}>
+            <h2 id="faq-title" className={styles['section-title']}>Perguntas Frequentes (FAQ)</h2>
+          </div>
           <div className={styles['faq-list']}>
             <details className={styles['faq-item']}>
-              <summary className={styles['faq-question']}>Preciso criar conta ou informar minha senha?</summary>
+              <summary className={styles['faq-question']}>
+                <span>Preciso criar conta ou informar minha senha?</span>
+                <svg className={styles['faq-chevron']} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </summary>
               <p className={styles['faq-answer']}>
                 Não. Para obter recomendações e explorar suas estatísticas, basta informar o nome de usuário público do AniList, Kitsu ou MyAnimeList. O login é opcional apenas para quem deseja sincronizar configurações na nuvem.
               </p>
             </details>
             <details className={styles['faq-item']}>
-              <summary className={styles['faq-question']}>O que significa a nota prevista (predictedScore)?</summary>
+              <summary className={styles['faq-question']}>
+                <span>O que significa a nota prevista (predictedScore)?</span>
+                <svg className={styles['faq-chevron']} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </summary>
               <p className={styles['faq-answer']}>
                 É uma estimativa estatística de qual nota você atribuiria àquele anime, calculada a partir do cruzamento entre os gêneros da obra e o seu histórico de notas nos animes concluídos.
               </p>
             </details>
             <details className={styles['faq-item']}>
-              <summary className={styles['faq-question']}>Por que o AniMatch usa cálculo Bayesiano?</summary>
+              <summary className={styles['faq-question']}>
+                <span>Por que o AniMatch usa cálculo Bayesiano?</span>
+                <svg className={styles['faq-chevron']} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </summary>
               <p className={styles['faq-answer']}>
                 Para evitar distorções estatísticas. Se você assistiu a apenas 1 anime de Mecha e deu nota 10, a média simples sugeriria que você ama Mecha acima de tudo. A suavização Bayesiana equilibra isso com base na sua média geral de notas.
               </p>
             </details>
             <details className={styles['faq-item']}>
-              <summary className={styles['faq-question']}>Onde meus dados são armazenados?</summary>
+              <summary className={styles['faq-question']}>
+                <span>Onde meus dados são armazenados?</span>
+                <svg className={styles['faq-chevron']} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </summary>
               <p className={styles['faq-answer']}>
                 Por padrão, todo o processamento e armazenamento ocorrem no navegador do próprio visitante (IndexedDB e localStorage). Nenhum dado pessoal é comercializado.
               </p>

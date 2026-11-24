@@ -98,36 +98,26 @@
 .hero-section {
   text-align: center;
   max-width: 760px;
-  margin: var(--space-4) auto var(--space-10) auto;
+  margin: var(--space-4) auto var(--space-12) auto;
 }
 
 .hero-headline {
-  font-size: clamp(var(--text-xl), 4vw, 2.75rem);
-  font-weight: 800;
+  font-size: clamp(var(--text-lg), 3.2vw, 2.25rem);
+  font-weight: 700;
   color: var(--color-ink);
-  letter-spacing: -0.03em;
-  margin: 0 auto var(--space-3) auto;
-  line-height: 1.15;
-  text-wrap: balance;
-}
-
-.hero-slogan {
-  font-size: clamp(var(--text-sm), 2vw, var(--text-md));
-  font-weight: 500;
-  color: var(--color-muted);
+  letter-spacing: -0.02em;
   margin: 0 auto;
-  max-width: 560px;
-  line-height: 1.5;
+  line-height: 1.35;
   text-wrap: balance;
 }
 
-/* Container Principal do Conteúdo */
+/* Container Principal do Conteúdo (Espaçamento vertical consistente: 40-48px) */
 .content-wrapper {
   width: 100%;
   max-width: 860px;
   display: flex;
   flex-direction: column;
-  gap: var(--space-12);
+  gap: 2.75rem; /* ~44px */
 }
 
 /* 3. Como o AniMatch funciona & Cards */
@@ -173,10 +163,12 @@
   border-color: var(--color-primary);
 }
 
-.feature-icon {
-  font-size: 2rem;
+.feature-icon-wrapper {
+  color: var(--color-primary);
   margin-bottom: var(--space-3);
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
   line-height: 1;
 }
 
@@ -185,11 +177,14 @@
   font-weight: 700;
   color: var(--color-primary);
   margin: 0 0 var(--space-2) 0;
+  min-height: 2.6em; /* Padroniza alinhamento dos títulos */
+  display: flex;
+  align-items: center;
 }
 
 .feature-desc {
   font-size: var(--text-sm);
-  color: var(--color-muted);
+  color: oklch(0.72 0.005 240); /* Contraste aumentado e nítido */
   line-height: 1.6;
   margin: 0;
 }
@@ -443,36 +438,45 @@
   justify-content: center;
   gap: var(--space-2);
   width: 100%;
-  padding: var(--space-3) var(--space-4);
+  padding: 0.85rem var(--space-4);
   font-family: var(--font-family);
   font-size: var(--text-base);
-  font-weight: 600;
-  color: var(--color-ink);
+  font-weight: 700;
+  color: oklch(0.12 0.02 240); /* Texto escuro bem nítido */
   background-color: var(--color-primary);
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md, 8px);
   cursor: pointer;
-  transition: background-color var(--transition-default);
+  box-shadow: 0 0 16px var(--color-primary-glow);
+  transition: all var(--transition-default);
 }
 
 .login-button:hover:not(:disabled) {
   background-color: var(--color-primary-hover);
+  box-shadow: 0 0 24px oklch(0.72 0.14 195 / 0.35);
+  transform: translateY(-1px);
 }
 
 .login-button:active:not(:disabled) {
   background-color: var(--color-primary-active);
+  transform: translateY(0);
 }
 
 .login-button:disabled {
-  opacity: 0.4;
+  background-color: oklch(0.18 0.01 240);
+  color: oklch(0.50 0.005 240);
+  border: 1px solid var(--color-border);
+  box-shadow: none;
+  opacity: 0.8;
   cursor: not-allowed;
+  transform: none;
 }
 
 .login-spinner {
   display: inline-block;
   width: 1em;
   height: 1em;
-  border: 2px solid var(--color-ink);
+  border: 2px solid currentColor;
   border-top-color: transparent;
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
@@ -556,12 +560,13 @@
   background: var(--surface-2);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md, 8px);
-  padding: var(--space-4) var(--space-5);
-  transition: border-color var(--transition-default);
+  padding: 1.15rem 1.4rem; /* Accordions mais altos com mais respiro */
+  transition: all var(--transition-default);
 }
 
 .faq-item[open] {
   border-color: var(--color-primary);
+  background: oklch(0.16 0.008 240);
 }
 
 .faq-question {
@@ -574,21 +579,21 @@
   justify-content: space-between;
   align-items: center;
   user-select: none;
+  text-align: left;
 }
 
 .faq-question::-webkit-details-marker {
   display: none;
 }
 
-.faq-question::after {
-  content: '⌄';
-  font-size: 1.3rem;
+.faq-chevron {
   color: var(--color-muted);
-  line-height: 1;
-  transition: transform var(--transition-default);
+  flex-shrink: 0;
+  margin-left: var(--space-3);
+  transition: transform var(--transition-default), color var(--transition-default);
 }
 
-.faq-item[open] .faq-question::after {
+.faq-item[open] .faq-chevron {
   transform: rotate(180deg);
   color: var(--color-primary);
 }
@@ -596,8 +601,9 @@
 .faq-answer {
   margin-top: var(--space-3);
   font-size: var(--text-sm);
-  color: var(--color-muted);
+  color: oklch(0.72 0.005 240); /* Mais legível */
   line-height: 1.6;
+  text-align: left;
 }
 
 /* 7. Rodapé com links institucionais (Alinhamento limpo) */
