@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import useLocalStorage from '../hooks/useLocalStorage.js'
 import { STORAGE_KEYS } from '../lib/storageKeys.js'
 import InstitutionalFooter from './InstitutionalFooter.jsx'
+import AnimeCard from './AnimeCard.jsx'
 import styles from './LoginScreen.module.css'
 
 export default function LoginScreen({
@@ -155,36 +156,42 @@ export default function LoginScreen({
           </div>
         </section>
 
-        {/* 4. Exemplo de recomendação */}
+        {/* 4. Exemplo real de recomendação (Fiel aos cards do Dashboard) */}
         <section className={styles['example-section']} aria-label="Exemplo de Recomendação">
           <div className={styles['example-header-row']}>
             <span className={styles['example-tag']}>EXEMPLO DE RECOMENDAÇÃO</span>
             <div className={styles['example-line']} aria-hidden="true"></div>
           </div>
-          <div className={styles['example-card']}>
-            <div className={styles['example-left']}>
-              <img
-                src="/frieren-sample.webp"
-                alt="Frieren: Beyond Journey's End"
-                className={styles['example-thumb']}
-                loading="lazy"
-              />
-              <div className={styles['example-details']}>
-                <div className={styles['example-title-row']}>
-                  <h3 className={styles['example-title']}>Frieren: Beyond Journey's End</h3>
-                  <span className={styles['example-badge']}>Alta afinidade</span>
-                </div>
-                <p className={styles['example-genres']}>Aventura • Fantasia • Drama</p>
-              </div>
-            </div>
-            <div className={styles['example-divider']} aria-hidden="true"></div>
-            <div className={styles['example-score-box']}>
-              <div className={styles['example-score-val']}>
-                <span className={styles['example-star']} aria-hidden="true">★</span>
-                <span>9,4</span>
-              </div>
-              <span className={styles['example-score-label']}>NOTA PREVISTA</span>
-            </div>
+          <p className={styles['example-intro']}>
+            Como uma obra da sua lista <em>Plan to Watch</em> é pontuada e apresentada:
+          </p>
+          <div className={styles['example-card-wrapper']}>
+            <AnimeCard
+              anime={{
+                id: 154587,
+                title: "Frieren: Beyond Journey's End",
+                titleObj: {
+                  english: "Frieren: Beyond Journey's End",
+                  romaji: "Sousou no Frieren",
+                },
+                coverImage: "/frieren-sample.webp",
+                year: 2023,
+                episodes: 28,
+                status: "FINISHED",
+                predictedScore: 9.40,
+                communityScore: 9.14,
+                scoreTier: "excellent",
+                predictionSource: "ensemble",
+                topContributingGenres: [
+                  { genre: 'Aventura' },
+                  { genre: 'Fantasia' },
+                ],
+                genres: ['Aventura', 'Fantasia', 'Drama'],
+                planningProviders: ['anilist'],
+                siteUrl: 'https://anilist.co/anime/154587',
+              }}
+              titlePref="english"
+            />
           </div>
         </section>
 
