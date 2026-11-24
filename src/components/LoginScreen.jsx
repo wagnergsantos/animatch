@@ -166,43 +166,61 @@ export default function LoginScreen({
           </p>
 
           <article className={styles['example-horizontal-card']}>
-            <div className={styles['example-content-left']}>
-              <div className={styles['example-top-row']}>
-                <span className={styles['example-badge-top']}>★ Top Match</span>
-                <span className={styles['example-meta']}>2023 • 28 eps • Finalizado</span>
+            {/* Imagem à esquerda com destaque ampliado */}
+            <div className={styles['example-image-container']}>
+              <img
+                src="/frieren-sample.webp"
+                alt="Frieren: Beyond Journey's End"
+                className={styles['example-thumb']}
+                loading="lazy"
+              />
+              <span className={styles['example-badge-overlay']}>★ Top Match</span>
+            </div>
+
+            {/* Conteúdo detalhado à direita */}
+            <div className={styles['example-content-right']}>
+              <div className={styles['example-header-meta']}>
+                <span className={styles['example-meta-text']}>2023 • 28 eps • Finalizado</span>
+                <a
+                  href="https://anilist.co/anime/154587"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles['example-provider-btn']}
+                  title="Abrir no AniList"
+                >
+                  AniList ↗
+                </a>
               </div>
 
               <h3 className={styles['example-title']}>Frieren: Beyond Journey's End</h3>
               <p className={styles['example-subtitle']}>Sousou no Frieren</p>
 
-              <div className={styles['example-scores']}>
-                <span className={styles['example-predicted']}>
-                  <strong>Match Previsto:</strong> 9.40/10
-                </span>
-                <span className={styles['example-community']}>
-                  Média: 9.14/10
-                </span>
+              {/* Match previsto na linha de cima, Média na de baixo */}
+              <div className={styles['example-scores-stacked']}>
+                <div className={styles['example-predicted-row']}>
+                  <span className={styles['example-score-label']}>Match Previsto:</span>
+                  <span className={styles['example-predicted-val']}>9.40/10</span>
+                </div>
+                <div className={styles['example-community-row']}>
+                  <span className={styles['example-score-label']}>Média da comunidade:</span>
+                  <span className={styles['example-community-val']}>9.14/10</span>
+                </div>
               </div>
 
-              <p className={styles['example-reason']}>
-                Alta afinidade calculada com base no seu apreço por <strong>Aventura</strong> e <strong>Fantasia</strong>.
-              </p>
+              {/* Explicação de afinidade destacada com ícone */}
+              <div className={styles['example-reason-box']}>
+                <span className={styles['example-reason-icon']} aria-hidden="true">💡</span>
+                <p className={styles['example-reason-text']}>
+                  Alta afinidade calculada com base no seu apreço por <strong>Aventura</strong> e <strong>Fantasia</strong>.
+                </p>
+              </div>
 
+              {/* Gêneros */}
               <div className={styles['example-genres']}>
                 <span className={styles['example-genre-pill']}>Aventura</span>
                 <span className={styles['example-genre-pill']}>Fantasia</span>
                 <span className={styles['example-genre-pill']}>Drama</span>
               </div>
-            </div>
-
-            <div className={styles['example-image-right']}>
-              <img
-                src="/frieren-sample.webp"
-                alt="Frieren: Beyond Journey's End"
-                className={styles['example-thumb-43']}
-                loading="lazy"
-              />
-              <span className={styles['example-provider-pill']}>AniList ↗</span>
             </div>
           </article>
         </section>
