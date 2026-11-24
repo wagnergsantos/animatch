@@ -54,211 +54,79 @@ export default function LoginScreen({
 
   return (
     <div className={styles['login-screen']}>
-      <div className={styles['login-header-actions']}>
-        {!user ? (
-          <button
-            type="button"
-            className={styles['cloud-auth-btn']}
-            onClick={() => onOpenAuthModal?.()}
-            aria-label={t('auth.login', 'Entrar / Sincronizar')}
-          >
-            <span aria-hidden="true">☁️</span> {t('auth.login', 'Entrar / Sincronizar')}
-          </button>
-        ) : (
-          <div className={styles['cloud-user-badge']}>
-            <span className={styles['cloud-user-email']}><span aria-hidden="true">👤</span> {user.email}</span>
-            <span
-              className={`${styles['cloud-sync-status']} ${styles[`cloud-sync-status--${syncStatus}`]}`}
-              title={
-                syncStatus === 'syncing'
-                  ? t('auth.sync_status_syncing', 'Sincronizando...')
-                  : syncStatus === 'error'
-                  ? t('auth.sync_status_error', 'Erro ao sincronizar')
-                  : syncStatus === 'offline'
-                  ? t('auth.sync_status_offline', 'Modo Offline (LocalStorage)')
-                  : t('auth.sync_status_synced', 'Sincronizado na nuvem')
-              }
-            >
-              <span aria-hidden="true">
-                {syncStatus === 'syncing' ? '⏳' : syncStatus === 'error' ? '⚠️' : syncStatus === 'offline' ? '📴' : '☁️'}
-              </span>
-            </span>
-          </div>
-        )}
-        <ThemeToggle />
-      </div>
-      <div className={styles['login-container']}>
-        <h1 className={styles['login-title']}>{t('login.title')}</h1>
-        <p className={styles['login-subtitle']}>{t('login.subtitle')}</p>
-        <form className={styles['login-form']} onSubmit={handleSubmit}>
-          <div className={styles['provider-selector']} role="tablist" aria-label={t('login.providerSelectorLabel') || 'Provedor de animes'}>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={provider === 'anilist'}
-              className={`${styles['provider-pill']} ${provider === 'anilist' ? styles['provider-pill--active'] : ''}`}
-              onClick={() => handleProviderChange('anilist')}
-              disabled={isLoading}
-            >
-              {t('providers.anilist')}
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={provider === 'kitsu'}
-              className={`${styles['provider-pill']} ${provider === 'kitsu' ? styles['provider-pill--active'] : ''}`}
-              onClick={() => handleProviderChange('kitsu')}
-              disabled={isLoading}
-            >
-              {t('providers.kitsu')}
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={provider === 'mal'}
-              className={`${styles['provider-pill']} ${provider === 'mal' ? styles['provider-pill--active'] : ''}`}
-              onClick={() => handleProviderChange('mal')}
-              disabled={isLoading}
-            >
-              {t('providers.mal')}
-            </button>
-          </div>
-          <label htmlFor="username-input" className={styles['login-label']}>
-            {t('login.usernameLabel', { provider: providerLabel })}
-          </label>
-          <input
-            ref={inputRef}
-            id="username-input"
-            className={`${styles['login-input']} ${error ? styles['login-input--error'] : ''}`}
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder={t('login.usernamePlaceholder', { provider: providerLabel })}
-            autoComplete="off"
-            disabled={isLoading}
-            aria-invalid={Boolean(error)}
-            aria-describedby={error ? 'username-error' : undefined}
-          />
-          {error && (
-            <p id="username-error" className={styles['login-error']} role="alert">
-              {error}
-            </p>
-          )}
-          <button
-            className={styles['login-button']}
-            type="submit"
-            disabled={isLoading || !username.trim()}
-          >
-            {isLoading ? (
-              <>
-                <span className={styles['login-spinner']} aria-hidden="true" data-testid="login-spinner" />
-                {t('login.loading')}
-              </>
-            ) : (
-              t('login.submit')
-            )}
-          </button>
-        </form>
+      {/* 1. Barra de Navegação Superior */}
+      <header className={styles['top-nav']}>
+        <a href="/" className={styles['brand-logo']}>
+          <img src="/favicon.svg" alt="AniMatch Logo" className={styles['brand-icon']} />
+          <span className={styles['brand-text']}>AniMatch</span>
+        </a>
 
-        {recentUsers.length > 0 && (
-          <div className="recent-users" style={{ marginTop: 'var(--space-6)', textAlign: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-2)' }}>
-              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-2)', margin: 0 }}>
-                {t('login.recentQueries')}
-              </p>
-              <button
-                type="button"
-                data-testid="clear-recent-users-btn"
-                onClick={() => {
-                  try {
-                    localStorage.removeItem(STORAGE_KEYS.RECENT_USERS)
-                  } catch {
-                    // ignore
-                  }
-                  onClearRecentUsers?.()
-                }}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'var(--text-3, #94a3b8)',
-                  fontSize: 'var(--text-xs)',
-                  textDecoration: 'underline',
-                  cursor: 'pointer',
-                  padding: '0 0.25rem',
-                }}
+        <div className={styles['top-nav-actions']}>
+          {!user ? (
+            <button
+              type="button"
+              className={styles['cloud-auth-btn']}
+              onClick={() => onOpenAuthModal?.()}
+              aria-label={t('auth.login', 'Entrar / Sincronizar')}
+            >
+              <span aria-hidden="true">☁️</span> {t('auth.login', 'Entrar / Sincronizar')}
+            </button>
+          ) : (
+            <div className={styles['cloud-user-badge']}>
+              <span className={styles['cloud-user-email']}><span aria-hidden="true">👤</span> {user.email}</span>
+              <span
+                className={`${styles['cloud-sync-status']} ${styles[`cloud-sync-status--${syncStatus}`]}`}
+                title={
+                  syncStatus === 'syncing'
+                    ? t('auth.sync_status_syncing', 'Sincronizando...')
+                    : syncStatus === 'error'
+                    ? t('auth.sync_status_error', 'Erro ao sincronizar')
+                    : syncStatus === 'offline'
+                    ? t('auth.sync_status_offline', 'Modo Offline (LocalStorage)')
+                    : t('auth.sync_status_synced', 'Sincronizado na nuvem')
+                }
               >
-                {t('login.clearHistory', 'Limpar histórico')}
-              </button>
+                <span aria-hidden="true">
+                  {syncStatus === 'syncing' ? '⏳' : syncStatus === 'error' ? '⚠️' : syncStatus === 'offline' ? '📴' : '☁️'}
+                </span>
+              </span>
             </div>
-            <div style={{ display: 'flex', gap: 'var(--space-2)', justifyContent: 'center', flexWrap: 'wrap' }}>
-              {recentUsers.map((item) => {
-                const uName = typeof item === 'string' ? item : item.username
-                const uProv = typeof item === 'string' ? 'anilist' : item.provider
-                const provLabel = t(`providers.${uProv}`, uProv)
-                return (
-                  <button
-                    key={`${uName}-${uProv}`}
-                    type="button"
-                    onClick={() => onSubmit(uName, uProv)}
-                    disabled={isLoading}
-                    style={{
-                      background: 'var(--surface-2)',
-                      border: '1px solid var(--color-border)',
-                      color: 'var(--color-primary)',
-                      padding: 'var(--space-1) var(--space-3)',
-                      borderRadius: 'var(--radius-full)',
-                      fontSize: 'var(--text-sm)',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    @{uName} ({provLabel})
-                  </button>
-                )
-              })}
-            </div>
+          )}
+          <ThemeToggle />
+        </div>
+      </header>
+
+      {/* 2. Hero: Logo + Slogan */}
+      <section className={styles['hero-section']}>
+        <h1 className={styles['hero-title']}>AniMatch</h1>
+        <p className={styles['hero-slogan']}>
+          Seu gosto por anime é único. Suas recomendações também deveriam ser.
+        </p>
+      </section>
+
+      {/* Conteúdo Principal */}
+      <main className={styles['content-wrapper']}>
+        {/* 3. Como o AniMatch funciona & Os três cards */}
+        <section aria-labelledby="how-it-works-title">
+          <div className={styles['section-header']}>
+            <h2 id="how-it-works-title" className={styles['section-title']}>Como o AniMatch funciona</h2>
+            <p className={styles['section-subtitle']}>
+              Descubra animes que combinam com o seu gosto, não apenas com o que é popular.
+            </p>
           </div>
-        )}
-
-        <footer style={{ marginTop: 'var(--space-6)', textAlign: 'center' }}>
-          <button
-            type="button"
-            data-testid="open-legal-modal-btn"
-            onClick={() => onOpenLegalModal?.()}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--text-3, #94a3b8)',
-              fontSize: 'var(--text-xs)',
-              textDecoration: 'underline',
-              cursor: 'pointer',
-              padding: '0.25rem 0.5rem',
-            }}
-          >
-            {t('legal.footer_link', 'Sobre, Privacidade & Termos')}
-          </button>
-        </footer>
-      </div>
-
-      {/* Conteúdo textual rico para SEO, rastreadores do AdSense e apresentação */}
-      <section className={styles['landing-content']}>
-        <div>
-          <h2 className={styles['section-heading']}>Como o AniMatch funciona</h2>
-          <p className={styles['section-subheading']}>
-            Descubra animes que combinam com o seu gosto, não apenas com o que é popular.
-          </p>
           <div className={styles['feature-grid']}>
             <div className={styles['feature-card']}>
               <span className={styles['feature-icon']} aria-hidden="true">🔗</span>
               <h3 className={styles['feature-title']}>1. Conecte sua lista</h3>
               <p className={styles['feature-desc']}>
-                Informe seu usuário do AniList, Kitsu ou MyAnimeList. Utilizamos apenas os dados públicos das suas listas, sem precisar de senha ou permissões invasivas.
+                Informe seu usuário do AniList, Kitsu ou MyAnimeList. Utilizamos apenas os dados públicos das suas listas.
               </p>
             </div>
             <div className={styles['feature-card']}>
               <span className={styles['feature-icon']} aria-hidden="true">📊</span>
               <h3 className={styles['feature-title']}>2. Descubra seu perfil</h3>
               <p className={styles['feature-desc']}>
-                Analisamos suas avaliações para identificar os gêneros que você mais gosta, utilizando uma análise estatística Bayesiana para equilibrar preferências e evitar distorções.
+                Analisamos suas avaliações para identificar os gêneros que você mais gosta, utilizando uma análise estatística.
               </p>
             </div>
             <div className={styles['feature-card']}>
@@ -269,35 +137,172 @@ export default function LoginScreen({
               </p>
             </div>
           </div>
-        </div>
+        </section>
 
-        <div className={styles['demo-wrapper']}>
-          <span className={styles['demo-tag-label']}>Exemplo de Recomendação</span>
-          <div className={styles['demo-container']}>
-            <div className={styles['demo-card']}>
-              <div className={styles['demo-info']}>
-                <div className={styles['demo-title-row']}>
-                  <h3 className={styles['demo-anime-title']}>Frieren: Beyond Journey's End</h3>
-                  <span className={styles['demo-badge']}>Alta afinidade</span>
+        {/* 4. Exemplo de recomendação */}
+        <section className={styles['example-section']} aria-label="Exemplo de Recomendação">
+          <div className={styles['example-header-row']}>
+            <span className={styles['example-tag']}>EXEMPLO DE RECOMENDAÇÃO</span>
+            <div className={styles['example-line']} aria-hidden="true"></div>
+          </div>
+          <div className={styles['example-card']}>
+            <div className={styles['example-left']}>
+              <img
+                src="/frieren-sample.webp"
+                alt="Frieren: Beyond Journey's End"
+                className={styles['example-thumb']}
+                loading="lazy"
+              />
+              <div className={styles['example-details']}>
+                <div className={styles['example-title-row']}>
+                  <h3 className={styles['example-title']}>Frieren: Beyond Journey's End</h3>
+                  <span className={styles['example-badge']}>Alta afinidade</span>
                 </div>
-                <p className={styles['demo-sub']}>Alta afinidade com seu perfil de gosto</p>
-                <div className={styles['demo-genres']}>
-                  <span>Aventura</span> • <span>Fantasia</span> • <span>Drama</span>
-                </div>
-              </div>
-              <div className={styles['demo-score-box']}>
-                <div className={styles['demo-score-val']}>
-                  <span className={styles['demo-score-star']} aria-hidden="true">★</span>
-                  <span>9,4</span>
-                </div>
-                <span className={styles['demo-score-label']}>Nota prevista</span>
+                <p className={styles['example-genres']}>Aventura • Fantasia • Drama</p>
               </div>
             </div>
+            <div className={styles['example-divider']} aria-hidden="true"></div>
+            <div className={styles['example-score-box']}>
+              <div className={styles['example-score-val']}>
+                <span className={styles['example-star']} aria-hidden="true">★</span>
+                <span>9,4</span>
+              </div>
+              <span className={styles['example-score-label']}>NOTA PREVISTA</span>
+            </div>
           </div>
-        </div>
+        </section>
 
-        <div className={styles['faq-wrapper']}>
-          <h2 className={styles['section-heading']}>Perguntas Frequentes (FAQ)</h2>
+        {/* 5. Experimente o AniMatch (Search Box Neon) */}
+        <section className={styles['experiment-box']} aria-labelledby="experiment-title">
+          <h2 id="experiment-title" className={styles['experiment-title']}>Experimente o AniMatch</h2>
+          <p className={styles['experiment-subtitle']}>
+            Descubra quais animes da sua lista têm maior afinidade com você.
+          </p>
+
+          <form onSubmit={handleSubmit}>
+            <div className={styles['provider-selector']} role="tablist" aria-label={t('login.providerSelectorLabel') || 'Provedor de animes'}>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={provider === 'anilist'}
+                className={`${styles['provider-pill']} ${provider === 'anilist' ? styles['provider-pill--active'] : ''}`}
+                onClick={() => handleProviderChange('anilist')}
+                disabled={isLoading}
+              >
+                {t('providers.anilist')}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={provider === 'kitsu'}
+                className={`${styles['provider-pill']} ${provider === 'kitsu' ? styles['provider-pill--active'] : ''}`}
+                onClick={() => handleProviderChange('kitsu')}
+                disabled={isLoading}
+              >
+                {t('providers.kitsu')}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={provider === 'mal'}
+                className={`${styles['provider-pill']} ${provider === 'mal' ? styles['provider-pill--active'] : ''}`}
+                onClick={() => handleProviderChange('mal')}
+                disabled={isLoading}
+              >
+                {t('providers.mal')}
+              </button>
+            </div>
+
+            <label htmlFor="username-input" style={{ position: 'absolute', width: '1px', height: '1px', padding: 0, margin: '-1px', overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', border: 0 }}>
+              {t('login.usernameLabel', { provider: providerLabel })}
+            </label>
+
+            <div className={styles['input-wrapper']}>
+              <svg className={styles['input-icon']} viewBox="0 0 20 20" fill="currentColor" width="16" height="16" aria-hidden="true">
+                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+              </svg>
+              <input
+                ref={inputRef}
+                id="username-input"
+                className={`${styles['login-input']} ${error ? styles['login-input--error'] : ''}`}
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder={t('login.usernamePlaceholder', { provider: providerLabel })}
+                autoComplete="off"
+                disabled={isLoading}
+                aria-invalid={Boolean(error)}
+                aria-describedby={error ? 'username-error' : undefined}
+              />
+            </div>
+
+            {error && (
+              <p id="username-error" className={styles['login-error']} role="alert">
+                {error}
+              </p>
+            )}
+
+            <button
+              className={styles['login-button']}
+              type="submit"
+              disabled={isLoading || !username.trim()}
+            >
+              {isLoading ? (
+                <>
+                  <span className={styles['login-spinner']} aria-hidden="true" data-testid="login-spinner" />
+                  {t('login.loading')}
+                </>
+              ) : (
+                t('login.submit')
+              )}
+            </button>
+          </form>
+
+          {recentUsers.length > 0 && (
+            <div className={styles['recent-box']}>
+              <div className={styles['recent-row']}>
+                <span className={styles['recent-title']}>{t('login.recentQueries')}</span>
+                <button
+                  type="button"
+                  data-testid="clear-recent-users-btn"
+                  onClick={() => {
+                    try {
+                      localStorage.removeItem(STORAGE_KEYS.RECENT_USERS)
+                    } catch {
+                      // ignore
+                    }
+                    onClearRecentUsers?.()
+                  }}
+                  className={styles['clear-btn']}
+                >
+                  {t('login.clearHistory', 'Limpar histórico')}
+                </button>
+              </div>
+              <div className={styles['recent-pills']}>
+                {recentUsers.map((item) => {
+                  const uName = typeof item === 'string' ? item : item.username
+                  const uProv = typeof item === 'string' ? 'anilist' : item.provider
+                  const provLabel = t(`providers.${uProv}`, uProv)
+                  return (
+                    <button
+                      key={`${uName}-${uProv}`}
+                      type="button"
+                      onClick={() => onSubmit(uName, uProv)}
+                      disabled={isLoading}
+                      className={styles['recent-pill']}
+                    >
+                      @{uName} ({provLabel})
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* 6. Perguntas Frequentes (FAQ) */}
+        <section className={styles['faq-section']} aria-labelledby="faq-title">
+          <h2 id="faq-title" className={styles['section-title']}>Perguntas Frequentes (FAQ)</h2>
           <div className={styles['faq-list']}>
             <details className={styles['faq-item']}>
               <summary className={styles['faq-question']}>Preciso criar conta ou informar minha senha?</summary>
@@ -324,18 +329,36 @@ export default function LoginScreen({
               </p>
             </details>
           </div>
-        </div>
+        </section>
+      </main>
 
-        <footer className={styles['landing-footer']}>
-          <nav className={styles['footer-nav']} aria-label="Navegação institucional">
-            <a href="/sobre.html" className={styles['footer-link']}>Sobre</a>
-            <a href="/privacidade.html" className={styles['footer-link']}>Política de Privacidade</a>
-            <a href="/termos.html" className={styles['footer-link']}>Termos de Uso</a>
-            <a href="https://github.com/wagnergsantos/animatch" target="_blank" rel="noopener noreferrer" className={styles['footer-link']}>GitHub</a>
-          </nav>
-          <p>© 2026 AniMatch — Recomendações personalizadas e inteligentes de anime.</p>
-        </footer>
-      </section>
+      {/* 7. Rodapé Institucional Alinhado */}
+      <footer className={styles['landing-footer']}>
+        <nav className={styles['footer-nav']} aria-label="Navegação institucional">
+          <a href="/sobre.html" className={styles['footer-link']}>Sobre</a>
+          <span className={styles['footer-bullet']} aria-hidden="true">•</span>
+          <a href="/privacidade.html" className={styles['footer-link']}>Política de Privacidade</a>
+          <span className={styles['footer-bullet']} aria-hidden="true">•</span>
+          <a href="/termos.html" className={styles['footer-link']}>Termos de Uso</a>
+          <span className={styles['footer-bullet']} aria-hidden="true">•</span>
+          <a href="https://github.com/wagnergsantos/animatch" target="_blank" rel="noopener noreferrer" className={styles['footer-link']}>GitHub</a>
+        </nav>
+
+        <p className={styles['footer-copy']}>
+          © 2026 AniMatch — Recomendações personalizadas e inteligentes de anime.
+        </p>
+
+        <div>
+          <button
+            type="button"
+            data-testid="open-legal-modal-btn"
+            onClick={() => onOpenLegalModal?.()}
+            className={styles['footer-modal-btn']}
+          >
+            {t('legal.footer_link', 'Sobre, Privacidade & Termos')}
+          </button>
+        </div>
+      </footer>
     </div>
   )
 }
