@@ -245,6 +245,7 @@
     "none": "Sem recomendações no momento",
     "planToWatchPrompt": "Adicione mais animes na sua lista \"Plan to Watch\" no {{provider}}!",
     "header": "Recomendações — O Que Assistir Agora ({{count}})",
+    "loadMore": "Carregar mais animes",
     "loadingMore": "Carregando {{count}} animes...",
     "srCount": "{{count}} recomendações encontradas",
     "srLoading": "Atualizando recomendações..."

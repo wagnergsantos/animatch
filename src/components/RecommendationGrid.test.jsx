@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import RecommendationGrid from './RecommendationGrid.jsx'
 
 describe('RecommendationGrid', () => {
@@ -105,6 +105,28 @@ describe('RecommendationGrid', () => {
 
     rerender(<RecommendationGrid isLoading={false} recommendations={mockRecs} isLoadingMore={true} />)
     expect(liveRegion).toHaveTextContent('Atualizando recomendações...')
+  })
+
+  it('renders load more button when items exceed initialBatchSize and reveals more on click', () => {
+    const mockRecs = Array.from({ length: 30 }, (_, i) => ({
+      id: i + 1,
+      title: `Anime ${i + 1}`,
+      predictedScore: 8.0,
+      communityScore: 7.5,
+    }))
+    render(<RecommendationGrid isLoading={false} recommendations={mockRecs} initialBatchSize={24} />)
+
+    const loadMoreBtn = screen.getByTestId('load-more-btn')
+    expect(loadMoreBtn).toBeInTheDocument()
+    expect(loadMoreBtn).toHaveTextContent(/Carregar mais animes/i)
+
+    // Inicialmente mostra 24 cards
+    expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(24)
+
+    // Clica para carregar o restante
+    fireEvent.click(loadMoreBtn)
+    expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(30)
+    expect(screen.queryByTestId('load-more-btn')).not.toBeInTheDocument()
   })
 })
 

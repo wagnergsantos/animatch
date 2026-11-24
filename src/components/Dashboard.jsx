@@ -16,6 +16,7 @@ import FloatingRandomizerButton from './FloatingRandomizerButton.jsx'
 import DecisionModal from './DecisionModal.jsx'
 import AnimeDetailModal from './AnimeDetailModal.jsx'
 import WrappedModal from './WrappedModal.jsx'
+import InstitutionalFooter from './InstitutionalFooter.jsx'
 import styles from './Dashboard.module.css'
 
 function exportRecommendationsToCSV(recommendations, t, prefix) {
@@ -493,24 +494,7 @@ export default function Dashboard({
         )}
       </main>
 
-      <footer style={{ textAlign: 'center', padding: 'var(--space-4)', borderTop: '1px solid var(--color-border)' }}>
-        <button
-          type="button"
-          data-testid="dashboard-legal-btn"
-          onClick={() => onOpenLegalModal?.()}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            color: 'var(--text-3, #94a3b8)',
-            fontSize: 'var(--text-xs)',
-            textDecoration: 'underline',
-            cursor: 'pointer',
-            padding: '0.25rem 0.5rem',
-          }}
-        >
-          {t('legal.footer_link', 'Sobre, Privacidade & Termos')}
-        </button>
-      </footer>
+      <InstitutionalFooter onOpenLegalModal={onOpenLegalModal} />
 
       {activeTab === 'recommendations' && recommendations.length > 0 && (
         <FloatingRandomizerButton

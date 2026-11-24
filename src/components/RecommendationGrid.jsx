@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, useDeferredValue } from 'react'
+import { useEffect, useMemo, useState, useDeferredValue } from 'react'
 import { useTranslation } from 'react-i18next'
 import AnimeCard from './AnimeCard.jsx'
 import AnimeRow from './AnimeRow.jsx'
@@ -6,12 +6,11 @@ import { resolveYear } from '../logic/recommender.js'
 import styles from './RecommendationGrid.module.css'
 import cardStyles from './AnimeCard.module.css'
 
-// Progressive rendering: mostra apenas os primeiros itens imediatamente e
-// revela o restante conforme o usuário rola (via IntersectionObserver).
-// Isso reduz drasticamente o número de requisições de capas (que vêm de
-// anilist.co / kitsu.io / myanimelist.net) no primeiro paint.
-export const INITIAL_BATCH_SIZE = 15
-const BATCH_STEP = 15
+// Paginação progressiva por lote:
+// Mostra 24 animes inicialmente e adiciona botão explícito "Carregar mais"
+// para garantir que o rodapé institucional e anúncios AdSense sejam sempre alcançáveis.
+export const INITIAL_BATCH_SIZE = 24
+const BATCH_STEP = 24
 
 // O skeleton de loading reaproveita classes reais de AnimeCard.module.css
 // (anime-card, anime-card__image-wrapper, anime-card__body) pra ter a mesma
@@ -53,9 +52,8 @@ export default function RecommendationGrid({
     [recommendations]
   )
 
-  // Lote visível (progressive rendering). Reinicia ao trocar de lista/filtro.
+  // Lote visível controlado por botão ou observador opcional
   const [visibleCount, setVisibleCount] = useState(initialBatchSize)
-  const sentinelRef = useRef(null)
 
   const listKey = `${provider}|${viewMode}|${sortBy}|${safeRecommendations.length}:${safeRecommendations[0]?.id ?? ''}`
 
@@ -63,28 +61,9 @@ export default function RecommendationGrid({
     setVisibleCount(initialBatchSize)
   }, [listKey, initialBatchSize])
 
-  // Observa o "sentinela" no fim da lista: quando ele aparece na viewport,
-  // libera mais um lote. Assim as capas do resto só são requisitadas à medida
-  // que o usuário rola — em vez de dezenas de imagens externas de uma vez.
-  useEffect(() => {
-    const el = sentinelRef.current
-    if (!el) return undefined
-    if (typeof IntersectionObserver === 'undefined') {
-      // Ambiente sem IO (ex.: jsdom): mostra tudo para não esconder conteúdo.
-      setVisibleCount(Number.POSITIVE_INFINITY)
-      return undefined
-    }
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) {
-          setVisibleCount((prev) => (Number.isFinite(prev) ? prev + BATCH_STEP : prev))
-        }
-      },
-      { rootMargin: '600px 0px' }
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [listKey, visibleCount])
+  const handleLoadMore = () => {
+    setVisibleCount((prev) => (Number.isFinite(prev) ? prev + BATCH_STEP : prev))
+  }
 
   const displayRecommendations = useMemo(() => {
     if (!safeRecommendations || safeRecommendations.length === 0) return []
@@ -198,7 +177,18 @@ export default function RecommendationGrid({
           ))}
         </div>
       )}
-      {hasMore && <div ref={sentinelRef} data-testid="grid-sentinel" aria-hidden="true" style={{ height: 1 }} />}
+      {hasMore && (
+        <div className={styles['load-more-container']}>
+          <button
+            type="button"
+            className={styles['load-more-btn']}
+            onClick={handleLoadMore}
+            data-testid="load-more-btn"
+          >
+            {t('recommendationGrid.loadMore', 'Carregar mais animes')} ({Math.min(BATCH_STEP, displayRecommendations.length - visibleRecommendations.length)} de {displayRecommendations.length - visibleRecommendations.length} restantes)
+          </button>
+        </div>
+      )}
       {isLoadingMore && (
         <div className={styles['loading-footer']}>
           <div className="skeleton" style={{ height: '1.5rem', width: '60%', margin: 'var(--space-4) auto' }} />

@@ -242,6 +242,7 @@
     "none": "現在おすすめはありません",
     "planToWatchPrompt": "{{provider}} の「Plan to Watch」リストにアニメを追加してください！",
     "header": "おすすめ — 今見るべき作品 ({{count}})",
+    "loadMore": "さらにアニメを読み込む",
     "loadingMore": "{{count}}個のアニメを読み込み中...",
     "srCount": "{{count}} 件のおすすめが見つかりました",
     "srLoading": "おすすめを更新中..."
