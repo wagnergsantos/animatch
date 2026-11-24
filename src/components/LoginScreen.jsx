@@ -27,7 +27,11 @@ export default function LoginScreen({
 
   const scrollToExperiment = () => {
     if (experimentRef.current) {
-      experimentRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      experimentRef.current.scrollIntoView({
+        behavior: prefersReducedMotion ? 'auto' : 'smooth',
+        block: 'center',
+      })
     }
     if (inputRef.current) {
       setTimeout(() => inputRef.current?.focus(), 300)
@@ -81,7 +85,7 @@ export default function LoginScreen({
               aria-label={t('auth.login', 'Entrar para salvar contas')}
               title="Opcional: entre para salvar e sincronizar suas contas entre dispositivos"
             >
-              <span aria-hidden="true">☁️</span> {t('auth.login', 'Entrar')}
+              <span aria-hidden="true">☁️</span> {t('auth.login', 'Entrar para salvar contas')}
             </button>
           ) : (
             <div className={styles['cloud-user-badge']}>
@@ -167,7 +171,7 @@ export default function LoginScreen({
                   <circle cx="12" cy="12" r="2" />
                 </svg>
               </div>
-              <h3 className={`${styles['feature-title']} ${styles['feature-title--accent']}`}>3. Encontre seu próximo anime</h3>
+              <h3 className={`${styles['feature-title']} ${styles['feature-title--accent']}`}>3. Receba recomendações</h3>
               <p className={styles['feature-desc']}>
                 Comparamos seu perfil com sua lista para assistir e estimamos quais animes têm maior chance de agradar você.
               </p>
@@ -214,8 +218,10 @@ export default function LoginScreen({
 
               <div className={styles['example-card-body']}>
                 <div className={styles['example-card-meta']}>2021 • 13 eps • Finalizado</div>
-                <h3 className={styles['example-card-title']} title="ODDTAXI">ODDTAXI</h3>
-                <p className={styles['example-card-subtitle']}>Odd Taxi</p>
+                <div className={styles['example-card-header']}>
+                  <h3 className={styles['example-card-title']} title="ODDTAXI">ODDTAXI</h3>
+                  <p className={styles['example-card-subtitle']}>Odd Taxi</p>
+                </div>
 
                 <div className={styles['example-card-scores']}>
                   <div className={styles['example-score-row']}>
@@ -223,8 +229,20 @@ export default function LoginScreen({
                     <span className={styles['example-score-primary']}>9.30/10</span>
                   </div>
                   <div className={styles['example-score-row']}>
-                    <span className={styles['example-score-name']} title="Média de notas registrada pelos usuários no provedor de origem (AniList)">
-                      Média Geral ℹ️:
+                    <span
+                      className={styles['example-score-name']}
+                      tabIndex={0}
+                      role="note"
+                      aria-label="Média Geral: notas registradas pelos usuários no AniList"
+                      title="Média de notas registrada pelos usuários no provedor de origem (AniList)"
+                    >
+                      Média Geral
+                      <svg className={styles['example-info-icon']} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="16" x2="12" y2="12" />
+                        <line x1="12" y1="8" x2="12.01" y2="8" />
+                      </svg>
+                      :
                     </span>
                     <span className={styles['example-score-muted']}>8.68/10</span>
                   </div>
@@ -270,8 +288,10 @@ export default function LoginScreen({
 
               <div className={styles['example-card-body']}>
                 <div className={styles['example-card-meta']}>2021 • 13 eps • Finalizado</div>
-                <h3 className={styles['example-card-title']} title="Vivy: Fluorite Eye's Song">Vivy: Fluorite Eye's Song</h3>
-                <p className={styles['example-card-subtitle']}>Vivy -Fluorite Eye's Song-</p>
+                <div className={styles['example-card-header']}>
+                  <h3 className={styles['example-card-title']} title="Vivy: Fluorite Eye's Song">Vivy: Fluorite Eye's Song</h3>
+                  <p className={styles['example-card-subtitle']}>Vivy -Fluorite Eye's Song-</p>
+                </div>
 
                 <div className={styles['example-card-scores']}>
                   <div className={styles['example-score-row']}>
@@ -279,8 +299,20 @@ export default function LoginScreen({
                     <span className={styles['example-score-primary']}>8.85/10</span>
                   </div>
                   <div className={styles['example-score-row']}>
-                    <span className={styles['example-score-name']} title="Média de notas registrada pelos usuários no provedor de origem (AniList)">
-                      Média Geral ℹ️:
+                    <span
+                      className={styles['example-score-name']}
+                      tabIndex={0}
+                      role="note"
+                      aria-label="Média Geral: notas registradas pelos usuários no AniList"
+                      title="Média de notas registrada pelos usuários no provedor de origem (AniList)"
+                    >
+                      Média Geral
+                      <svg className={styles['example-info-icon']} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="16" x2="12" y2="12" />
+                        <line x1="12" y1="8" x2="12.01" y2="8" />
+                      </svg>
+                      :
                     </span>
                     <span className={styles['example-score-muted']}>8.36/10</span>
                   </div>
@@ -326,8 +358,10 @@ export default function LoginScreen({
 
               <div className={styles['example-card-body']}>
                 <div className={styles['example-card-meta']}>2020 • 12 eps • Finalizado</div>
-                <h3 className={styles['example-card-title']} title="Keep Your Hands Off Eizouken!">Keep Your Hands Off Eizouken!</h3>
-                <p className={styles['example-card-subtitle']}>Eizouken ni wa Te wo Dasu na!</p>
+                <div className={styles['example-card-header']}>
+                  <h3 className={styles['example-card-title']} title="Keep Your Hands Off Eizouken!">Keep Your Hands Off Eizouken!</h3>
+                  <p className={styles['example-card-subtitle']}>Eizouken ni wa Te wo Dasu na!</p>
+                </div>
 
                 <div className={styles['example-card-scores']}>
                   <div className={styles['example-score-row']}>
@@ -335,8 +369,20 @@ export default function LoginScreen({
                     <span className={styles['example-score-primary']}>8.40/10</span>
                   </div>
                   <div className={styles['example-score-row']}>
-                    <span className={styles['example-score-name']} title="Média de notas registrada pelos usuários no provedor de origem (AniList)">
-                      Média Geral ℹ️:
+                    <span
+                      className={styles['example-score-name']}
+                      tabIndex={0}
+                      role="note"
+                      aria-label="Média Geral: notas registradas pelos usuários no AniList"
+                      title="Média de notas registrada pelos usuários no provedor de origem (AniList)"
+                    >
+                      Média Geral
+                      <svg className={styles['example-info-icon']} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="16" x2="12" y2="12" />
+                        <line x1="12" y1="8" x2="12.01" y2="8" />
+                      </svg>
+                      :
                     </span>
                     <span className={styles['example-score-muted']}>8.10/10</span>
                   </div>
