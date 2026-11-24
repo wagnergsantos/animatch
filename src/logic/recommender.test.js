@@ -222,7 +222,8 @@ describe('buildTasteProfile', () => {
       },
       score: 9,
       coverImage: "http://img.com/a.jpg",
-      status: "COMPLETED"
+      status: "COMPLETED",
+      genres: ["Action", "Drama"],
     })
   })
   it('ranks high-volume genres with solid scores higher in adjustedAverage than low-volume genres with slightly higher scores', () => {
@@ -734,6 +735,65 @@ describe('scoreRecommendations', () => {
       { id: 103, title: 'Monster', score: 9.5, coverImage: 'm.jpg' },
       { id: 102, title: 'Psycho-Pass', score: 8, coverImage: 'pp.jpg' },
     ])
+  })
+
+  it('prioritizes anchors with higher Jaccard similarity and genre overlap when scores tie', () => {
+    const profile = new Map([
+      [
+        'Action',
+        {
+          average: 10.0,
+          adjustedAverage: 9.5,
+          sourceAnimes: [
+            // Cyberpunk: Action e Sci-Fi (score 10)
+            { id: 1, title: 'Cyberpunk', score: 10, genres: ['Action', 'Sci-Fi'] },
+            // Black Clover: Action, Adventure, Fantasy (score 10)
+            { id: 2, title: 'Black Clover', score: 10, genres: ['Action', 'Adventure', 'Fantasy'] },
+          ],
+        },
+      ],
+      [
+        'Adventure',
+        {
+          average: 10.0,
+          adjustedAverage: 9.4,
+          sourceAnimes: [
+            { id: 2, title: 'Black Clover', score: 10, genres: ['Action', 'Adventure', 'Fantasy'] },
+            // Delicious in Dungeon: Adventure, Comedy, Gourmet (score 10)
+            { id: 3, title: 'Delicious in Dungeon', score: 10, genres: ['Adventure', 'Comedy', 'Gourmet'] },
+          ],
+        },
+      ],
+      [
+        'Fantasy',
+        {
+          average: 10.0,
+          adjustedAverage: 9.3,
+          sourceAnimes: [
+            { id: 2, title: 'Black Clover', score: 10, genres: ['Action', 'Adventure', 'Fantasy'] },
+          ],
+        },
+      ],
+    ])
+
+    // Candidato: One Piece (Action, Adventure, Fantasy)
+    const planning = [
+      {
+        media: {
+          id: 999,
+          title: { english: 'One Piece' },
+          genres: ['Action', 'Adventure', 'Fantasy'],
+          averageScore: 88,
+        },
+      },
+    ]
+
+    const result = scoreRecommendations(planning, profile)
+    expect(result).toHaveLength(1)
+
+    // Black Clover tem 100% de overlap (Jaccard = 1.0) e deve ser a primeira âncora
+    expect(result[0].anchorAnimes[0].title).toBe('Black Clover')
+    expect(result[0].anchorAnimes).toHaveLength(3)
   })
 
   describe('DISCOVERY badge (Out of Comfort Zone)', () => {

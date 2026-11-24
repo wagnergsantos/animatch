@@ -74,6 +74,7 @@ export function buildTasteProfile(entries = [], options = {}) {
       score: rawScore,
       coverImage: entry.media.coverImage?.large ?? '',
       status: entry.status || 'COMPLETED',
+      genres,
     }
 
     for (const genre of genres) {
@@ -221,6 +222,7 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
       // Animes âncora (avaliados pelo usuário nos gêneros coincidentes)
       const seenAnimeIds = new Set()
       const collectedAnchors = []
+      const candidateGenresSet = new Set(genres)
 
       for (const item of topContributingGenres) {
         const stats = tasteProfile.get(item.genre)
@@ -228,13 +230,34 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
         for (const anime of sources) {
           if (anime?.id && !seenAnimeIds.has(anime.id) && anime.score > 0) {
             seenAnimeIds.add(anime.id)
-            collectedAnchors.push(anime)
+            const animeGenres = anime.genres ?? []
+            let sharedCount = 0
+            for (const g of animeGenres) {
+              if (candidateGenresSet.has(g)) sharedCount++
+            }
+            const unionSize = new Set([...genres, ...animeGenres]).size
+            const jaccard = unionSize > 0 ? sharedCount / unionSize : 0
+
+            collectedAnchors.push({
+              anime,
+              score: anime.score ?? 0,
+              sharedCount,
+              jaccard,
+            })
           }
         }
       }
 
-      collectedAnchors.sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
-      anchorAnimes = collectedAnchors.slice(0, 3)
+      collectedAnchors.sort((a, b) => {
+        if (b.score !== a.score) {
+          return b.score - a.score
+        }
+        if (b.jaccard !== a.jaccard) {
+          return b.jaccard - a.jaccard
+        }
+        return b.sharedCount - a.sharedCount
+      })
+      anchorAnimes = collectedAnchors.slice(0, 3).map((item) => item.anime)
 
       // Badges baseados em discrepância (somente com communityScore válido)
       if (communityScore != null) {
