@@ -335,11 +335,41 @@ export default function LoginScreen({
       {/* 7. Rodapé Institucional Alinhado */}
       <footer className={styles['landing-footer']}>
         <nav className={styles['footer-nav']} aria-label="Navegação institucional">
-          <a href="/sobre.html" className={styles['footer-link']}>Sobre</a>
-          <span className={styles['footer-bullet']} aria-hidden="true">•</span>
-          <a href="/privacidade.html" className={styles['footer-link']}>Política de Privacidade</a>
-          <span className={styles['footer-bullet']} aria-hidden="true">•</span>
-          <a href="/termos.html" className={styles['footer-link']}>Termos de Uso</a>
+          {onOpenLegalModal ? (
+            <>
+              <button
+                type="button"
+                onClick={() => onOpenLegalModal('sobre')}
+                className={styles['footer-link-btn']}
+              >
+                Sobre
+              </button>
+              <span className={styles['footer-bullet']} aria-hidden="true">•</span>
+              <button
+                type="button"
+                onClick={() => onOpenLegalModal('privacidade')}
+                className={styles['footer-link-btn']}
+              >
+                Política de Privacidade
+              </button>
+              <span className={styles['footer-bullet']} aria-hidden="true">•</span>
+              <button
+                type="button"
+                onClick={() => onOpenLegalModal('termos')}
+                className={styles['footer-link-btn']}
+              >
+                Termos de Uso
+              </button>
+            </>
+          ) : (
+            <>
+              <a href="/sobre.html" className={styles['footer-link']}>Sobre</a>
+              <span className={styles['footer-bullet']} aria-hidden="true">•</span>
+              <a href="/privacidade.html" className={styles['footer-link']}>Política de Privacidade</a>
+              <span className={styles['footer-bullet']} aria-hidden="true">•</span>
+              <a href="/termos.html" className={styles['footer-link']}>Termos de Uso</a>
+            </>
+          )}
           <span className={styles['footer-bullet']} aria-hidden="true">•</span>
           <a href="https://github.com/wagnergsantos/animatch" target="_blank" rel="noopener noreferrer" className={styles['footer-link']}>GitHub</a>
         </nav>
@@ -347,17 +377,6 @@ export default function LoginScreen({
         <p className={styles['footer-copy']}>
           © 2026 AniMatch — Recomendações personalizadas e inteligentes de anime.
         </p>
-
-        <div>
-          <button
-            type="button"
-            data-testid="open-legal-modal-btn"
-            onClick={() => onOpenLegalModal?.()}
-            className={styles['footer-modal-btn']}
-          >
-            {t('legal.footer_link', 'Sobre, Privacidade & Termos')}
-          </button>
-        </div>
       </footer>
     </div>
   )
