@@ -45,4 +45,13 @@ describe('LegalModal', () => {
     fireEvent.keyDown(window, { key: 'Escape' })
     expect(onClose).toHaveBeenCalledTimes(2)
   })
+
+  it('opens directly on privacy or terms tab when initialTab is specified', () => {
+    const { unmount } = render(<LegalModal isOpen={true} onClose={vi.fn()} initialTab="privacidade" />)
+    expect(screen.getByRole('heading', { name: /1\. Responsável pelo tratamento/i })).toBeInTheDocument()
+    unmount()
+
+    render(<LegalModal isOpen={true} onClose={vi.fn()} initialTab="termos" />)
+    expect(screen.getByRole('heading', { name: /4\. Idade mínima/i })).toBeInTheDocument()
+  })
 })

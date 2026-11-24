@@ -17,6 +17,12 @@ export function AppContent() {
   const { i18n } = useTranslation()
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
   const [isLegalModalOpen, setIsLegalModalOpen] = useState(false)
+  const [legalModalTab, setLegalModalTab] = useState('about')
+
+  const handleOpenLegalModal = (tab = 'about') => {
+    setLegalModalTab(tab || 'about')
+    setIsLegalModalOpen(true)
+  }
 
   const [screen, setScreen] = useState(() => {
     if (typeof window === 'undefined') return 'login'
@@ -164,12 +170,13 @@ export function AppContent() {
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
-        onOpenLegalModal={() => setIsLegalModalOpen(true)}
+        onOpenLegalModal={handleOpenLegalModal}
       />
 
       <LegalModal
         isOpen={isLegalModalOpen}
         onClose={() => setIsLegalModalOpen(false)}
+        initialTab={legalModalTab}
       />
 
       {screen === 'loading' && (
@@ -191,7 +198,7 @@ export function AppContent() {
           user={user}
           syncStatus={syncStatus}
           onOpenAuthModal={() => setIsAuthModalOpen(true)}
-          onOpenLegalModal={() => setIsLegalModalOpen(true)}
+          onOpenLegalModal={handleOpenLegalModal}
           linkedUsernames={settings?.linked_usernames}
         />
       )}
@@ -212,7 +219,7 @@ export function AppContent() {
           user={user}
           syncStatus={syncStatus}
           onOpenAuthModal={() => setIsAuthModalOpen(true)}
-          onOpenLegalModal={() => setIsLegalModalOpen(true)}
+          onOpenLegalModal={handleOpenLegalModal}
           onSignOut={signOut}
           onDeleteAccount={deleteAccount}
           linkedUsernames={settings.linked_usernames}

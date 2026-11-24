@@ -3,10 +3,22 @@ import { useTranslation } from 'react-i18next'
 import { useModalFocusTrap } from '../hooks/useModalFocusTrap.js'
 import styles from './LegalModal.module.css'
 
-export default function LegalModal({ isOpen, onClose }) {
+export default function LegalModal({ isOpen, onClose, initialTab = 'about' }) {
   const { t } = useTranslation()
-  const [activeTab, setActiveTab] = useState('about')
+  const normalizeTab = (tab) => {
+    if (tab === 'termos' || tab === 'terms') return 'terms'
+    if (tab === 'privacidade' || tab === 'privacy') return 'privacy'
+    return 'about'
+  }
+  const [activeTab, setActiveTab] = useState(() => normalizeTab(initialTab))
   const modalRef = useRef(null)
+
+  // Sincroniza aba ativa se a prop initialTab mudar ao abrir
+  const prevInitialTabRef = useRef(initialTab)
+  if (prevInitialTabRef.current !== initialTab) {
+    prevInitialTabRef.current = initialTab
+    setActiveTab(normalizeTab(initialTab))
+  }
 
   useModalFocusTrap(Boolean(isOpen), modalRef, onClose)
 
