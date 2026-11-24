@@ -161,7 +161,7 @@ export default function RecommendationGrid({
               key={rec.id}
               anime={rec}
               titlePref={titlePref}
-              priority={index < 4}
+              priority={index < 8}
             />
           ))}
         </div>
@@ -172,7 +172,7 @@ export default function RecommendationGrid({
               key={rec.id}
               anime={rec}
               titlePref={titlePref}
-              priority={index < 4}
+              priority={index < 8}
             />
           ))}
         </div>

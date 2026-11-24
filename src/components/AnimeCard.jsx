@@ -262,7 +262,7 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
           </div>
         </div>
         <div className={styles['anime-card__body']}>
-          <h3 className={styles['anime-card__title']}>{mainTitle}</h3>
+          <h3 className={styles['anime-card__title']} title={mainTitle}>{mainTitle}</h3>
           {subTitle && <div className={styles['anime-card__subtitle']}>{subTitle}</div>}
           {(() => {
             const parts = []

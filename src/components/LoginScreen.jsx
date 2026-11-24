@@ -629,7 +629,7 @@ export default function LoginScreen({
                 </svg>
               </summary>
               <p className={styles['faq-answer']}>
-                Por padrão, todo o processamento e armazenamento ocorrem no navegador do próprio visitante (IndexedDB e localStorage). Nenhum dado pessoal é comercializado.
+                Por padrão, todo o processamento e armazenamento ocorrem no navegador do próprio visitante (IndexedDB e localStorage), incluindo o histórico de consultas recentes para preenchimento rápido. Você pode apagar esse histórico a qualquer momento clicando em "Limpar histórico" logo abaixo do formulário de busca. Nenhum dado pessoal é comercializado.
               </p>
             </details>
           </div>

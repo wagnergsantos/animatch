@@ -144,18 +144,17 @@
 
 .anime-card__subtitle {
   font-size: var(--text-xs);
-  color: var(--color-muted);
+  color: oklch(0.72 0.005 240);
   font-weight: 500;
   margin-bottom: var(--space-2);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  opacity: 0.85;
 }
 
 .anime-card__meta {
   font-size: var(--text-xs);
-  color: var(--color-muted);
+  color: oklch(0.72 0.005 240);
   font-weight: 500;
   margin-bottom: var(--space-2);
 }
@@ -204,18 +203,22 @@
 }
 
 .anime-card:hover .anime-card__badge-floating,
+.anime-card:focus .anime-card__badge-floating,
+.anime-card:focus-visible .anime-card__badge-floating,
 .anime-card:focus-within .anime-card__badge-floating,
 .anime-card__badge-floating:hover,
 .anime-card__badge-floating:focus,
 .anime-card__badge-floating:focus-visible,
 .anime-card__badge-floating:active,
 .anime-card__badge-floating[data-expanded='true'] {
-  max-width: 240px;
+  max-width: min(240px, calc(100% - 16px));
   padding: 4px 10px;
   outline: none;
 }
 
 .anime-card:hover .anime-card__badge-label,
+.anime-card:focus .anime-card__badge-label,
+.anime-card:focus-visible .anime-card__badge-label,
 .anime-card:focus-within .anime-card__badge-label,
 .anime-card__badge-floating:hover .anime-card__badge-label,
 .anime-card__badge-floating:focus .anime-card__badge-label,

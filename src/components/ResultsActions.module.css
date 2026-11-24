@@ -10,13 +10,16 @@
   background: var(--surface-2);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: 2px;
-  gap: 2px;
+  padding: 3px;
+  gap: 3px;
 }
 
 .icon-btn {
-  width: 32px;
-  height: 30px;
+  height: 32px;
+  padding: 0 10px;
+  gap: 6px;
+  font-size: var(--text-xs);
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -41,9 +44,15 @@
   color: var(--color-ink, #0b0b0b);
 }
 
+.toggle-label {
+  display: inline-block;
+  line-height: 1;
+}
+
 .icon-btn--standalone {
   width: 36px;
   height: 36px;
+  padding: 0;
   background: var(--surface-2);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
