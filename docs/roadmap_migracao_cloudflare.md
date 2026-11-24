@@ -33,20 +33,19 @@
 ---
 
 ### Fase CF2 — Deploy Nativo no Cloudflare Pages
-- [ ] Já conectado via **Connect to Git** na Cloudflare (o build e deploy a cada push ocorrem sozinhos, dispensando GitHub Actions).
-- [ ] **Variáveis de Ambiente na Cloudflare**:
-  - Acessar o projeto no Cloudflare Pages > **Settings > Environment variables**.
-  - Adicionar `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`.
-- [ ] Validar carregamento do site na URL `*.pages.dev`.
+- [x] Conectado via **Connect to Git** na Cloudflare.
+- [x] **Variáveis de Ambiente na Cloudflare**:
+  - `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` configuradas.
+- [x] Carregamento do site validado na URL `animatch-app.pages.dev`.
 
 ---
 
 ### Fase CF3 — Migração do `mal-proxy` para Cloudflare Pages Functions
-- [ ] Criar a pasta `functions/api/` no repositório.
-- [ ] Criar `functions/api/mal-proxy.ts` portando a lógica do proxy MyAnimeList:
+- [x] Criar a pasta `functions/api/` no repositório.
+- [x] Criar `functions/api/mal-proxy.ts` portando a lógica do proxy MyAnimeList:
   - Injetar o header `X-MAL-CLIENT-ID` vindo de variável de ambiente da Cloudflare (`MAL_CLIENT_ID`).
   - Executar no mesmo domínio (`/api/mal-proxy`), eliminando problemas de CORS e cold start do Supabase.
-- [ ] Atualizar chamadas em `src/api/providers/mal.js` para usar o endpoint relativo `/api/mal-proxy` quando em produção.
+- [x] Atualizar chamadas em `src/api/providers/mal.js` para usar o endpoint relativo `/api/mal-proxy` com fallback.
 
 ---
 

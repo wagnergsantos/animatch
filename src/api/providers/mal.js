@@ -10,18 +10,13 @@ export function clearMalCache(username) {
   clearCache(CACHE_PREFIX + username.toLowerCase())
 }
 
-async function invokeProxy(username, status) {
-  const { data, error } = await supabaseClient.functions.invoke('mal-proxy', {
-    body: { username, status },
-  })
-
-  if (error) throw new RetryableError(error.message ?? 'Erro ao conectar com o MyAnimeList.')
+function handleProxyResponse(data) {
   if (data?.error) {
     const errMsg = data.error
     if (errMsg.toLowerCase().includes('not found') || errMsg.toLowerCase().includes('não encontrado')) {
       throw new UserNotFoundError('MyAnimeList')
     }
-    if (errMsg.includes('429') || errMsg.toLowerCase().includes('muitas requisições')) {
+    if (errMsg.includes('429') || errMsg.toLowerCase().includes('muitas requisições') || errMsg.includes('bloqueou')) {
       const retryAfterSec = Number.parseInt(data.retryAfter, 10)
       const retryMinutes =
         Number.isFinite(retryAfterSec) && retryAfterSec > 0 ? Math.max(1, Math.ceil(retryAfterSec / 60)) : 1
@@ -29,8 +24,32 @@ async function invokeProxy(username, status) {
     }
     throw new NonRetryableError(errMsg)
   }
-
   return data?.data ?? []
+}
+
+async function invokeProxy(username, status) {
+  // 1. Tentar Cloudflare Pages Function (/api/mal-proxy) nativa
+  try {
+    const res = await fetch('/api/mal-proxy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, status }),
+    })
+    const data = await res.json().catch(() => null)
+    if (data) {
+      return handleProxyResponse(data)
+    }
+  } catch {
+    // Continua para o fallback do Supabase (ex: Vitest/jsdom sem mock de fetch ou dev)
+  }
+
+  // 2. Fallback para Supabase Functions
+  const { data, error } = await supabaseClient.functions.invoke('mal-proxy', {
+    body: { username, status },
+  })
+
+  if (error) throw new RetryableError(error.message ?? 'Erro ao conectar com o MyAnimeList.')
+  return handleProxyResponse(data)
 }
 
 export async function malFetchAll(username, options = {}) {
