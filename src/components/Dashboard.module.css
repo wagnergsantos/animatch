@@ -36,7 +36,41 @@
 .dashboard__header-left {
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.dashboard__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: var(--text-base);
+  color: var(--color-ink);
+  transition: opacity var(--transition-default);
+}
+
+.dashboard__brand:hover {
+  opacity: 0.85;
+}
+
+.dashboard__brand-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm, 6px);
+}
+
+.dashboard__brand-text {
+  color: var(--color-primary);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.dashboard__brand-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--color-border);
 }
 
 .dashboard__username-link {

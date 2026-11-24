@@ -253,6 +253,23 @@ export default function Dashboard({
     <div className={styles.dashboard}>
       <header className={styles.dashboard__header}>
         <div className={styles['dashboard__header-left']}>
+          <a
+            href="/"
+            onClick={(e) => {
+              if (onLogout) {
+                e.preventDefault()
+                onLogout()
+              }
+            }}
+            className={styles['dashboard__brand']}
+            title={t('dashboard.backToHome', 'Voltar ao início')}
+          >
+            <img src="/favicon.svg" alt="AniMatch Logo" className={styles['dashboard__brand-icon']} />
+            <span className={styles['dashboard__brand-text']}>AniMatch</span>
+          </a>
+
+          <div className={styles['dashboard__brand-divider']} aria-hidden="true" />
+
           {hasMultiAccounts && activeScope === 'ensemble' ? (
             <span
               className={styles['dashboard__username-link']}
