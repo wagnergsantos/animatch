@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Política de Privacidade — AniMatch</title>
+  <meta name="description" content="Política de Privacidade do AniMatch: conformidade com LGPD, GDPR, uso de cookies e publicidade do Google AdSense." />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <style>
+    :root {
+      --bg: #0e1117;
+      --card: #161b22;
+      --border: #30363d;
+      --text: #f0f6fc;
+      --muted: #8b949e;
+      --primary: #58a6ff;
+    }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      margin: 0;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2.5rem;
+    }
+    a { color: var(--primary); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    h1, h2, h3, h4 { color: #fff; margin-top: 1.5rem; }
+    .back-link { display: inline-block; margin-bottom: 1.5rem; font-weight: 500; }
+    .last-updated { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+    ul { padding-left: 1.25rem; }
+    footer { margin-top: 2.5rem; border-top: 1px solid var(--border); padding-top: 1rem; color: var(--muted); font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="/" class="back-link">← Voltar para o AniMatch</a>
+    <h1>Política de Privacidade</h1>
+    <p class="last-updated">Última atualização: 24 de novembro de 2026</p>
+
+    <p>Esta Política de Privacidade explica como o AniMatch coleta, utiliza, armazena e protege informações durante a navegação. O serviço é estruturado segundo os princípios de minimização de dados e conformidade com a LGPD (Lei 13.709/2018) e o GDPR.</p>
+
+    <h2>1. Controlador dos Dados</h2>
+    <p>O responsável pelo tratamento de dados pessoais no AniMatch é Wagner Santos. Canal de solicitações e privacidade: <a href="https://github.com/wagnergsantos/animatch/issues" target="_blank" rel="noopener noreferrer">github.com/wagnergsantos/animatch/issues</a>.</p>
+
+    <h2>2. Informações Consultadas e Armazenadas</h2>
+    <p>O AniMatch consulta informações de listas públicas (identificadores, notas, gêneros, formatos). Não é solicitada senha das plataformas externas para a busca de listas.</p>
+    <p><strong>Armazenamento Local:</strong> Dados e metadados de animes são guardados localmente no navegador via <code>IndexedDB</code> e <code>localStorage</code> com validade de até 6 horas.</p>
+    <p><strong>Sincronização em Nuvem (Opcional):</strong> Apenas usuários autenticados que expressamente vinculem suas contas têm configurações e listas espelhadas no Supabase (região São Paulo, Brasil).</p>
+
+    <h2>3. Cookies, Armazenamento e Publicidade de Terceiros (Google AdSense)</h2>
+    <p>O AniMatch utiliza cookies essenciais e recursos de armazenamento do navegador para viabilizar as sessões e configurações do usuário.</p>
+    <p><strong>Publicidade de Terceiros e Cookie DoubleClick:</strong> Para ajudar a cobrir os custos de infraestrutura e hospedagem, o AniMatch veicula anúncios por meio do <strong>Google AdSense</strong>:</p>
+    <ul>
+      <li>Fornecedores terceirizados, incluindo o Google, utilizam cookies (como o cookie DoubleClick) para veicular anúncios com base nas visitas anteriores do usuário a este ou a outros websites.</li>
+      <li>O uso de cookies de publicidade pelo Google permite que ele e seus parceiros veiculem anúncios para os usuários com base nas visitas feitas ao AniMatch e/ou a outros sites na Internet.</li>
+      <li>Para saber exatamente como o Google coleta e utiliza dados ao interagir com parceiros, consulte a página oficial: <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener noreferrer">Como o Google usa dados ao usar sites de parceiros</a>.</li>
+    </ul>
+
+    <h2>4. Como Desativar Anúncios Personalizados (Opt-out)</h2>
+    <p>Os usuários podem desativar a veiculação de anúncios personalizados com base em interesses a qualquer momento:</p>
+    <ul>
+      <li>Pelo painel oficial de <a href="https://adssettings.google.com" target="_blank" rel="noopener noreferrer">Configurações de Anúncios do Google</a>;</li>
+      <li>Pelo portal de autorregulação <a href="https://www.aboutads.info/choices/" target="_blank" rel="noopener noreferrer">aboutads.info/choices</a>;</li>
+      <li>Ou bloqueando cookies de terceiros nas preferências do próprio navegador.</li>
+    </ul>
+
+    <h2>5. Compartilhamento de Dados</h2>
+    <p>O AniMatch não vende dados pessoais. O processamento técnico é intermediado estritamente por fornecedores de infraestrutura: Cloudflare (hospedagem e CDN), Supabase (autenticação e banco de dados), Google (autenticação OAuth e AdSense) e provedores AniList, Kitsu e MyAnimeList (APIs públicas de metadados).</p>
+
+    <h2>6. Direitos do Titular (LGPD Art. 18)</h2>
+    <p>O usuário pode solicitar confirmação, acesso, correção ou eliminação de seus dados pessoais. O próprio aplicativo disponibiliza botões de <em>"Limpar dados locais do navegador"</em> e <em>"Excluir minha conta e dados da nuvem"</em> nas Configurações.</p>
+
+    <footer>
+      <p>© 2026 AniMatch • <a href="/sobre.html">Sobre</a> • <a href="/termos.html">Termos de Uso</a> • <a href="/">Início</a></p>
+    </footer>
+  </div>
+</body>
+</html>

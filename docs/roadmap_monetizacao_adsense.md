@@ -16,18 +16,17 @@ O robô do Google AdSense não interage com caixas de busca nem pesquisa usernam
 ## 2. Fases de Execução
 
 ### Fase AD1 — Conteúdo Indexável & Rastreabilidade (Preparação para Aprovação)
-- [ ] **Seções textuais na Landing Page (abaixo da busca)**:
+- [x] **Seções textuais na Landing Page (abaixo da busca)**:
   - **"Como o AniMatch funciona"**: Explicação detalhada do cálculo de afinidade por gêneros, notas normalizadas e ponderação de formato/origem.
-  - **FAQ (Perguntas Frequentes)**: 6 a 8 perguntas em texto semântico (privacidade de listas, compatibilidade com AniList/Kitsu/MAL, scores).
+  - **FAQ (Perguntas Frequentes)**: 4 perguntas em texto semântico (privacidade de listas, compatibilidade com AniList/Kitsu/MAL, scores).
   - **Demonstração estática / Exemplo visual**: Card de demonstração de recomendação estática para que o crawler veja um exemplo de resultado mesmo sem executar chamadas de API.
-- [ ] **Desacoplar Páginas Legais do Modal**:
-  - Transformar o conteúdo de `src/components/LegalModal.jsx` em rotas ou páginas estáticas acessíveis por URL direta:
-    - `/sobre` (Sobre o projeto, metodologia, transparência)
-    - `/termos` (Termos de Uso)
-    - `/privacidade` (Política de Privacidade)
-    - `/contato` (Canal de contato e suporte)
-  - Manter links fixos no rodapé visíveis em todas as telas.
-- [ ] **SEO Técnico & Rastreio**:
+- [x] **Desacoplar Páginas Legais do Modal**:
+  - Criadas páginas estáticas HTML completas acessíveis por URL direta no `public/`:
+    - `public/sobre.html` (Sobre o projeto, metodologia, transparência)
+    - `public/termos.html` (Termos de Uso)
+    - `public/privacidade.html` (Política de Privacidade)
+  - Links institucionais visíveis no rodapé da página inicial.
+- [x] **SEO Técnico & Rastreio**:
   - Criar `public/robots.txt` permitindo indexação dos crawlers do Google (`Mediapartners-Google` e `Googlebot`).
   - Criar `public/sitemap.xml` listando as URLs públicas.
 

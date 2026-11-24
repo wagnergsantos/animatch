@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sobre o AniMatch — Recomendador Inteligente de Animes</title>
+  <meta name="description" content="Conheça o AniMatch: ferramenta gratuita de análise de preferências e recomendação personalizada de animes com cálculo Bayesiano." />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <style>
+    :root {
+      --bg: #0e1117;
+      --card: #161b22;
+      --border: #30363d;
+      --text: #f0f6fc;
+      --muted: #8b949e;
+      --primary: #58a6ff;
+    }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      margin: 0;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2.5rem;
+    }
+    a { color: var(--primary); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    h1, h2, h3 { color: #fff; margin-top: 1.5rem; }
+    .back-link { display: inline-block; margin-bottom: 1.5rem; font-weight: 500; }
+    footer { margin-top: 2.5rem; border-top: 1px solid var(--border); padding-top: 1rem; color: var(--muted); font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="/" class="back-link">← Voltar para o AniMatch</a>
+    <h1>Sobre o AniMatch</h1>
+    
+    <h2>1. O que é o AniMatch</h2>
+    <p>O AniMatch é uma aplicação web independente, gratuita e sem fins comerciais, desenvolvida para analisar preferências pessoais e oferecer recomendações personalizadas de animes.</p>
+    <p>A ferramenta consulta listas públicas disponibilizadas pelos próprios usuários em plataformas compatíveis, como <strong>AniList</strong>, <strong>Kitsu</strong> e <strong>MyAnimeList</strong>.</p>
+    <p>A partir dessas informações, o AniMatch analisa os animes concluídos ou em andamento, as avaliações pessoais atribuídas pelo usuário e as avaliações da comunidade. Com esses dados, calcula indicadores de afinidade por gêneros e outras características, como formato e país de origem.</p>
+    <p>Esses indicadores são utilizados para organizar e ordenar a lista de animes que o usuário deseja assistir (<em>Plan to Watch</em>), sugerindo títulos que apresentam maior compatibilidade com suas preferências reais, e não apenas o que é popular no momento.</p>
+    <p>O AniMatch não é uma plataforma de streaming, não hospeda episódios, não administra as listas originais dos usuários e não altera os dados nas plataformas de origem.</p>
+
+    <h2>2. Metodologia e Algoritmo Bayesiano</h2>
+    <p>Para evitar distorções estatísticas comuns (por exemplo, um usuário que assistiu a apenas um anime de Mecha e deu nota 10 ter afinidade artificial de 100%), o AniMatch emprega uma suavização Bayesiana ponderada com constante de confiança (C = 25).</p>
+    <p>Dessa forma, gêneros com poucas obras avaliadas convergem suavemente em direção à média geral do usuário, enquanto gêneros com grande histórico de notas mantêm seu peso autêntico.</p>
+
+    <h2>3. Fontes de Dados e Propriedade Intelectual</h2>
+    <p>As informações sobre animes são obtidas por meio de APIs públicas oficiais disponibilizadas por AniList, Kitsu e MyAnimeList. O AniMatch não reivindica propriedade sobre os títulos, personagens, marcas, imagens ou sinopses pertencentes a terceiros. Os direitos autorais e propriedade intelectual pertencem integralmente aos seus respectivos titulares.</p>
+
+    <h2>4. Independência</h2>
+    <p>O AniMatch é um projeto independente e não possui vínculo, patrocínio ou endosso oficial do AniList, Kitsu ou MyAnimeList. A menção aos nomes e marcas dessas plataformas tem caráter estritamente descritivo de compatibilidade tecnológica.</p>
+
+    <footer>
+      <p>© 2026 AniMatch • <a href="/privacidade.html">Política de Privacidade</a> • <a href="/termos.html">Termos de Uso</a> • <a href="/">Início</a></p>
+    </footer>
+  </div>
+</body>
+</html>
