@@ -228,9 +228,17 @@
   font-size: var(--text-base);
   font-weight: 700;
   margin: 0 0 var(--space-2) 0;
-  white-space: nowrap; /* Garante que os 3 títulos fiquem estritamente em uma única linha */
+  text-wrap: balance;
+  min-height: 2.85rem;
   display: flex;
   align-items: center;
+}
+
+@media (min-width: 640px) {
+  .feature-title {
+    white-space: nowrap;
+    min-height: auto;
+  }
 }
 
 .feature-title--muted {
@@ -457,17 +465,39 @@
 .example-score-name {
   font-size: 0.75rem;
   color: oklch(0.72 0.005 240);
-  cursor: help;
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  border-bottom: 1px dotted oklch(0.45 0.01 240);
+}
+
+.example-info-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  border-radius: var(--radius-full);
+  outline: none;
+  transition: transform var(--transition-default), color var(--transition-default);
+}
+
+.example-info-btn:hover,
+.example-info-btn:focus-visible {
+  color: var(--color-primary-hover);
+  transform: scale(1.15);
+}
+
+.example-info-btn:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-primary);
 }
 
 .example-info-icon {
-  width: 12px;
-  height: 12px;
-  color: var(--color-primary);
+  width: 13px;
+  height: 13px;
   flex-shrink: 0;
 }
 
@@ -821,7 +851,7 @@
   color: oklch(0.72 0.005 240); /* Mais legível */
   line-height: 1.6;
   text-align: left;
-  max-width: none; /* Ocupa toda a largura do card sem deixar a direita vazia */
+  max-width: 75ch; /* Limite tipográfico ideal para evitar fadiga de leitura em telas largas */
   width: 100%;
 }
 

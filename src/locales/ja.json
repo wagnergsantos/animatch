@@ -69,6 +69,7 @@
   },
   "auth": {
     "login": "ログイン",
+    "login_save_accounts": "アカウント保存のためログイン",
     "signup": "新規登録",
     "email": "メールアドレス",
     "password": "パスワード",

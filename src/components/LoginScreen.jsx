@@ -82,10 +82,10 @@ export default function LoginScreen({
               type="button"
               className={styles['cloud-auth-btn']}
               onClick={() => onOpenAuthModal?.()}
-              aria-label={t('auth.login', 'Entrar para salvar contas')}
+              aria-label={t('auth.login_save_accounts', 'Entrar para salvar contas')}
               title="Opcional: entre para salvar e sincronizar suas contas entre dispositivos"
             >
-              <span aria-hidden="true">☁️</span> {t('auth.login', 'Entrar para salvar contas')}
+              <span aria-hidden="true">☁️</span> {t('auth.login_save_accounts', 'Entrar para salvar contas')}
             </button>
           ) : (
             <div className={styles['cloud-user-badge']}>
@@ -229,19 +229,23 @@ export default function LoginScreen({
                     <span className={styles['example-score-primary']}>9.30/10</span>
                   </div>
                   <div className={styles['example-score-row']}>
-                    <span
-                      className={styles['example-score-name']}
-                      tabIndex={0}
-                      role="note"
-                      aria-label="Média Geral: notas registradas pelos usuários no AniList"
-                      title="Média de notas registrada pelos usuários no provedor de origem (AniList)"
-                    >
+                    <span className={styles['example-score-name']}>
                       Média Geral
-                      <svg className={styles['example-info-icon']} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <circle cx="12" cy="12" r="10" />
-                        <line x1="12" y1="16" x2="12" y2="12" />
-                        <line x1="12" y1="8" x2="12.01" y2="8" />
-                      </svg>
+                      <button
+                        type="button"
+                        className={styles['example-info-btn']}
+                        aria-label="Informações sobre a Média Geral: calculada a partir das avaliações públicas registradas pelos usuários no AniList."
+                        title="Média de notas registrada pelos usuários no provedor de origem (AniList)"
+                        onClick={(e) => {
+                          e.currentTarget.focus()
+                        }}
+                      >
+                        <svg className={styles['example-info-icon']} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <circle cx="12" cy="12" r="10" />
+                          <line x1="12" y1="16" x2="12" y2="12" />
+                          <line x1="12" y1="8" x2="12.01" y2="8" />
+                        </svg>
+                      </button>
                       :
                     </span>
                     <span className={styles['example-score-muted']}>8.68/10</span>
@@ -299,19 +303,23 @@ export default function LoginScreen({
                     <span className={styles['example-score-primary']}>8.85/10</span>
                   </div>
                   <div className={styles['example-score-row']}>
-                    <span
-                      className={styles['example-score-name']}
-                      tabIndex={0}
-                      role="note"
-                      aria-label="Média Geral: notas registradas pelos usuários no AniList"
-                      title="Média de notas registrada pelos usuários no provedor de origem (AniList)"
-                    >
+                    <span className={styles['example-score-name']}>
                       Média Geral
-                      <svg className={styles['example-info-icon']} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <circle cx="12" cy="12" r="10" />
-                        <line x1="12" y1="16" x2="12" y2="12" />
-                        <line x1="12" y1="8" x2="12.01" y2="8" />
-                      </svg>
+                      <button
+                        type="button"
+                        className={styles['example-info-btn']}
+                        aria-label="Informações sobre a Média Geral: calculada a partir das avaliações públicas registradas pelos usuários no AniList."
+                        title="Média de notas registrada pelos usuários no provedor de origem (AniList)"
+                        onClick={(e) => {
+                          e.currentTarget.focus()
+                        }}
+                      >
+                        <svg className={styles['example-info-icon']} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <circle cx="12" cy="12" r="10" />
+                          <line x1="12" y1="16" x2="12" y2="12" />
+                          <line x1="12" y1="8" x2="12.01" y2="8" />
+                        </svg>
+                      </button>
                       :
                     </span>
                     <span className={styles['example-score-muted']}>8.36/10</span>
@@ -369,19 +377,23 @@ export default function LoginScreen({
                     <span className={styles['example-score-primary']}>8.40/10</span>
                   </div>
                   <div className={styles['example-score-row']}>
-                    <span
-                      className={styles['example-score-name']}
-                      tabIndex={0}
-                      role="note"
-                      aria-label="Média Geral: notas registradas pelos usuários no AniList"
-                      title="Média de notas registrada pelos usuários no provedor de origem (AniList)"
-                    >
+                    <span className={styles['example-score-name']}>
                       Média Geral
-                      <svg className={styles['example-info-icon']} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <circle cx="12" cy="12" r="10" />
-                        <line x1="12" y1="16" x2="12" y2="12" />
-                        <line x1="12" y1="8" x2="12.01" y2="8" />
-                      </svg>
+                      <button
+                        type="button"
+                        className={styles['example-info-btn']}
+                        aria-label="Informações sobre a Média Geral: calculada a partir das avaliações públicas registradas pelos usuários no AniList."
+                        title="Média de notas registrada pelos usuários no provedor de origem (AniList)"
+                        onClick={(e) => {
+                          e.currentTarget.focus()
+                        }}
+                      >
+                        <svg className={styles['example-info-icon']} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <circle cx="12" cy="12" r="10" />
+                          <line x1="12" y1="16" x2="12" y2="12" />
+                          <line x1="12" y1="8" x2="12.01" y2="8" />
+                        </svg>
+                      </button>
                       :
                     </span>
                     <span className={styles['example-score-muted']}>8.10/10</span>
