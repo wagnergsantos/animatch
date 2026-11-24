@@ -96,9 +96,11 @@ export default function LoginScreen({
         </div>
       </header>
 
-      {/* 2. Hero: Logo + Slogan */}
+      {/* 2. Hero: Chamada Expressiva + Slogan */}
       <section className={styles['hero-section']}>
-        <h1 className={styles['hero-title']}>AniMatch</h1>
+        <h1 className={styles['hero-headline']}>
+          Descubra animes que combinam com seu gosto
+        </h1>
         <p className={styles['hero-slogan']}>
           Seu gosto por anime é único. Suas recomendações também deveriam ser.
         </p>

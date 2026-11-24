@@ -94,29 +94,31 @@
   align-items: center;
 }
 
-/* 2. Hero Section: Logo + Slogan */
+/* 2. Hero Section: Chamada Expressiva + Slogan */
 .hero-section {
   text-align: center;
-  max-width: 720px;
-  margin: var(--space-2) auto var(--space-10) auto;
+  max-width: 760px;
+  margin: var(--space-4) auto var(--space-10) auto;
 }
 
-.hero-title {
-  font-size: var(--text-2xl);
+.hero-headline {
+  font-size: clamp(var(--text-xl), 4vw, 2.75rem);
   font-weight: 800;
-  color: var(--color-primary);
+  color: var(--color-ink);
   letter-spacing: -0.03em;
-  margin: 0 0 var(--space-2) 0;
+  margin: 0 auto var(--space-3) auto;
   line-height: 1.15;
+  text-wrap: balance;
 }
 
 .hero-slogan {
-  font-size: var(--text-md);
+  font-size: clamp(var(--text-sm), 2vw, var(--text-md));
   font-weight: 500;
   color: var(--color-muted);
   margin: 0 auto;
-  max-width: 540px;
+  max-width: 560px;
   line-height: 1.5;
+  text-wrap: balance;
 }
 
 /* Container Principal do Conteúdo */
