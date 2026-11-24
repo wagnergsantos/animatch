@@ -502,7 +502,6 @@ export default function Dashboard({
             user={user}
             syncStatus={syncStatus}
             onOpenAuthModal={onOpenAuthModal}
-            onOpenLegalModal={onOpenLegalModal}
             onSignOut={onSignOut}
             onDeleteAccount={onDeleteAccount}
             linkedUsernames={linkedUsernames}

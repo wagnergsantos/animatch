@@ -79,3 +79,13 @@ O robô do Google AdSense não interage com caixas de busca nem pesquisa usernam
 - [ ] **Proteção de Usabilidade**:
   - Zero pop-ups invasivos ou anúncios cobrindo botões de ação e modais de detalhes.
   - Layout shifts (CLS) controlados: reservar altura fixa (`min-height`) nos containers de anúncios para evitar saltos de tela ao carregar o anúncio.
+
+---
+
+### Fase AD6 — Otimização de Conversão e Arquitetura da Landing Page (Pós-Analytics)
+- [ ] **Mover o formulário para logo abaixo do hero** (Hero → Formulário → Como funciona → Exemplo → FAQ):
+  - *Condição de disparo*: Reavaliar hierarquia somente após termos dados consolidados de analytics (se poucos visitantes descerem a página até a área de busca).
+  - *Métricas a mensurar antes*:
+    - Taxa de cliques no CTA do hero ("Experimentar agora ↓").
+    - Taxa de visitantes que atingem a seção do formulário (scroll depth / visualizações do input).
+    - Total de buscas / recomendações geradas vs. visitantes totais.

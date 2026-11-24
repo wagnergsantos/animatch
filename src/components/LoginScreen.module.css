@@ -353,30 +353,47 @@
   position: absolute;
   top: 8px;
   left: 8px;
-  font-size: 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
   font-weight: 700;
-  padding: 3px 8px;
+  padding: 4px 8px;
   border-radius: var(--radius-md, 6px);
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
   z-index: 2;
+  white-space: nowrap;
+}
+
+.example-badge-icon {
+  font-size: 0.8rem;
+  line-height: 1;
 }
 
 .example-badge--top {
   background: var(--color-primary);
+  border: 1px solid var(--color-primary);
   color: #000000;
 }
 
 .example-badge--consensus {
-  background: rgba(220, 38, 38, 0.9);
+  background: rgba(220, 38, 38, 0.85);
   color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid #f87171;
+}
+
+.example-badge--discovery {
+  background: rgba(13, 148, 136, 0.88);
+  color: #ffffff;
+  border: 1px solid #2dd4bf;
 }
 
 .example-badge--gem {
-  background: rgba(147, 51, 234, 0.9);
+  background: rgba(147, 51, 234, 0.85);
   color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid #c084fc;
 }
 
 /* Botão rápido AniList */

@@ -202,8 +202,9 @@ export default function LoginScreen({
                   className={styles['example-card-img']}
                   loading="lazy"
                 />
-                <span className={`${styles['example-badge']} ${styles['example-badge--top']}`}>
-                  ★ Top Match
+                <span className={`${styles['example-badge']} ${styles['example-badge--top']}`} title={t('labels.topMatch')}>
+                  <span className={styles['example-badge-icon']} aria-hidden="true">★</span>
+                  <span>{t('labels.topMatch')}</span>
                 </span>
                 <a
                   href="https://anilist.co/anime/128547"
@@ -267,7 +268,7 @@ export default function LoginScreen({
               </div>
             </article>
 
-            {/* Card 2: Vivy: Fluorite Eye's Song (Forte Consenso) */}
+            {/* Card 2: Vivy: Fluorite Eye's Song (Recomendação Forte) */}
             <article className={styles['example-vertical-card']}>
               <div className={styles['example-card-img-wrapper']}>
                 <img
@@ -276,8 +277,9 @@ export default function LoginScreen({
                   className={styles['example-card-img']}
                   loading="lazy"
                 />
-                <span className={`${styles['example-badge']} ${styles['example-badge--consensus']}`}>
-                  Forte Consenso
+                <span className={`${styles['example-badge']} ${styles['example-badge--consensus']}`} title={t('labels.badge_STRONG_CONSENSUS')}>
+                  <span className={styles['example-badge-icon']} aria-hidden="true">🔥</span>
+                  <span>{t('labels.badge_STRONG_CONSENSUS').replace(/^[^\w\s\u00C0-\u00FF]+/u, '').trim()}</span>
                 </span>
                 <a
                   href="https://anilist.co/anime/128546"
@@ -341,7 +343,7 @@ export default function LoginScreen({
               </div>
             </article>
 
-            {/* Card 3: Keep Your Hands Off Eizouken! (Joia Escondida) */}
+            {/* Card 3: Keep Your Hands Off Eizouken! (Fora da Zona / Discovery) */}
             <article className={styles['example-vertical-card']}>
               <div className={styles['example-card-img-wrapper']}>
                 <img
@@ -350,8 +352,9 @@ export default function LoginScreen({
                   className={styles['example-card-img']}
                   loading="lazy"
                 />
-                <span className={`${styles['example-badge']} ${styles['example-badge--gem']}`}>
-                  Joia Escondida
+                <span className={`${styles['example-badge']} ${styles['example-badge--discovery']}`} title={t('labels.badge_DISCOVERY')}>
+                  <span className={styles['example-badge-icon']} aria-hidden="true">🧭</span>
+                  <span>{t('labels.badge_DISCOVERY').replace(/^[^\w\s\u00C0-\u00FF]+/u, '').trim()}</span>
                 </span>
                 <a
                   href="https://anilist.co/anime/109298"
