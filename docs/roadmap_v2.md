@@ -262,6 +262,7 @@ Novas funcionalidades sugeridas para evolução de produto, separadas das melhor
 | **C5** | **Notificações In-App (Diff Local)** | Alertas internos sobre estreias comparando o snapshot anterior do IndexedDB com o novo fetch (`NOT_YET_RELEASED` → `RELEASING`), sem custo de Web Push (`B4b`). | 🟡 Média / Esforço P-M |
 | **C6** | **Recomendações Pós-Conclusão** | Exibir recomendações imediatas ("O que assistir depois de X") ao detectar novos animes concluídos no sync ou via ação rápida local. | 🟡 Média / Esforço M |
 | **C7** | **Calendário de Temporada ("Airing Now")** | Aba dedicada para animes em exibição na temporada atual, destacando obras do `Planning`/`Watching` por dia da semana. | 💤 Nice-to-Have / Esforço M-A |
+| **C8** | **Social Login Gamer/Otaku (Discord & Twitch)** | Login com 1 clique via OAuth do Discord e Twitch (ambos nativos no Supabase Auth), otimizados para o público de animes e streamers. | 🟡 Média / Esforço P |
 
 ---
 
@@ -286,7 +287,7 @@ Novas funcionalidades sugeridas para evolução de produto, separadas das melhor
 | 15 | A12 — Evolução do Algoritmo (#23) | Melhoria Técnica | 🟡 Média | ✅ Concluído | Ponderação de gêneros, pesos configuráveis, boost unificado e animes sem nota. |
 | 16 | A11 — Refatoração Dashboard & Keys (#25) | Arquitetura | 🟡 Média | ✅ Concluído | Extrai `useRecommendationPipeline`, centraliza `STORAGE_KEYS` e normalização. |
 | 17 | B3 — comparação entre usuários (#21) | Produto (v2/v3) | 💤 Nice-to-Have | 🛑 Backlog | Reusa `buildTasteProfile()`; aguardando validação de demanda. |
-| 18 | C1–C7 — Novas Features (Roadmap v3) | Produto (v3) | 🚀 Backlog v3 | 💡 Proposto | PWA (`C1`), Export XML (`C2`), Watch Queue (`C3`), Feedback (`C4`), Diff (`C5`). |
+| 18 | C1–C8 — Novas Features (Roadmap v3) | Produto (v3) | 🚀 Backlog v3 | 💡 Proposto | PWA (`C1`), Export XML (`C2`), Watch Queue (`C3`), Feedback (`C4`), Diff (`C5`), Social Login Discord/Twitch (`C8`). |
 | 19 | A7 — Web Worker Performance (#3) | Correção/Infra | ⏸️ Baixa | 🛑 Arquivado | Ganho nulo (~2ms de CPU vs ~2ms de overhead de serialização). |
 | 20 | A8 — OpenTelemetry (#2) | Infra | ⏸️ Baixa | 🛑 Arquivado | Overengineering para SPA client-side; coberto por A2 e B8. |
 | 21 | B4b — Web Push completo (v2) | Backlog | ⏸️ Baixa | 🛑 Arquivado | Exige infra persistente (cron, VAPID, tabela de subscriptions); preferir `C5`. |
