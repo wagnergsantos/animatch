@@ -243,57 +243,60 @@ export default function LoginScreen({
       <section className={styles['landing-content']}>
         <div>
           <h2 className={styles['section-heading']}>Como o AniMatch funciona</h2>
-          <p className={styles['section-subheading']}>Recomendações baseadas na sua afinidade real, sem depender de popularidade ou algoritmos opacos.</p>
+          <p className={styles['section-subheading']}>
+            Descubra animes que combinam com o seu gosto, não apenas com o que é popular.
+          </p>
           <div className={styles['feature-grid']}>
             <div className={styles['feature-card']}>
               <span className={styles['feature-icon']} aria-hidden="true">🔗</span>
-              <h3 className={styles['feature-title']}>1. Conecte sua lista pública</h3>
+              <h3 className={styles['feature-title']}>1. Conecte sua lista</h3>
               <p className={styles['feature-desc']}>
-                Informe seu usuário do AniList, Kitsu ou MyAnimeList. Sem senhas ou permissões invasivas, usamos apenas os dados públicos das suas obras concluídas e planejadas.
+                Informe seu usuário do AniList, Kitsu ou MyAnimeList. Utilizamos apenas os dados públicos das suas listas, sem precisar de senha ou permissões invasivas.
               </p>
             </div>
             <div className={styles['feature-card']}>
               <span className={styles['feature-icon']} aria-hidden="true">📊</span>
-              <h3 className={styles['feature-title']}>2. Perfil Bayesiano de Gosto</h3>
+              <h3 className={styles['feature-title']}>2. Descubra seu perfil</h3>
               <p className={styles['feature-desc']}>
-                Calculamos sua nota média por gênero com suavização Bayesiana. Gêneros com poucos animes assistidos não distorcem seu perfil, garantindo precisão matemática.
+                Analisamos suas avaliações para identificar os gêneros que você mais gosta, utilizando uma análise estatística Bayesiana para equilibrar preferências e evitar distorções.
               </p>
             </div>
             <div className={styles['feature-card']}>
               <span className={styles['feature-icon']} aria-hidden="true">🎯</span>
-              <h3 className={styles['feature-title']}>3. Predição na sua lista</h3>
+              <h3 className={styles['feature-title']}>3. Encontre seu próximo anime</h3>
               <p className={styles['feature-desc']}>
-                Cruzamos seu perfil com cada título da sua lista <em>Plan to Watch</em>, calculando a nota prevista estimada que você daria para cada anime e indicando onde assistir.
+                Comparamos seu perfil com sua lista para assistir e estimamos quais animes têm maior chance de agradar você.
               </p>
             </div>
           </div>
         </div>
 
-        <div className={styles['demo-container']}>
-          <div>
-            <h2 className={styles['section-heading']} style={{ margin: 0, textAlign: 'left' }}>Exemplo de Previsão</h2>
-            <p className={styles['section-subheading']} style={{ margin: 0, textAlign: 'left', marginTop: 'var(--space-1)' }}>
-              Como uma obra do seu <em>Plan to Watch</em> é pontuada e ordenada:
-            </p>
-          </div>
-          <div className={styles['demo-card']}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-                <strong style={{ color: 'var(--color-ink)', fontSize: 'var(--text-base)' }}>Frieren: Beyond Journey's End</strong>
-                <span className={styles['demo-badge']}>Aposta Pessoal</span>
+        <div className={styles['demo-wrapper']}>
+          <span className={styles['demo-tag-label']}>Exemplo de Recomendação</span>
+          <div className={styles['demo-container']}>
+            <div className={styles['demo-card']}>
+              <div className={styles['demo-info']}>
+                <div className={styles['demo-title-row']}>
+                  <h3 className={styles['demo-anime-title']}>Frieren: Beyond Journey's End</h3>
+                  <span className={styles['demo-badge']}>Alta afinidade</span>
+                </div>
+                <p className={styles['demo-sub']}>Alta afinidade com seu perfil de gosto</p>
+                <div className={styles['demo-genres']}>
+                  <span>Aventura</span> • <span>Fantasia</span> • <span>Drama</span>
+                </div>
               </div>
-              <p style={{ margin: 'var(--space-1) 0 0 0', fontSize: 'var(--text-xs)', color: 'var(--color-muted)' }}>
-                Gêneros: Aventura, Fantasia, Drama • Base: Afinidade Alta nos Gêneros
-              </p>
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-muted)', display: 'block' }}>Nota prevista</span>
-              <strong style={{ fontSize: 'var(--text-xl)', color: 'var(--color-primary)' }}>★ 9.4</strong>
+              <div className={styles['demo-score-box']}>
+                <div className={styles['demo-score-val']}>
+                  <span className={styles['demo-score-star']} aria-hidden="true">★</span>
+                  <span>9,4</span>
+                </div>
+                <span className={styles['demo-score-label']}>Nota prevista</span>
+              </div>
             </div>
           </div>
         </div>
 
-        <div>
+        <div className={styles['faq-wrapper']}>
           <h2 className={styles['section-heading']}>Perguntas Frequentes (FAQ)</h2>
           <div className={styles['faq-list']}>
             <details className={styles['faq-item']}>
