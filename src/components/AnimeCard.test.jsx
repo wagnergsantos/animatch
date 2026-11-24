@@ -138,7 +138,7 @@ describe('AnimeCard', () => {
       topContributingGenres: [{ genre: 'Sci-Fi' }, { genre: 'Action' }],
     }
     render(<AnimeCard anime={anime} />)
-    expect(screen.getByText(/Combina com seu gosto por Sci-Fi, Action/i)).toBeInTheDocument()
+    expect(screen.getByText(/Combina com seu gosto por Sci-Fi, (Action|Ação)/i)).toBeInTheDocument()
   })
 
   it('renders community fallback reason when predictionSource is community', () => {
@@ -320,6 +320,55 @@ describe('AnimeCard', () => {
     const article = container.querySelector('article')
     expect(article).not.toHaveAttribute('data-score-tier')
     expect(screen.queryByTestId('top-match-badge')).not.toBeInTheDocument()
+  })
+
+  it('renders fallback cover with title when image encounters error', () => {
+    const anime = {
+      title: 'Broken Cover Anime',
+      coverImage: 'https://example.com/broken.jpg',
+    }
+    render(<AnimeCard anime={anime} />)
+    const img = screen.getByRole('img', { name: /Broken Cover Anime/i })
+    fireEvent.error(img)
+
+    expect(screen.queryByRole('img', { name: /Broken Cover Anime/i })).not.toBeInTheDocument()
+    const fallback = screen.getByTestId('cover-fallback')
+    expect(fallback).toBeInTheDocument()
+    expect(fallback).toHaveTextContent('Broken Cover Anime')
+  })
+
+  it('provides accessible badges with tabIndex, role and expands on click/tap', () => {
+    const anime = {
+      title: 'Badge Test Anime',
+      scoreTier: 'excellent',
+      badges: ['ACCLAIMED'],
+    }
+    render(<AnimeCard anime={anime} />)
+
+    const topBadge = screen.getByTestId('top-match-badge')
+    expect(topBadge).toHaveAttribute('tabindex', '0')
+    expect(topBadge).toHaveAttribute('role', 'status')
+    expect(topBadge).toHaveAttribute('aria-label', 'Top Match')
+
+    // Click badge expands it without activating card modal
+    fireEvent.click(topBadge)
+    expect(topBadge).toHaveAttribute('data-expanded', 'true')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('translates genres in genre pills and top contributing reasons', () => {
+    const anime = {
+      title: 'Translated Genres Anime',
+      genres: ['Action', 'Comedy', 'Mystery'],
+      predictionSource: 'taste',
+      topContributingGenres: [{ genre: 'Action' }, { genre: 'Comedy' }],
+    }
+    render(<AnimeCard anime={anime} />)
+
+    expect(screen.getByText('Ação')).toBeInTheDocument()
+    expect(screen.getByText('Comédia')).toBeInTheDocument()
+    expect(screen.getByText('Mistério')).toBeInTheDocument()
+    expect(screen.getByText(/Combina com seu gosto por Ação, Comédia/i)).toBeInTheDocument()
   })
 })
 

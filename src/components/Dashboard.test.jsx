@@ -96,7 +96,7 @@ describe('Dashboard', () => {
     const options = screen.getAllByRole('option')
     const adventureOption = options.find((opt) => opt.value === 'Adventure')
     expect(adventureOption).toBeDefined()
-    expect(adventureOption.textContent).toMatch(/Adventure ★ \d+\.\d{2} \(1\)/)
+    expect(adventureOption.textContent).toMatch(/(Adventure|Aventura) ★ \d+\.\d{2} \(1\)/)
   })
 
   it('toggles genre sort mode in Dashboard FilterBar between score and alphabetical', async () => {
@@ -233,8 +233,8 @@ describe('Dashboard', () => {
     render(<Dashboard allEntries={mockEntries} username="testuser" />)
 
     expect(screen.getByRole('option', { name: /Todos os Gêneros \(2\)/i })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: /Action \(2\)/i })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: /Comedy \(1\)/i })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: /(Ação|Action) \(2\)/i })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: /(Comédia|Comedy) \(1\)/i })).toBeInTheDocument()
     expect(screen.queryByRole('option', { name: /Drama/i })).not.toBeInTheDocument()
   })
 

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import RecommendationReason from './RecommendationReason.jsx'
+import { translateGenre } from '../lib/genreTranslations.js'
 import styles from './AnimeRow.module.css'
 
 export default function AnimeRow({ anime, titlePref = 'english', priority = false }) {
@@ -140,10 +141,11 @@ export default function AnimeRow({ anime, titlePref = 'english', priority = fals
               )
             }
             if (anime?.topContributingGenres && anime.topContributingGenres.length > 0) {
-              const gList = anime.topContributingGenres.slice(0, 2).map((g) => g.genre).join(', ')
+              const gList = anime.topContributingGenres.slice(0, 2).map((g) => translateGenre(g.genre, t)).join(', ')
+              const reasonText = t('labels.cardReasonTaste', { genres: gList })
               return (
-                <div className={styles['anime-row-reason-line']}>
-                  {t('labels.cardReasonTaste', { genres: gList })}
+                <div className={styles['anime-row-reason-line']} title={reasonText}>
+                  {reasonText}
                 </div>
               )
             }

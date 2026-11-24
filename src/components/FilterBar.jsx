@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { translateGenre } from '../lib/genreTranslations.js'
 import styles from './FilterBar.module.css'
 
 const DEFAULT_MAIN_GENRES = [
@@ -109,11 +110,12 @@ export default function FilterBar({
         return {
           id: g.name,
           name: g.name,
+          translatedName: translateGenre(g.name, t),
           count: g.count,
           score: typeof g.score === 'number' ? g.score : null,
         }
       }
-      return { id: g, name: g, count: null, score: null }
+      return { id: g, name: g, translatedName: translateGenre(g, t), count: null, score: null }
     })
 
     if (effectiveGenreSortMode === 'score') {
@@ -126,16 +128,16 @@ export default function FilterBar({
         }
         if (hasScoreA) return -1
         if (hasScoreB) return 1
-        return a.name.localeCompare(b.name)
+        return a.translatedName.localeCompare(b.translatedName)
       })
     } else {
-      items.sort((a, b) => a.name.localeCompare(b.name))
+      items.sort((a, b) => a.translatedName.localeCompare(b.translatedName))
     }
 
     const formatted = items.map((item) => {
-      let label = item.name
+      let label = item.translatedName
       if (item.score !== null && effectiveGenreSortMode === 'score') {
-        label = `${item.name} ★ ${item.score.toFixed(2)}`
+        label = `${item.translatedName} ★ ${item.score.toFixed(2)}`
       }
       if (item.count != null) {
         label += ` (${item.count})`
@@ -162,7 +164,7 @@ export default function FilterBar({
   // Chips for every active filter except search (already visible in its input)
   const activeChips = []
   if (selectedGenre !== 'ALL') {
-    activeChips.push({ id: 'genre', label: selectedGenre, clear: () => onSelectGenre?.('ALL') })
+    activeChips.push({ id: 'genre', label: translateGenre(selectedGenre, t), clear: () => onSelectGenre?.('ALL') })
   }
   if (selectedFormat !== 'ALL') {
     const f = FORMATS.find((x) => x.id === selectedFormat)
@@ -257,9 +259,12 @@ export default function FilterBar({
                   : t('filter.genreSortToScore')
               }
             >
-              {effectiveGenreSortMode === 'score'
-                ? t('filter.genreSortScoreLabel')
-                : t('filter.genreSortAlphabeticalLabel')}
+              <span className={styles['genre-sort-prefix']}>Ordem: </span>
+              <span>
+                {effectiveGenreSortMode === 'score'
+                  ? t('filter.genreSortScoreLabel')
+                  : t('filter.genreSortAlphabeticalLabel')}
+              </span>
             </button>
           )}
         </div>

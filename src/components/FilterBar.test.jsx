@@ -56,7 +56,7 @@ describe('FilterBar', () => {
 
     expect(screen.getByText('Todos os Gêneros')).toBeInTheDocument()
     expect(screen.getByText('Mecha')).toBeInTheDocument()
-    expect(screen.getByText('Psychological')).toBeInTheDocument()
+    expect(screen.getByText(/(Psychological|Psicológico)/)).toBeInTheDocument()
     expect(screen.queryByText('Ação')).not.toBeInTheDocument()
 
     const genreSelect = screen.getByDisplayValue('Todos os Gêneros')
@@ -135,8 +135,8 @@ describe('FilterBar', () => {
     )
 
     expect(screen.getByText('Todos os Gêneros (8)')).toBeInTheDocument()
-    expect(screen.getByText('Action (5)')).toBeInTheDocument()
-    expect(screen.getByText('Comedy (3)')).toBeInTheDocument()
+    expect(screen.getByText(/(Action|Ação) \(5\)/)).toBeInTheDocument()
+    expect(screen.getByText(/(Comedy|Comédia) \(3\)/)).toBeInTheDocument()
   })
 
   it('renders genres sorted by score descending by default and includes score in label', () => {
@@ -157,8 +157,8 @@ describe('FilterBar', () => {
 
     const options = screen.getAllByRole('option')
     expect(options[0]).toHaveTextContent('Todos os Gêneros (10)')
-    expect(options[1]).toHaveTextContent('Action ★ 8.50 (5)')
-    expect(options[2]).toHaveTextContent('Comedy ★ 7.20 (3)')
+    expect(options[1]).toHaveTextContent(/Ação.*★ 8\.50 \(5\)/)
+    expect(options[2]).toHaveTextContent(/Comédia.*★ 7\.20 \(3\)/)
     expect(options[3]).toHaveTextContent('Drama (2)')
   })
 
@@ -181,8 +181,8 @@ describe('FilterBar', () => {
 
     const options = screen.getAllByRole('option')
     expect(options[0]).toHaveTextContent('Todos os Gêneros (10)')
-    expect(options[1]).toHaveTextContent('Action (5)')
-    expect(options[2]).toHaveTextContent('Comedy (3)')
+    expect(options[1]).toHaveTextContent(/Ação \(5\)/)
+    expect(options[2]).toHaveTextContent(/Comédia \(3\)/)
     expect(options[3]).toHaveTextContent('Drama (2)')
   })
 

@@ -77,6 +77,12 @@
   cursor: pointer;
 }
 
+.genre-sort-prefix {
+  opacity: 0.85;
+  font-weight: 400;
+  margin-right: 2px;
+}
+
 .filter-genre-sort-btn--score {
   border-color: var(--color-primary);
   background: var(--color-primary-badge-bg);

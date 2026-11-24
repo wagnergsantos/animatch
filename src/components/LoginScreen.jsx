@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import useLocalStorage from '../hooks/useLocalStorage.js'
 import { STORAGE_KEYS } from '../lib/storageKeys.js'
 import InstitutionalFooter from './InstitutionalFooter.jsx'
+import BadgeIcon from './BadgeIcon.jsx'
 import styles from './LoginScreen.module.css'
 
 export default function LoginScreen({
@@ -236,7 +237,7 @@ export default function LoginScreen({
                   loading="lazy"
                 />
                 <span className={`${styles['example-badge']} ${styles['example-badge--top']}`} title={t('labels.topMatch')}>
-                  <span className={styles['example-badge-icon']} aria-hidden="true">★</span>
+                  <BadgeIcon type="topMatch" size={13} className={styles['example-badge-icon']} />
                   <span>{t('labels.topMatch')}</span>
                 </span>
                 <a
@@ -259,16 +260,16 @@ export default function LoginScreen({
 
                 <div className={styles['example-card-scores']}>
                   <div className={styles['example-score-row']}>
-                    <span className={styles['example-score-name']}>Match Previsto:</span>
+                    <span className={styles['example-score-name']}>Match:</span>
                     <span className={styles['example-score-primary']}>9.30/10</span>
                   </div>
                   <div className={styles['example-score-row']}>
                     <span className={styles['example-score-name']}>
-                      Média Geral
+                      Comunidade
                       <button
                         type="button"
                         className={styles['example-info-btn']}
-                        aria-label="Informações sobre a Média Geral: calculada a partir das avaliações públicas registradas pelos usuários no AniList."
+                        aria-label="Informações sobre a Comunidade: calculada a partir das avaliações públicas registradas pelos usuários no AniList."
                         title="Média de notas registrada pelos usuários no provedor de origem (AniList)"
                         onClick={(e) => {
                           e.currentTarget.focus()
@@ -311,7 +312,7 @@ export default function LoginScreen({
                   loading="lazy"
                 />
                 <span className={`${styles['example-badge']} ${styles['example-badge--consensus']}`} title={t('labels.badge_STRONG_CONSENSUS')}>
-                  <span className={styles['example-badge-icon']} aria-hidden="true">🔥</span>
+                  <BadgeIcon type="STRONG_CONSENSUS" size={13} className={styles['example-badge-icon']} />
                   <span>{t('labels.badge_STRONG_CONSENSUS').replace(/^[^\w\s\u00C0-\u00FF]+/u, '').trim()}</span>
                 </span>
                 <a
@@ -334,16 +335,16 @@ export default function LoginScreen({
 
                 <div className={styles['example-card-scores']}>
                   <div className={styles['example-score-row']}>
-                    <span className={styles['example-score-name']}>Match Previsto:</span>
+                    <span className={styles['example-score-name']}>Match:</span>
                     <span className={styles['example-score-primary']}>8.85/10</span>
                   </div>
                   <div className={styles['example-score-row']}>
                     <span className={styles['example-score-name']}>
-                      Média Geral
+                      Comunidade
                       <button
                         type="button"
                         className={styles['example-info-btn']}
-                        aria-label="Informações sobre a Média Geral: calculada a partir das avaliações públicas registradas pelos usuários no AniList."
+                        aria-label="Informações sobre a Comunidade: calculada a partir das avaliações públicas registradas pelos usuários no AniList."
                         title="Média de notas registrada pelos usuários no provedor de origem (AniList)"
                         onClick={(e) => {
                           e.currentTarget.focus()
@@ -386,7 +387,7 @@ export default function LoginScreen({
                   loading="lazy"
                 />
                 <span className={`${styles['example-badge']} ${styles['example-badge--discovery']}`} title={t('labels.badge_DISCOVERY')}>
-                  <span className={styles['example-badge-icon']} aria-hidden="true">🧭</span>
+                  <BadgeIcon type="DISCOVERY" size={13} className={styles['example-badge-icon']} />
                   <span>{t('labels.badge_DISCOVERY').replace(/^[^\w\s\u00C0-\u00FF]+/u, '').trim()}</span>
                 </span>
                 <a
@@ -409,16 +410,16 @@ export default function LoginScreen({
 
                 <div className={styles['example-card-scores']}>
                   <div className={styles['example-score-row']}>
-                    <span className={styles['example-score-name']}>Match Previsto:</span>
+                    <span className={styles['example-score-name']}>Match:</span>
                     <span className={styles['example-score-primary']}>8.40/10</span>
                   </div>
                   <div className={styles['example-score-row']}>
                     <span className={styles['example-score-name']}>
-                      Média Geral
+                      Comunidade
                       <button
                         type="button"
                         className={styles['example-info-btn']}
-                        aria-label="Informações sobre a Média Geral: calculada a partir das avaliações públicas registradas pelos usuários no AniList."
+                        aria-label="Informações sobre a Comunidade: calculada a partir das avaliações públicas registradas pelos usuários no AniList."
                         title="Média de notas registrada pelos usuários no provedor de origem (AniList)"
                         onClick={(e) => {
                           e.currentTarget.focus()
@@ -600,7 +601,7 @@ export default function LoginScreen({
             </details>
             <details className={styles['faq-item']}>
               <summary className={styles['faq-question']}>
-                <span>O que significa o Match Previsto?</span>
+                <span>O que significa o Match?</span>
                 <svg className={styles['faq-chevron']} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>

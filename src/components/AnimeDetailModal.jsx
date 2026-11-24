@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import RecommendationReason from './RecommendationReason.jsx'
 import { useModalFocusTrap } from '../hooks/useModalFocusTrap.js'
 import { isSafeExternalUrl } from '../logic/streaming.js'
+import { translateGenre } from '../lib/genreTranslations.js'
 import styles from './AnimeDetailModal.module.css'
 
 const PROVIDER_SHORT_LABELS = {
@@ -185,7 +186,7 @@ export default function AnimeDetailModal({ anime, titlePref = 'english', onClose
               <h3 className={styles['anime-modal__section-title']}>{t('labels.genres')}</h3>
               <div className={styles['anime-modal__genres']}>
                 {genres.map((g) => (
-                  <span key={g} className={styles['anime-modal__genre-tag']}>{g}</span>
+                  <span key={g} className={styles['anime-modal__genre-tag']}>{translateGenre(g, t)}</span>
                 ))}
               </div>
             </div>

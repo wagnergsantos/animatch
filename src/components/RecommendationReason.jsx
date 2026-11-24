@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import { translateGenre } from '../lib/genreTranslations.js'
 import styles from './RecommendationReason.module.css'
 
 export default function RecommendationReason({ anime }) {
@@ -11,7 +12,7 @@ export default function RecommendationReason({ anime }) {
   const topGenres = anime.topContributingGenres ?? []
   const anchors = anime.anchorAnimes ?? []
 
-  const genreNames = topGenres.slice(0, 2).map((g) => g.genre).join(', ')
+  const genreNames = topGenres.slice(0, 2).map((g) => translateGenre(g.genre, t)).join(', ')
   const anchorTitles = anchors.slice(0, 2).map((a) => a.title).join(', ')
 
   let summaryText = ''
@@ -53,7 +54,7 @@ export default function RecommendationReason({ anime }) {
             <div className={styles['genres-breakdown']}>
               {matchingGenres.map((item) => (
                 <span key={item.genre} className={styles['genre-chip']}>
-                  <span>{item.genre}:</span>
+                  <span>{translateGenre(item.genre, t)}:</span>
                   <span className={styles['genre-chip__score']}>{item.score.toFixed(2)}</span>
                 </span>
               ))}

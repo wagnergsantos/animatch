@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import AnimeDetailModal from './AnimeDetailModal.jsx'
+import BadgeIcon from './BadgeIcon.jsx'
+import { translateGenre } from '../lib/genreTranslations.js'
 import { isSafeExternalUrl } from '../logic/streaming.js'
 import styles from './AnimeCard.module.css'
 
@@ -18,6 +20,9 @@ const PROVIDER_FULL_LABELS = {
 
 export default function AnimeCard({ anime, titlePref = 'english', priority = false, onCardClick }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [imgLoaded, setImgLoaded] = useState(false)
+  const [imgError, setImgError] = useState(false)
+  const [expandedBadge, setExpandedBadge] = useState(null)
   const { t } = useTranslation()
 
   const genres = anime?.genres ?? []
@@ -26,6 +31,10 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
   const hasMultiProviders = planningProviders.length > 1
   const presenceMultiplier = typeof anime?.presenceMultiplier === 'number' ? anime.presenceMultiplier : 1
   const presencePercent = Math.round((presenceMultiplier - 1) * 100)
+
+  const toggleBadge = (badgeKey) => {
+    setExpandedBadge((prev) => (prev === badgeKey ? null : badgeKey))
+  }
 
   // Determina provedores a exibir no card
   const activeProviders = planningProviders.length > 0
@@ -124,24 +133,56 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
         title={title}
       >
         <div className={styles['anime-card__image-wrapper']}>
-          <img
-            className={styles['anime-card__image']}
-            src={anime?.coverImage || undefined}
-            alt={t('labels.coverAlt', { title })}
-            width={230}
-            height={325}
-            decoding="async"
-            loading={priority ? 'eager' : 'lazy'}
-            fetchPriority={priority ? 'high' : 'auto'}
-          />
+          {imgError ? (
+            <div className={styles['anime-card__image-fallback']} data-testid="cover-fallback">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18" />
+                <line x1="7" y1="2" x2="7" y2="22" />
+                <line x1="17" y1="2" x2="17" y2="22" />
+                <line x1="2" y1="12" x2="22" y2="12" />
+                <line x1="2" y1="7" x2="7" y2="7" />
+                <line x1="2" y1="17" x2="7" y2="17" />
+                <line x1="17" y1="17" x2="22" y2="17" />
+                <line x1="17" y1="7" x2="22" y2="7" />
+              </svg>
+              <span className={styles['anime-card__image-fallback-title']} aria-hidden="true">{mainTitle}</span>
+            </div>
+          ) : (
+            <>
+              {anime?.coverImage && !imgLoaded && <div className={styles['anime-card__image-skeleton']} aria-hidden="true" />}
+              <img
+                className={`${styles['anime-card__image']} ${imgLoaded ? styles['anime-card__image--loaded'] : styles['anime-card__image--loading']}`}
+                src={anime?.coverImage || undefined}
+                alt={t('labels.coverAlt', { title })}
+                width={230}
+                height={325}
+                decoding="async"
+                loading={priority ? 'eager' : 'lazy'}
+                fetchPriority={priority ? 'high' : 'auto'}
+                onLoad={() => setImgLoaded(true)}
+                onError={() => setImgError(true)}
+              />
+            </>
+          )}
+
           <div className={styles['anime-card__badges-overlay']}>
             {anime?.scoreTier === 'excellent' && (
               <span
                 className={`${styles['anime-card__badge-floating']} ${styles['anime-card__badge-floating--excellent']} ${styles['anime-card__tier-badge']}`}
                 data-testid="top-match-badge"
                 title={t('labels.topMatch')}
+                tabIndex={0}
+                role="status"
+                aria-label={t('labels.topMatch')}
+                data-expanded={expandedBadge === 'topMatch'}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  toggleBadge('topMatch')
+                }}
               >
-                <span className={styles['anime-card__badge-icon']} aria-hidden="true">★</span>
+                <span className={styles['anime-card__badge-icon']}>
+                  <BadgeIcon type="topMatch" size={13} />
+                </span>
                 <span className={styles['anime-card__badge-label']}>{t('labels.topMatch')}</span>
               </span>
             )}
@@ -149,18 +190,22 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
               <span
                 className={`${styles['anime-card__badge-floating']} ${styles['anime-card__badge-floating--community']}`}
                 title={t('labels.fallbackTooltip')}
+                tabIndex={0}
+                role="status"
+                aria-label={t('labels.fallbackBadge')}
+                data-expanded={expandedBadge === 'community'}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  toggleBadge('community')
+                }}
               >
-                <span className={styles['anime-card__badge-icon']}>🌐</span>
+                <span className={styles['anime-card__badge-icon']}>
+                  <BadgeIcon type="COMMUNITY" size={13} />
+                </span>
                 <span className={styles['anime-card__badge-label']}>{t('labels.fallbackBadge')}</span>
               </span>
             )}
             {anime?.badges?.map((badgeKey) => {
-              const iconMap = {
-                ACCLAIMED: '💎',
-                PERSONAL_BET: '🧪',
-                STRONG_CONSENSUS: '🔥',
-                DISCOVERY: '🧭',
-              }
               const labelText = t(`labels.badge_${badgeKey}`).replace(/^[^\w\s\u00C0-\u00FF]+/u, '').trim()
               const modifierClass = styles[`anime-card__badge-floating--${badgeKey.toLowerCase()}`] || ''
               return (
@@ -168,8 +213,18 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
                   key={badgeKey}
                   className={`${styles['anime-card__badge-floating']} ${modifierClass}`}
                   title={t(`labels.badge_${badgeKey}`)}
+                  tabIndex={0}
+                  role="status"
+                  aria-label={labelText}
+                  data-expanded={expandedBadge === badgeKey}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    toggleBadge(badgeKey)
+                  }}
                 >
-                  <span className={styles['anime-card__badge-icon']}>{iconMap[badgeKey] || '⭐'}</span>
+                  <span className={styles['anime-card__badge-icon']}>
+                    <BadgeIcon type={badgeKey} size={13} />
+                  </span>
                   <span className={styles['anime-card__badge-label']}>{labelText}</span>
                 </span>
               )
@@ -245,24 +300,27 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
 
           {(() => {
             if (anime?.predictionSource === 'community') {
+              const reasonText = t('labels.cardReasonFallback')
               return (
-                <div className={styles['anime-card__reason']}>
-                  {t('labels.cardReasonFallback')}
+                <div className={styles['anime-card__reason']} title={reasonText}>
+                  {reasonText}
                 </div>
               )
             }
             if (anime?.anchorAnimes && anime.anchorAnimes.length > 0) {
+              const reasonText = t('labels.cardReasonAnchor', { title: anime.anchorAnimes[0].title })
               return (
-                <div className={styles['anime-card__reason']}>
-                  {t('labels.cardReasonAnchor', { title: anime.anchorAnimes[0].title })}
+                <div className={styles['anime-card__reason']} title={reasonText}>
+                  {reasonText}
                 </div>
               )
             }
             if (anime?.topContributingGenres && anime.topContributingGenres.length > 0) {
-              const gList = anime.topContributingGenres.slice(0, 2).map((g) => g.genre).join(', ')
+              const gList = anime.topContributingGenres.slice(0, 2).map((g) => translateGenre(g.genre, t)).join(', ')
+              const reasonText = t('labels.cardReasonTaste', { genres: gList })
               return (
-                <div className={styles['anime-card__reason']}>
-                  {t('labels.cardReasonTaste', { genres: gList })}
+                <div className={styles['anime-card__reason']} title={reasonText}>
+                  {reasonText}
                 </div>
               )
             }
@@ -276,7 +334,7 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
                   key={genre}
                   className={styles['anime-card__genre-pill']}
                 >
-                  {genre}
+                  {translateGenre(genre, t)}
                 </span>
               ))}
               {genres.length > 3 && (
