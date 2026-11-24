@@ -94,21 +94,33 @@
   align-items: center;
 }
 
-/* 2. Hero Section: Chamada Expressiva + Slogan */
+/* 2. Hero Section: Chamada Expressiva + Destaque Ciano */
 .hero-section {
   text-align: center;
   max-width: 760px;
-  margin: var(--space-4) auto var(--space-12) auto;
+  margin: var(--space-6) auto 0 auto;
 }
 
 .hero-headline {
-  font-size: clamp(var(--text-lg), 3.2vw, 2.25rem);
-  font-weight: 700;
+  font-size: clamp(var(--text-lg), 3.5vw, 2.5rem);
+  font-weight: 800;
   color: var(--color-ink);
   letter-spacing: -0.02em;
   margin: 0 auto;
-  line-height: 1.35;
+  line-height: 1.3;
   text-wrap: balance;
+}
+
+.hero-headline-accent {
+  color: var(--color-primary);
+}
+
+.hero-divider {
+  width: 100%;
+  max-width: 500px;
+  height: 1px;
+  margin: var(--space-12) auto var(--space-8) auto;
+  background: linear-gradient(90deg, transparent, var(--color-border), transparent);
 }
 
 /* Container Principal do Conteúdo (Espaçamento vertical consistente: 40-48px) */
@@ -164,12 +176,19 @@
 }
 
 .feature-icon-wrapper {
-  color: var(--color-primary);
   margin-bottom: var(--space-3);
   display: inline-flex;
   align-items: center;
   justify-content: flex-start;
   line-height: 1;
+}
+
+.feature-icon-wrapper--muted {
+  color: oklch(0.68 0.005 240); /* Cinza monocromático elegante */
+}
+
+.feature-icon-wrapper--accent {
+  color: var(--color-primary); /* Ciano vivo como recompensa da recomendação */
 }
 
 .feature-title {
