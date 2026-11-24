@@ -155,74 +155,182 @@ export default function LoginScreen({
           </div>
         </section>
 
-        {/* 4. Exemplo real de recomendação (Formato horizontal compacto) */}
+        {/* 4. Exemplo real de recomendação (Trio de cards verticais com persona simulada) */}
         <section className={styles['example-section']} aria-label="Exemplo de Recomendação">
           <div className={styles['example-header-row']}>
             <span className={styles['example-tag']}>EXEMPLO DE RECOMENDAÇÃO</span>
             <div className={styles['example-line']} aria-hidden="true"></div>
           </div>
-          <p className={styles['example-intro']}>
-            Como uma obra da sua lista <em>Plan to Watch</em> é pontuada e apresentada:
-          </p>
+          
+          <div className={styles['example-persona-context']}>
+            <p className={styles['example-intro']}>
+              Simulação real: veja como o AniMatch calcula afinidade e ordena o <em>Plan to Watch</em> para uma pessoa que curtiu <strong>Mistério</strong>, <strong>Ficção Científica</strong> e <strong>Animação Criativa</strong>:
+            </p>
+          </div>
 
-          <article className={styles['example-horizontal-card']}>
-            {/* Imagem à esquerda com destaque ampliado */}
-            <div className={styles['example-image-container']}>
-              <img
-                src="/frieren-sample.webp"
-                alt="Frieren: Beyond Journey's End"
-                className={styles['example-thumb']}
-                loading="lazy"
-              />
-              <span className={styles['example-badge-overlay']}>★ Top Match</span>
-            </div>
-
-            {/* Conteúdo detalhado à direita */}
-            <div className={styles['example-content-right']}>
-              <div className={styles['example-header-meta']}>
-                <span className={styles['example-meta-text']}>2023 • 28 eps • Finalizado</span>
+          <div className={styles['example-cards-grid']}>
+            {/* Card 1: Odd Taxi (Top Match) */}
+            <article className={styles['example-vertical-card']}>
+              <div className={styles['example-card-img-wrapper']}>
+                <img
+                  src="/oddtaxi-sample.jpg"
+                  alt="ODDTAXI"
+                  className={styles['example-card-img']}
+                  loading="lazy"
+                />
+                <span className={`${styles['example-badge']} ${styles['example-badge--top']}`}>
+                  ★ Top Match
+                </span>
                 <a
-                  href="https://anilist.co/anime/154587"
+                  href="https://anilist.co/anime/128547"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={styles['example-provider-btn']}
+                  className={styles['example-quick-link']}
                   title="Abrir no AniList"
                 >
                   AniList ↗
                 </a>
               </div>
 
-              <h3 className={styles['example-title']}>Frieren: Beyond Journey's End</h3>
-              <p className={styles['example-subtitle']}>Sousou no Frieren</p>
+              <div className={styles['example-card-body']}>
+                <div className={styles['example-card-meta']}>2021 • 13 eps • Finalizado</div>
+                <h3 className={styles['example-card-title']} title="ODDTAXI">ODDTAXI</h3>
+                <p className={styles['example-card-subtitle']}>Odd Taxi</p>
 
-              {/* Match previsto na linha de cima, Média na de baixo */}
-              <div className={styles['example-scores-stacked']}>
-                <div className={styles['example-predicted-row']}>
-                  <span className={styles['example-score-label']}>Match Previsto:</span>
-                  <span className={styles['example-predicted-val']}>9.40/10</span>
+                <div className={styles['example-card-scores']}>
+                  <div className={styles['example-score-row']}>
+                    <span className={styles['example-score-name']}>Match Previsto:</span>
+                    <span className={styles['example-score-primary']}>9.30/10</span>
+                  </div>
+                  <div className={styles['example-score-row']}>
+                    <span className={styles['example-score-name']}>Média Geral:</span>
+                    <span className={styles['example-score-muted']}>8.68/10</span>
+                  </div>
                 </div>
-                <div className={styles['example-community-row']}>
-                  <span className={styles['example-score-label']}>Média da comunidade:</span>
-                  <span className={styles['example-community-val']}>9.14/10</span>
+
+                <div className={styles['example-card-reason']}>
+                  <span className={styles['example-reason-icon']} aria-hidden="true">💡</span>
+                  <p className={styles['example-reason-text']}>
+                    Alta afinidade pelo seu apreço por <strong>Mistério</strong> e narrativa inteligente.
+                  </p>
+                </div>
+
+                <div className={styles['example-card-genres']}>
+                  <span className={styles['example-genre-pill']}>Mistério</span>
+                  <span className={styles['example-genre-pill']}>Drama</span>
+                  <span className={styles['example-genre-pill']}>Thriller</span>
                 </div>
               </div>
+            </article>
 
-              {/* Explicação de afinidade destacada com ícone */}
-              <div className={styles['example-reason-box']}>
-                <span className={styles['example-reason-icon']} aria-hidden="true">💡</span>
-                <p className={styles['example-reason-text']}>
-                  Alta afinidade calculada com base no seu apreço por <strong>Aventura</strong> e <strong>Fantasia</strong>.
-                </p>
+            {/* Card 2: Vivy: Fluorite Eye's Song (Forte Consenso) */}
+            <article className={styles['example-vertical-card']}>
+              <div className={styles['example-card-img-wrapper']}>
+                <img
+                  src="/vivy-sample.jpg"
+                  alt="Vivy: Fluorite Eye's Song"
+                  className={styles['example-card-img']}
+                  loading="lazy"
+                />
+                <span className={`${styles['example-badge']} ${styles['example-badge--consensus']}`}>
+                  Forte Consenso
+                </span>
+                <a
+                  href="https://anilist.co/anime/128546"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles['example-quick-link']}
+                  title="Abrir no AniList"
+                >
+                  AniList ↗
+                </a>
               </div>
 
-              {/* Gêneros */}
-              <div className={styles['example-genres']}>
-                <span className={styles['example-genre-pill']}>Aventura</span>
-                <span className={styles['example-genre-pill']}>Fantasia</span>
-                <span className={styles['example-genre-pill']}>Drama</span>
+              <div className={styles['example-card-body']}>
+                <div className={styles['example-card-meta']}>2021 • 13 eps • Finalizado</div>
+                <h3 className={styles['example-card-title']} title="Vivy: Fluorite Eye's Song">Vivy: Fluorite Eye's Song</h3>
+                <p className={styles['example-card-subtitle']}>Vivy -Fluorite Eye's Song-</p>
+
+                <div className={styles['example-card-scores']}>
+                  <div className={styles['example-score-row']}>
+                    <span className={styles['example-score-name']}>Match Previsto:</span>
+                    <span className={styles['example-score-primary']}>8.85/10</span>
+                  </div>
+                  <div className={styles['example-score-row']}>
+                    <span className={styles['example-score-name']}>Média Geral:</span>
+                    <span className={styles['example-score-muted']}>8.36/10</span>
+                  </div>
+                </div>
+
+                <div className={styles['example-card-reason']}>
+                  <span className={styles['example-reason-icon']} aria-hidden="true">💡</span>
+                  <p className={styles['example-reason-text']}>
+                    Match expressivo com seu histórico de <strong>Sci-Fi</strong> e ação de alto impacto.
+                  </p>
+                </div>
+
+                <div className={styles['example-card-genres']}>
+                  <span className={styles['example-genre-pill']}>Sci-Fi</span>
+                  <span className={styles['example-genre-pill']}>Ação</span>
+                  <span className={styles['example-genre-pill']}>Música</span>
+                </div>
               </div>
-            </div>
-          </article>
+            </article>
+
+            {/* Card 3: Keep Your Hands Off Eizouken! (Joia Escondida) */}
+            <article className={styles['example-vertical-card']}>
+              <div className={styles['example-card-img-wrapper']}>
+                <img
+                  src="/eizouken-sample.png"
+                  alt="Keep Your Hands Off Eizouken!"
+                  className={styles['example-card-img']}
+                  loading="lazy"
+                />
+                <span className={`${styles['example-badge']} ${styles['example-badge--gem']}`}>
+                  Joia Escondida
+                </span>
+                <a
+                  href="https://anilist.co/anime/109298"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles['example-quick-link']}
+                  title="Abrir no AniList"
+                >
+                  AniList ↗
+                </a>
+              </div>
+
+              <div className={styles['example-card-body']}>
+                <div className={styles['example-card-meta']}>2020 • 12 eps • Finalizado</div>
+                <h3 className={styles['example-card-title']} title="Keep Your Hands Off Eizouken!">Eizouken ni wa Te wo Dasu na!</h3>
+                <p className={styles['example-card-subtitle']}>Keep Your Hands Off Eizouken!</p>
+
+                <div className={styles['example-card-scores']}>
+                  <div className={styles['example-score-row']}>
+                    <span className={styles['example-score-name']}>Match Previsto:</span>
+                    <span className={styles['example-score-primary']}>8.40/10</span>
+                  </div>
+                  <div className={styles['example-score-row']}>
+                    <span className={styles['example-score-name']}>Média Geral:</span>
+                    <span className={styles['example-score-muted']}>8.10/10</span>
+                  </div>
+                </div>
+
+                <div className={styles['example-card-reason']}>
+                  <span className={styles['example-reason-icon']} aria-hidden="true">💡</span>
+                  <p className={styles['example-reason-text']}>
+                    Aposta pessoal fora do radar para quem valoriza <strong>Criatividade</strong> autoral.
+                  </p>
+                </div>
+
+                <div className={styles['example-card-genres']}>
+                  <span className={styles['example-genre-pill']}>Comédia</span>
+                  <span className={styles['example-genre-pill']}>Slice of Life</span>
+                  <span className={styles['example-genre-pill']}>Aventura</span>
+                </div>
+              </div>
+            </article>
+          </div>
         </section>
 
         {/* 5. Experimente o AniMatch (Search Box Neon) */}
