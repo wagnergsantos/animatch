@@ -139,6 +139,12 @@ export default function Dashboard({
       (hasMultiAccounts && isEnsembleStale)
   )
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo(0, 0)
+    }
+  }, [activeTab])
+
   const [activeScope, setActiveScope] = useState(() => (hasMultiAccounts ? 'ensemble' : provider))
   const prevHasMultiRef = useRef(hasMultiAccounts)
 

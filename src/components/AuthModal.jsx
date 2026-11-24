@@ -10,6 +10,7 @@ export default function AuthModal({
   onClose,
   onOpenLegalModal,
   initialTab = 'login',
+  onSuccess,
 }) {
   const { t } = useTranslation()
   const { signInWithPassword, signUpWithPassword, signInWithOAuth, resetPasswordForEmail } = useAuth()
@@ -102,6 +103,7 @@ export default function AuthModal({
         if (signInError) {
           setError(signInError.message || t('auth.error_generic', 'Ocorreu um erro. Tente novamente.'))
         } else {
+          onSuccess?.()
           onClose?.()
         }
       } else {
@@ -139,6 +141,8 @@ export default function AuthModal({
       const { error: oauthError } = await signInWithOAuth({ provider: 'google' })
       if (oauthError) {
         setError(oauthError.message || t('auth.error_generic', 'Ocorreu um erro. Tente novamente.'))
+      } else {
+        onSuccess?.()
       }
     } catch (err) {
       setError(err?.message || t('auth.error_generic', 'Ocorreu um erro. Tente novamente.'))

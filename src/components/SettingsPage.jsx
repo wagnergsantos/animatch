@@ -194,7 +194,10 @@ export default function SettingsPage({
               <button
                 type="button"
                 className={styles['settings-page__btn']}
-                onClick={() => onSignOut?.()}
+                onClick={() => {
+                  onSignOut?.()
+                  onLogout?.()
+                }}
               >
                 {t('auth.logout', { defaultValue: 'Sair da conta' })}
               </button>

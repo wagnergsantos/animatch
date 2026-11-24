@@ -17,6 +17,7 @@ export default function LoginScreen({
   syncStatus = 'idle',
   onOpenAuthModal,
   onOpenLegalModal,
+  onSignOut,
   linkedUsernames = null,
 }) {
   const { t } = useTranslation()
@@ -106,6 +107,28 @@ export default function LoginScreen({
                   {syncStatus === 'syncing' ? '⏳' : syncStatus === 'error' ? '⚠️' : syncStatus === 'offline' ? '📴' : '☁️'}
                 </span>
               </span>
+              {Boolean(username?.trim()) && (
+                <button
+                  type="button"
+                  data-testid="login-nav-cards-btn"
+                  className={styles['cloud-cards-nav-btn']}
+                  onClick={() => onSubmit(username.trim(), provider)}
+                  title={t('login.goToDashboard', 'Ver cards de recomendação')}
+                >
+                  {t('login.goToDashboard', 'Ver cards →')}
+                </button>
+              )}
+              {onSignOut && (
+                <button
+                  type="button"
+                  data-testid="login-signout-btn"
+                  className={styles['cloud-signout-btn']}
+                  onClick={() => onSignOut()}
+                  title={t('auth.logout', 'Sair da conta')}
+                >
+                  {t('auth.logout', 'Sair')}
+                </button>
+              )}
             </div>
           )}
           <ThemeToggle />
@@ -119,13 +142,23 @@ export default function LoginScreen({
           <span className={styles['hero-headline-accent']}>Suas recomendações também.</span>
         </h1>
         <div className={styles['hero-cta-wrapper']}>
-          <button
-            type="button"
-            className={styles['hero-cta-btn']}
-            onClick={scrollToExperiment}
-          >
-            Experimentar agora ↓
-          </button>
+          {user && username?.trim() ? (
+            <button
+              type="button"
+              className={styles['hero-cta-btn']}
+              onClick={() => onSubmit(username.trim(), provider)}
+            >
+              Ver meus cards →
+            </button>
+          ) : (
+            <button
+              type="button"
+              className={styles['hero-cta-btn']}
+              onClick={scrollToExperiment}
+            >
+              Experimentar agora ↓
+            </button>
+          )}
         </div>
         <div className={styles['hero-divider']} aria-hidden="true" />
       </section>

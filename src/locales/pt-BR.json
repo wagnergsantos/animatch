@@ -225,7 +225,8 @@
     "usernamePlaceholder": "Seu usuário no {{provider}}...",
     "submit": "Gerar Recomendações",
     "loading": "Carregando…",
-    "recentQueries": "Consultas recentes:"
+    "recentQueries": "Consultas recentes:",
+    "goToDashboard": "Ver cards →"
   },
   "dashboard": {
     "recommendationsTab": "Recomendações",

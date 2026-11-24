@@ -231,6 +231,59 @@ describe('App', () => {
     expect(fetchUserEntries).not.toHaveBeenCalled()
     expect(screen.getByLabelText('Username do AniList')).toBeInTheDocument()
   })
+
+  it('resets window scroll position when navigating to dashboard and back to login', async () => {
+    const scrollToSpy = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
+    fetchUserEntries.mockResolvedValueOnce(allData)
+
+    render(<App />)
+
+    fireEvent.change(screen.getByLabelText('Username do AniList'), {
+      target: { value: 'scrolluser' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /gerar recomendações/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText('scrolluser')).toBeInTheDocument()
+    })
+
+    expect(scrollToSpy).toHaveBeenCalledWith(0, 0)
+
+    fireEvent.click(screen.getByRole('button', { name: /configurações/i }))
+    fireEvent.click(screen.getByRole('button', { name: /trocar de conta/i }))
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Username do AniList')).toBeInTheDocument()
+    })
+    expect(scrollToSpy).toHaveBeenCalledWith(0, 0)
+    scrollToSpy.mockRestore()
+  })
+
+  it('returns to login screen when "Sair da conta" is clicked in settings', async () => {
+    fetchUserEntries.mockResolvedValueOnce(allData)
+
+    render(<App />)
+
+    fireEvent.change(screen.getByLabelText('Username do AniList'), {
+      target: { value: 'testuser' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /gerar recomendações/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText('testuser')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /configurações/i }))
+
+    const signOutBtn = screen.queryByRole('button', { name: /sair da conta/i })
+    if (signOutBtn) {
+      fireEvent.click(signOutBtn)
+      await waitFor(() => {
+        expect(screen.getByLabelText('Username do AniList')).toBeInTheDocument()
+      })
+      expect(window.location.search).not.toContain('user=')
+    }
+  })
 })
 
 

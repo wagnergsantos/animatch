@@ -206,6 +206,32 @@ describe('LoginScreen', () => {
     fireEvent.click(clearBtn)
     expect(onClearRecentUsers).toHaveBeenCalledTimes(1)
   })
+
+  it('renders sign out button and card navigation button when user is logged in with username', () => {
+    const onSignOut = vi.fn()
+    const onSubmit = vi.fn()
+    render(
+      <LoginScreen
+        onSubmit={onSubmit}
+        isLoading={false}
+        error={null}
+        user={{ email: 'user@example.com' }}
+        syncStatus="synced"
+        initialUsername="myuser"
+        onSignOut={onSignOut}
+      />
+    )
+
+    const signOutBtn = screen.getByTestId('login-signout-btn')
+    expect(signOutBtn).toBeInTheDocument()
+    fireEvent.click(signOutBtn)
+    expect(onSignOut).toHaveBeenCalledTimes(1)
+
+    const navCardsBtn = screen.getByTestId('login-nav-cards-btn')
+    expect(navCardsBtn).toBeInTheDocument()
+    fireEvent.click(navCardsBtn)
+    expect(onSubmit).toHaveBeenCalledWith('myuser', 'anilist')
+  })
 })
 
 

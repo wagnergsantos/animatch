@@ -225,7 +225,8 @@
     "usernamePlaceholder": "{{provider}} のユーザー名...",
     "submit": "おすすめを生成",
     "loading": "読み込み中…",
-    "recentQueries": "最近のクエリ："
+    "recentQueries": "最近のクエリ：",
+    "goToDashboard": "カードを見る →"
   },
   "dashboard": {
     "recommendationsTab": "おすすめ",

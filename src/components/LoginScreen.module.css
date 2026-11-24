@@ -94,6 +94,38 @@
   align-items: center;
 }
 
+.cloud-cards-nav-btn {
+  background: var(--color-primary, #6366f1);
+  color: #fff;
+  border: none;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity var(--transition-default);
+}
+
+.cloud-cards-nav-btn:hover {
+  opacity: 0.9;
+}
+
+.cloud-signout-btn {
+  background: transparent;
+  color: var(--color-muted);
+  border: 1px solid var(--color-border);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  cursor: pointer;
+  transition: all var(--transition-default);
+}
+
+.cloud-signout-btn:hover {
+  color: var(--color-danger, #ef4444);
+  border-color: var(--color-danger, #ef4444);
+}
+
 /* 2. Hero Section: Chamada Expressiva + Destaque Ciano */
 .hero-section {
   text-align: center;

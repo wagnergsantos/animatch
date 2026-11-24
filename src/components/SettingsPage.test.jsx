@@ -64,6 +64,7 @@ describe('SettingsPage', () => {
 
     it('renders user email, sync badge and logout button when logged in', () => {
       const onSignOut = vi.fn()
+      const onLogout = vi.fn()
       const user = { email: 'otaku@example.com' }
       const { rerender } = render(
         <SettingsPage
@@ -71,6 +72,7 @@ describe('SettingsPage', () => {
           user={user}
           syncStatus="synced"
           onSignOut={onSignOut}
+          onLogout={onLogout}
         />
       )
 
@@ -83,6 +85,7 @@ describe('SettingsPage', () => {
           user={user}
           syncStatus="syncing"
           onSignOut={onSignOut}
+          onLogout={onLogout}
         />
       )
       expect(screen.getByText(/sincronizando/i)).toBeInTheDocument()
@@ -92,6 +95,7 @@ describe('SettingsPage', () => {
 
       fireEvent.click(signOutBtn)
       expect(onSignOut).toHaveBeenCalledTimes(1)
+      expect(onLogout).toHaveBeenCalledTimes(1)
     })
   })
 

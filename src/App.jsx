@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext } from 'react'
+import { useEffect, useState, useContext, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { fetchUserEntries, isValidUsername } from './api/index.js'
 import LoginScreen from './components/LoginScreen.jsx'
@@ -110,6 +110,10 @@ export function AppContent() {
       setScreen('dashboard')
       addRecentUser(inputUsername, inputProvider)
 
+      if (typeof window !== 'undefined') {
+        window.scrollTo(0, 0)
+      }
+
       // Update URL with ?user=username&provider=provider
       if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
         const url = new URL(window.location.href)
@@ -146,6 +150,47 @@ export function AppContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Reset scroll on screen transition
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo(0, 0)
+    }
+  }, [screen])
+
+  const hasAttemptedCloudLoginRef = useRef(false)
+
+  // Auto-login to dashboard if user authenticates and has saved anime account
+  useEffect(() => {
+    if (!user) {
+      hasAttemptedCloudLoginRef.current = false
+      return
+    }
+
+    if (screen === 'dashboard' || hasAttemptedCloudLoginRef.current) return
+
+    const targetProv = settings?.default_provider || provider || 'anilist'
+    const savedUser =
+      settings?.linked_usernames?.[targetProv] ||
+      settings?.linked_usernames?.anilist ||
+      settings?.linked_usernames?.kitsu ||
+      settings?.linked_usernames?.mal ||
+      storedUsername ||
+      username
+
+    if (savedUser && isValidUsername(savedUser)) {
+      hasAttemptedCloudLoginRef.current = true
+      const effectiveProv =
+        settings?.linked_usernames?.[targetProv] ? targetProv :
+        settings?.linked_usernames?.anilist ? 'anilist' :
+        settings?.linked_usernames?.kitsu ? 'kitsu' :
+        settings?.linked_usernames?.mal ? 'mal' :
+        targetProv
+      handleLogin(savedUser, effectiveProv).catch(() => {
+        hasAttemptedCloudLoginRef.current = false
+      })
+    }
+  }, [user, settings?.linked_usernames, settings?.default_provider, screen, provider, storedUsername, username, handleLogin])
+
   function handleRefresh() {
     handleLogin(username, provider, { forceRefresh: true })
   }
@@ -163,6 +208,38 @@ export function AppContent() {
       url.searchParams.delete('provider')
       window.history.replaceState({}, '', url.toString())
     }
+
+    if (typeof window !== 'undefined') {
+      window.scrollTo(0, 0)
+    }
+  }
+
+  async function handleSignOut() {
+    hasAttemptedCloudLoginRef.current = false
+    await signOut()
+    handleLogout()
+  }
+
+  const handleAuthSuccess = () => {
+    setIsAuthModalOpen(false)
+    const targetProv = settings?.default_provider || provider || 'anilist'
+    const savedUser =
+      settings?.linked_usernames?.[targetProv] ||
+      settings?.linked_usernames?.anilist ||
+      settings?.linked_usernames?.kitsu ||
+      settings?.linked_usernames?.mal ||
+      storedUsername ||
+      username
+
+    if (savedUser && isValidUsername(savedUser)) {
+      const effectiveProv =
+        settings?.linked_usernames?.[targetProv] ? targetProv :
+        settings?.linked_usernames?.anilist ? 'anilist' :
+        settings?.linked_usernames?.kitsu ? 'kitsu' :
+        settings?.linked_usernames?.mal ? 'mal' :
+        targetProv
+      handleLogin(savedUser, effectiveProv)
+    }
   }
 
   return (
@@ -171,6 +248,7 @@ export function AppContent() {
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
         onOpenLegalModal={handleOpenLegalModal}
+        onSuccess={handleAuthSuccess}
       />
 
       <LegalModal
@@ -199,6 +277,7 @@ export function AppContent() {
           syncStatus={syncStatus}
           onOpenAuthModal={() => setIsAuthModalOpen(true)}
           onOpenLegalModal={handleOpenLegalModal}
+          onSignOut={handleSignOut}
           linkedUsernames={settings?.linked_usernames}
         />
       )}
@@ -220,7 +299,7 @@ export function AppContent() {
           syncStatus={syncStatus}
           onOpenAuthModal={() => setIsAuthModalOpen(true)}
           onOpenLegalModal={handleOpenLegalModal}
-          onSignOut={signOut}
+          onSignOut={handleSignOut}
           onDeleteAccount={deleteAccount}
           linkedUsernames={settings.linked_usernames}
           onLinkedUsernamesChange={(newUsernames) => updateSetting('linked_usernames', newUsernames)}
