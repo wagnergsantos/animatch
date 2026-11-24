@@ -23,6 +23,16 @@ export default function LoginScreen({
   const [provider, setProvider] = useLocalStorage(STORAGE_KEYS.PROVIDER, 'anilist')
   const [username, setUsername] = useState(() => initialUsername || (linkedUsernames && linkedUsernames[provider]) || '')
   const inputRef = useRef(null)
+  const experimentRef = useRef(null)
+
+  const scrollToExperiment = () => {
+    if (experimentRef.current) {
+      experimentRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+    if (inputRef.current) {
+      setTimeout(() => inputRef.current?.focus(), 300)
+    }
+  }
 
   const handleProviderChange = (newProvider) => {
     setProvider(newProvider)
@@ -68,9 +78,10 @@ export default function LoginScreen({
               type="button"
               className={styles['cloud-auth-btn']}
               onClick={() => onOpenAuthModal?.()}
-              aria-label={t('auth.login', 'Entrar / Sincronizar')}
+              aria-label={t('auth.login', 'Entrar para salvar contas')}
+              title="Opcional: entre para salvar e sincronizar suas contas entre dispositivos"
             >
-              <span aria-hidden="true">☁️</span> {t('auth.login', 'Entrar / Sincronizar')}
+              <span aria-hidden="true">☁️</span> {t('auth.login', 'Entrar')}
             </button>
           ) : (
             <div className={styles['cloud-user-badge']}>
@@ -97,12 +108,21 @@ export default function LoginScreen({
         </div>
       </header>
 
-      {/* 2. Hero: Chamada Expressiva + Slogan */}
+      {/* 2. Hero: Chamada Expressiva + Slogan + Botão Experimentar */}
       <section className={styles['hero-section']}>
         <h1 className={styles['hero-headline']}>
           Seu gosto por anime é único.<br />
           <span className={styles['hero-headline-accent']}>Suas recomendações também.</span>
         </h1>
+        <div className={styles['hero-cta-wrapper']}>
+          <button
+            type="button"
+            className={styles['hero-cta-btn']}
+            onClick={scrollToExperiment}
+          >
+            Experimentar agora ↓
+          </button>
+        </div>
         <div className={styles['hero-divider']} aria-hidden="true" />
       </section>
 
@@ -164,7 +184,7 @@ export default function LoginScreen({
           
           <div className={styles['example-persona-context']}>
             <p className={styles['example-intro']}>
-              Simulação real: veja como o AniMatch calcula afinidade e ordena o <em>Plan to Watch</em> para uma pessoa que curtiu <strong>Mistério</strong>, <strong>Ficção Científica</strong> e <strong>Animação Criativa</strong>:
+              Exemplo com um perfil fictício que curte <strong>Mistério</strong>, <strong>Ficção Científica</strong> e <strong>Animação Criativa</strong>:
             </p>
           </div>
 
@@ -203,7 +223,9 @@ export default function LoginScreen({
                     <span className={styles['example-score-primary']}>9.30/10</span>
                   </div>
                   <div className={styles['example-score-row']}>
-                    <span className={styles['example-score-name']}>Média Geral:</span>
+                    <span className={styles['example-score-name']} title="Média de notas registrada pelos usuários no provedor de origem (AniList)">
+                      Média Geral ℹ️:
+                    </span>
                     <span className={styles['example-score-muted']}>8.68/10</span>
                   </div>
                 </div>
@@ -257,7 +279,9 @@ export default function LoginScreen({
                     <span className={styles['example-score-primary']}>8.85/10</span>
                   </div>
                   <div className={styles['example-score-row']}>
-                    <span className={styles['example-score-name']}>Média Geral:</span>
+                    <span className={styles['example-score-name']} title="Média de notas registrada pelos usuários no provedor de origem (AniList)">
+                      Média Geral ℹ️:
+                    </span>
                     <span className={styles['example-score-muted']}>8.36/10</span>
                   </div>
                 </div>
@@ -302,8 +326,8 @@ export default function LoginScreen({
 
               <div className={styles['example-card-body']}>
                 <div className={styles['example-card-meta']}>2020 • 12 eps • Finalizado</div>
-                <h3 className={styles['example-card-title']} title="Keep Your Hands Off Eizouken!">Eizouken ni wa Te wo Dasu na!</h3>
-                <p className={styles['example-card-subtitle']}>Keep Your Hands Off Eizouken!</p>
+                <h3 className={styles['example-card-title']} title="Keep Your Hands Off Eizouken!">Keep Your Hands Off Eizouken!</h3>
+                <p className={styles['example-card-subtitle']}>Eizouken ni wa Te wo Dasu na!</p>
 
                 <div className={styles['example-card-scores']}>
                   <div className={styles['example-score-row']}>
@@ -311,7 +335,9 @@ export default function LoginScreen({
                     <span className={styles['example-score-primary']}>8.40/10</span>
                   </div>
                   <div className={styles['example-score-row']}>
-                    <span className={styles['example-score-name']}>Média Geral:</span>
+                    <span className={styles['example-score-name']} title="Média de notas registrada pelos usuários no provedor de origem (AniList)">
+                      Média Geral ℹ️:
+                    </span>
                     <span className={styles['example-score-muted']}>8.10/10</span>
                   </div>
                 </div>
@@ -334,7 +360,7 @@ export default function LoginScreen({
         </section>
 
         {/* 5. Experimente o AniMatch (Search Box Neon) */}
-        <section className={styles['experiment-box']} aria-labelledby="experiment-title">
+        <section ref={experimentRef} className={styles['experiment-box']} aria-labelledby="experiment-title">
           <h2 id="experiment-title" className={styles['experiment-title']}>Experimente o AniMatch</h2>
           <p className={styles['experiment-subtitle']}>
             Descubra quais animes da sua lista têm maior afinidade com você.
@@ -467,7 +493,7 @@ export default function LoginScreen({
             <h2 id="faq-title" className={styles['section-title']}>Perguntas Frequentes (FAQ)</h2>
           </div>
           <div className={styles['faq-list']}>
-            <details className={styles['faq-item']}>
+            <details className={styles['faq-item']} open>
               <summary className={styles['faq-question']}>
                 <span>Preciso criar conta ou informar minha senha?</span>
                 <svg className={styles['faq-chevron']} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -475,29 +501,29 @@ export default function LoginScreen({
                 </svg>
               </summary>
               <p className={styles['faq-answer']}>
-                Não. Para obter recomendações e explorar suas estatísticas, basta informar o nome de usuário público do AniList, Kitsu ou MyAnimeList. O login é opcional apenas para quem deseja sincronizar configurações na nuvem.
+                Não é necessário. O AniMatch utiliza exclusivamente dados públicos do seu perfil no AniList, Kitsu ou MyAnimeList. O login é 100% opcional e serve apenas para guardar suas contas e acessá-las com rapidez em qualquer dispositivo.
               </p>
             </details>
             <details className={styles['faq-item']}>
               <summary className={styles['faq-question']}>
-                <span>O que significa a nota prevista (predictedScore)?</span>
+                <span>O que significa o Match Previsto?</span>
                 <svg className={styles['faq-chevron']} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
               </summary>
               <p className={styles['faq-answer']}>
-                É uma estimativa estatística de qual nota você atribuiria àquele anime, calculada a partir do cruzamento entre os gêneros da obra e o seu histórico de notas nos animes concluídos.
+                É a estimativa personalizada de qual nota você daria àquela obra (de 0 a 10). Ela cruza os gêneros, temas e estúdios do anime com as notas reais que você deu para os animes já concluídos na sua lista.
               </p>
             </details>
             <details className={styles['faq-item']}>
               <summary className={styles['faq-question']}>
-                <span>Por que o AniMatch usa cálculo Bayesiano?</span>
+                <span>Como a nota é calculada?</span>
                 <svg className={styles['faq-chevron']} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
               </summary>
               <p className={styles['faq-answer']}>
-                Para evitar distorções estatísticas. Se você assistiu a apenas 1 anime de Mecha e deu nota 10, a média simples sugeriria que você ama Mecha acima de tudo. A suavização Bayesiana equilibra isso com base na sua média geral de notas.
+                Utilizamos um modelo de suavização Bayesiana. Isso impede distorções estatísticas: por exemplo, se você assistiu a apenas 1 anime de Mecha e deu nota 10, o algoritmo não assume que você ama Mecha acima de tudo, mas pondera essa preferência com base na sua média geral de avaliações.
               </p>
             </details>
             <details className={styles['faq-item']}>
