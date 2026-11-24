@@ -15,7 +15,7 @@ createRoot(document.getElementById('root')).render(
 
 if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator && window.location.protocol !== 'file:') {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/animatch/sw.js').catch((err) => {
+    navigator.serviceWorker.register('/sw.js').catch((err) => {
       console.log('SW registration failed:', err)
     })
   })

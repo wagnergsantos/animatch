@@ -18,17 +18,17 @@
 ## 2. Fases de Execução
 
 ### Fase CF1 — Ajustes de Caminho Raiz no Código (Desacoplamento do GitHub Pages)
-- [ ] **`vite.config.js`**: Alterar `base: '/animatch/'` para `base: '/'`. Remover `server.hmr.path: '/animatch/'`.
-- [ ] **`index.html`**: Remover prefixos `/animatch/` dos links estáticos:
+- [x] **`vite.config.js`**: Alterar `base: '/animatch/'` para `base: '/'`. Remover `server.hmr.path: '/animatch/'`.
+- [x] **`index.html`**: Remover prefixos `/animatch/` dos links estáticos:
   - `href="/animatch/favicon.svg"` → `href="/favicon.svg"`
   - `href="/animatch/manifest.json"` → `href="/manifest.json"`
   - `content="/animatch/favicon.svg"` → `content="/favicon.svg"`
-- [ ] **`src/main.jsx`**: Alterar registro do Service Worker de `navigator.serviceWorker.register('/animatch/sw.js')` para `navigator.serviceWorker.register('/sw.js')`.
-- [ ] **Fallback de Rotas SPA (`public/_redirects`)**: Criar o arquivo `public/_redirects` com:
+- [x] **`src/main.jsx`**: Alterar registro do Service Worker de `navigator.serviceWorker.register('/animatch/sw.js')` para `navigator.serviceWorker.register('/sw.js')`.
+- [x] **Fallback de Rotas SPA (`public/_redirects`)**: Criar o arquivo `public/_redirects` com:
   ```text
   /*    /index.html   200
   ```
-- [ ] **Validação local**: Rodar `npm run build` e `npm run test`.
+- [x] **Validação local**: Rodar `npm run build` e `npm run test`.
 
 ---
 

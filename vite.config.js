@@ -2,12 +2,9 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
-  base: '/animatch/',
+  base: '/',
   plugins: [react()],
   server: {
-    hmr: {
-      path: '/animatch/',
-    },
     proxy: {
       '/anilist-api': {
         target: 'https://graphql.anilist.co',
