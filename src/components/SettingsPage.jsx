@@ -253,7 +253,9 @@ export default function SettingsPage({
                 />
                 <div className={styles['settings-page__field-actions']}>
                   {Boolean(linkedUsernames?.anilist?.trim()) && (
-                    <span style={{ fontSize: 'var(--text-xs)', color: isSyncingAni ? '#3b82f6' : '#10b981', fontWeight: 500, marginRight: 'auto' }}>
+                    <span
+                      className={`${styles['settings-page__field-status']} ${isSyncingAni ? styles['settings-page__field-status--syncing'] : ''}`}
+                    >
                       {isSyncingAni ? '⏳ Sincronizando...' : '✓ Conectada'}
                     </span>
                   )}
@@ -302,7 +304,9 @@ export default function SettingsPage({
                 />
                 <div className={styles['settings-page__field-actions']}>
                   {Boolean(linkedUsernames?.kitsu?.trim()) && (
-                    <span style={{ fontSize: 'var(--text-xs)', color: isSyncingKitsu ? '#3b82f6' : '#10b981', fontWeight: 500, marginRight: 'auto' }}>
+                    <span
+                      className={`${styles['settings-page__field-status']} ${isSyncingKitsu ? styles['settings-page__field-status--syncing'] : ''}`}
+                    >
                       {isSyncingKitsu ? '⏳ Sincronizando...' : '✓ Conectada'}
                     </span>
                   )}
@@ -351,7 +355,9 @@ export default function SettingsPage({
                 />
                 <div className={styles['settings-page__field-actions']}>
                   {Boolean(linkedUsernames?.mal?.trim()) && (
-                    <span style={{ fontSize: 'var(--text-xs)', color: isSyncingMal ? '#3b82f6' : '#10b981', fontWeight: 500, marginRight: 'auto' }}>
+                    <span
+                      className={`${styles['settings-page__field-status']} ${isSyncingMal ? styles['settings-page__field-status--syncing'] : ''}`}
+                    >
                       {isSyncingMal ? '⏳ Sincronizando...' : '✓ Conectada'}
                     </span>
                   )}
@@ -575,7 +581,7 @@ export default function SettingsPage({
         <div className={styles['settings-page__danger-item']}>
           <div className={styles['settings-page__danger-info']}>
             <span className={styles['settings-page__danger-title']}>
-              {t('settings.clearLocalData', { defaultValue: 'Limpar dados locais do navegador' })}
+              {t('settings.clearLocalDataTitle', { defaultValue: 'Limpar dados locais do navegador' })}
             </span>
             <span className={styles['settings-page__danger-desc']}>
               {t('settings.clearLocalDataDesc', { defaultValue: 'Apaga os animes e configurações salvos em cache neste navegador (IndexedDB e LocalStorage). Não afeta sua conta nem dados na nuvem.' })}

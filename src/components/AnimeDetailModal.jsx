@@ -2,8 +2,10 @@ import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import RecommendationReason from './RecommendationReason.jsx'
 import { useModalFocusTrap } from '../hooks/useModalFocusTrap.js'
-import { isSafeExternalUrl } from '../logic/streaming.js'
+import { isSafeExternalUrl, filterRegionalStreamingLinks, normalizeServiceName } from '../logic/streaming.js'
 import { translateGenre } from '../lib/genreTranslations.js'
+import { sanitizeSynopsis } from '../lib/synopsisSanitizer.js'
+import { STORAGE_KEYS } from '../lib/storageKeys.js'
 import styles from './AnimeDetailModal.module.css'
 
 const PROVIDER_SHORT_LABELS = {
@@ -18,9 +20,27 @@ const PROVIDER_FULL_LABELS = {
   anilist: 'AniList',
 }
 
-export default function AnimeDetailModal({ anime, titlePref = 'english', onClose, triggerRef }) {
-  const { t } = useTranslation()
+export default function AnimeDetailModal({
+  anime,
+  titlePref = 'english',
+  subscriptions: propSubscriptions = null,
+  onClose,
+  triggerRef,
+}) {
+  const { t, i18n } = useTranslation()
   const modalRef = useRef(null)
+
+  const subscriptions = propSubscriptions ?? (() => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.SUBSCRIPTIONS))
+        if (Array.isArray(saved)) return saved
+      } catch {
+        // ignore
+      }
+    }
+    return []
+  })()
 
   useModalFocusTrap(Boolean(anime), modalRef, onClose, triggerRef)
 
@@ -47,12 +67,7 @@ export default function AnimeDetailModal({ anime, titlePref = 'english', onClose
   const sourceProviders = Array.isArray(anime?.sourceProviders) ? anime.sourceProviders : []
   const hasMultiProviders = planningProviders.length > 1
 
-  const activeProviders = planningProviders.length > 0
-    ? planningProviders
-    : (sourceProviders.length > 0 ? sourceProviders : (anime?.provider ? [anime.provider] : ['anilist']))
-
   const getProviderUrl = (providerKey) => {
-    const safeSiteUrl = isSafeExternalUrl(anime?.siteUrl) ? anime.siteUrl : '#'
     if (anime?.providerUrls && isSafeExternalUrl(anime.providerUrls[providerKey])) {
       return anime.providerUrls[providerKey]
     }
@@ -61,28 +76,53 @@ export default function AnimeDetailModal({ anime, titlePref = 'english', onClose
     }
     if (providerKey === 'anilist') {
       const id = (anime?.provider === 'anilist' ? anime?.id : null) || anime?.media?.id || anime?.id
-      return id ? `https://anilist.co/anime/${id}` : safeSiteUrl
+      return id ? `https://anilist.co/anime/${id}` : (isSafeExternalUrl(anime?.siteUrl) ? anime.siteUrl : null)
     }
     if (providerKey === 'mal') {
       const malId = anime?.idMal || anime?.media?.idMal || (anime?.provider === 'mal' ? (anime?.id || anime?.media?.id) : null)
-      return malId ? `https://myanimelist.net/anime/${malId}` : safeSiteUrl
+      return malId ? `https://myanimelist.net/anime/${malId}` : null
     }
     if (providerKey === 'kitsu') {
-      const kitsuId = (anime?.provider === 'kitsu' ? (anime?.id || anime?.media?.id) : null)
-      return kitsuId ? `https://kitsu.io/anime/${kitsuId}` : safeSiteUrl
+      const kitsuId = (anime?.provider === 'kitsu' ? (anime?.id || anime?.media?.id) : null) || anime?.kitsuId || anime?.media?.kitsuId
+      return kitsuId ? `https://kitsu.io/anime/${kitsuId}` : null
     }
-    return safeSiteUrl
+    return null
   }
 
+  const candidateProviders = Array.from(new Set([
+    ...planningProviders,
+    ...sourceProviders,
+    ...(anime?.providerUrls ? Object.keys(anime.providerUrls) : []),
+    ...(anime?.provider ? [anime.provider] : ['anilist']),
+  ])).filter(Boolean)
+
+  const activeProviders = candidateProviders.filter((p) => Boolean(getProviderUrl(p)))
+
+
+  const region = (i18n.language || 'pt-BR').startsWith('pt') ? 'BR' : 'ALL'
+  const rawLinks = anime?.streamingLinks ?? anime?.media?.streamingLinks ?? []
+  const regionalLinks = filterRegionalStreamingLinks(rawLinks, region)
 
   const streamingLinks = []
   const seenSites = new Set()
-  for (const link of (anime?.streamingLinks ?? [])) {
+  for (const link of regionalLinks) {
     if (link?.site && isSafeExternalUrl(link?.url) && !seenSites.has(link.site)) {
       seenSites.add(link.site)
-      streamingLinks.push(link)
+      const normalized = normalizeServiceName(link.site)
+      const isSubscribed = Array.isArray(subscriptions) && subscriptions.includes(normalized)
+      streamingLinks.push({
+        ...link,
+        normalizedSite: normalized,
+        isSubscribed,
+      })
     }
   }
+
+  streamingLinks.sort((a, b) => {
+    if (a.isSubscribed && !b.isSubscribed) return -1
+    if (!a.isSubscribed && b.isSubscribed) return 1
+    return 0
+  })
 
   const year = anime?.year ?? anime?.seasonYear ?? anime?.startDate?.year
   const statusMap = {
@@ -94,9 +134,14 @@ export default function AnimeDetailModal({ anime, titlePref = 'english', onClose
   }
   const statusLabel = anime?.status ? (statusMap[anime.status] || anime.status) : null
 
-  const cleanDescription = anime?.description
-    ? anime.description.replace(/<br\s*\/?/gi, '\n').replace(/<[^>]+>/g, '')
-    : t('labels.noDescription')
+  const sanitizedSynopsis = sanitizeSynopsis(anime?.description)
+  const cleanDescription = sanitizedSynopsis.text || t('labels.noDescription')
+  const synopsisSource = sanitizedSynopsis.source
+  const isEnglishSynopsis = sanitizedSynopsis.isEnglish
+  const currentLang = i18n.language || 'pt-BR'
+  const synopsisTitle = isEnglishSynopsis && currentLang.startsWith('pt')
+    ? t('labels.synopsisEn', { defaultValue: 'Sinopse (em inglês)' })
+    : t('labels.synopsis')
 
   return (
     <div className={styles['anime-modal-overlay']} onClick={onClose} data-testid="anime-detail-modal-overlay">
@@ -140,14 +185,30 @@ export default function AnimeDetailModal({ anime, titlePref = 'english', onClose
                 })}
               >
                 <div className={styles['anime-modal__presence-pills']}>
-                  {planningProviders.map((p) => (
-                    <span
-                      key={p}
-                      className={`${styles['provider-pill']} ${styles[`provider-pill--${p}`] || ''}`}
-                    >
-                      {PROVIDER_SHORT_LABELS[p] || p}
-                    </span>
-                  ))}
+                  {planningProviders.map((p) => {
+                    const url = getProviderUrl(p)
+                    const pillClass = `${styles['provider-pill']} ${styles[`provider-pill--${p}`] || ''}`
+                    if (url) {
+                      return (
+                        <a
+                          key={p}
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`${pillClass} ${styles['provider-pill--link']}`}
+                          title={PROVIDER_FULL_LABELS[p] || p}
+                        >
+                          <span>{PROVIDER_SHORT_LABELS[p] || p}</span>
+                          <span className={styles['provider-pill__icon']}> ↗</span>
+                        </a>
+                      )
+                    }
+                    return (
+                      <span key={p} className={pillClass}>
+                        {PROVIDER_SHORT_LABELS[p] || p}
+                      </span>
+                    )
+                  })}
                 </div>
               </div>
             )}
@@ -170,8 +231,13 @@ export default function AnimeDetailModal({ anime, titlePref = 'english', onClose
         <div className={styles['anime-modal__body']}>
           <RecommendationReason anime={anime} />
 
-          <h3 className={styles['anime-modal__section-title']}>{t('labels.synopsis')}</h3>
+          <h3 className={styles['anime-modal__section-title']}>{synopsisTitle}</h3>
           <p className={styles['anime-modal__description']}>{cleanDescription}</p>
+          {synopsisSource && (
+            <span className={styles['anime-modal__synopsis-source']}>
+              {t('labels.source', { defaultValue: 'Fonte' })}: {synopsisSource}
+            </span>
+          )}
 
           {genres.length > 0 && (!anime?.matchingGenres || anime.matchingGenres.length === 0) && (
             <div className={styles['anime-modal__genres-section']}>
@@ -194,9 +260,18 @@ export default function AnimeDetailModal({ anime, titlePref = 'english', onClose
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={styles['anime-modal__streaming-btn']}
+                    className={`${styles['anime-modal__streaming-btn']} ${
+                      link.isSubscribed
+                        ? styles['anime-modal__streaming-btn--subscribed']
+                        : styles['anime-modal__streaming-btn--other']
+                    }`}
                   >
-                    ▶ {link.site}
+                    <span>▶ {link.site}</span>
+                    {link.isSubscribed && (
+                      <span className={styles['anime-modal__streaming-badge']}>
+                        {t('labels.inYourSubscription', { defaultValue: 'Na sua assinatura' })}
+                      </span>
+                    )}
                   </a>
                 ))}
               </div>
@@ -204,23 +279,25 @@ export default function AnimeDetailModal({ anime, titlePref = 'english', onClose
           )}
         </div>
 
-        <div className={styles['anime-modal__footer']}>
-          {activeProviders.map((p) => {
-            const label = t(`providers.${p}`, { defaultValue: PROVIDER_FULL_LABELS[p] || p })
-            const url = getProviderUrl(p)
-            return (
-              <a
-                key={p}
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`${styles['anime-modal__provider-btn']} ${styles[`anime-modal__provider-btn--${p}`] || ''}`}
-              >
-                🔗 {t('labels.viewMoreOn', { provider: label })} ↗
-              </a>
-            )
-          })}
-        </div>
+        {activeProviders.length > 0 && (
+          <div className={styles['anime-modal__footer']}>
+            {activeProviders.map((p) => {
+              const label = t(`providers.${p}`, { defaultValue: PROVIDER_FULL_LABELS[p] || p })
+              const url = getProviderUrl(p)
+              return (
+                <a
+                  key={p}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`${styles['anime-modal__provider-btn']} ${styles[`anime-modal__provider-btn--${p}`] || ''}`}
+                >
+                  🔗 {label} ↗
+                </a>
+              )
+            })}
+          </div>
+        )}
       </div>
     </div>
   )

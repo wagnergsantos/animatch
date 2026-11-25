@@ -1,7 +1,10 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import styles from './InstitutionalFooter.module.css'
 
 export default function InstitutionalFooter({ onOpenLegalModal }) {
+  const { t } = useTranslation()
+
   const handleClick = (e, tab) => {
     if (onOpenLegalModal) {
       e.preventDefault()
@@ -11,13 +14,13 @@ export default function InstitutionalFooter({ onOpenLegalModal }) {
 
   return (
     <footer className={styles['institutional-footer']}>
-      <nav className={styles['footer-nav']} aria-label="Navegação institucional">
+      <nav className={styles['footer-nav']} aria-label={t('footer.navAriaLabel', 'Navegação institucional')}>
         <a
           href="/sobre.html"
           onClick={(e) => handleClick(e, 'sobre')}
           className={styles['footer-link']}
         >
-          Sobre
+          {t('footer.about', 'Sobre')}
         </a>
         <span className={styles['footer-bullet']} aria-hidden="true">•</span>
         <a
@@ -25,7 +28,7 @@ export default function InstitutionalFooter({ onOpenLegalModal }) {
           onClick={(e) => handleClick(e, 'privacidade')}
           className={styles['footer-link']}
         >
-          Política de Privacidade
+          {t('footer.privacy', 'Política de Privacidade')}
         </a>
         <span className={styles['footer-bullet']} aria-hidden="true">•</span>
         <a
@@ -33,7 +36,7 @@ export default function InstitutionalFooter({ onOpenLegalModal }) {
           onClick={(e) => handleClick(e, 'termos')}
           className={styles['footer-link']}
         >
-          Termos de Uso
+          {t('footer.terms', 'Termos de Uso')}
         </a>
         <span className={styles['footer-bullet']} aria-hidden="true">•</span>
         <a
@@ -42,12 +45,12 @@ export default function InstitutionalFooter({ onOpenLegalModal }) {
           rel="noopener noreferrer"
           className={styles['footer-link']}
         >
-          GitHub
+          {t('footer.github', 'GitHub')}
         </a>
       </nav>
 
       <p className={styles['footer-copy']}>
-        © 2026 AniMatch — Recomendações personalizadas e inteligentes de anime.
+        {t('footer.tagline', '© 2026 AniMatch — Recomendações personalizadas e inteligentes de anime.')}
       </p>
     </footer>
   )

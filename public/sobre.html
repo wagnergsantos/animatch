@@ -34,35 +34,153 @@
     a { color: var(--primary); text-decoration: none; }
     a:hover { text-decoration: underline; }
     h1, h2, h3 { color: #fff; margin-top: 1.5rem; }
-    .back-link { display: inline-block; margin-bottom: 1.5rem; font-weight: 500; }
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .back-link { font-weight: 500; }
+    .lang-switch {
+      display: inline-flex;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .lang-switch button {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+    .lang-switch button.active {
+      background: var(--border);
+      color: #fff;
+    }
+    [data-lang] { display: none; }
+    body.lang-pt [data-lang="pt"],
+    body.lang-en [data-lang="en"],
+    body.lang-ja [data-lang="ja"] { display: block; }
     footer { margin-top: 2.5rem; border-top: 1px solid var(--border); padding-top: 1rem; color: var(--muted); font-size: 0.9rem; }
   </style>
 </head>
-<body>
+<body class="lang-pt">
   <div class="container">
-    <a href="/" class="back-link">← Voltar para o AniMatch</a>
-    <h1>Sobre o AniMatch</h1>
-    
-    <h2>1. O que é o AniMatch</h2>
-    <p>O AniMatch é uma aplicação web independente, gratuita e sem fins comerciais, desenvolvida para analisar preferências pessoais e oferecer recomendações personalizadas de animes.</p>
-    <p>A ferramenta consulta listas públicas disponibilizadas pelos próprios usuários em plataformas compatíveis, como <strong>AniList</strong>, <strong>Kitsu</strong> e <strong>MyAnimeList</strong>.</p>
-    <p>A partir dessas informações, o AniMatch analisa os animes concluídos ou em andamento, as avaliações pessoais atribuídas pelo usuário e as avaliações da comunidade. Com esses dados, calcula indicadores de afinidade por gêneros e outras características, como formato e país de origem.</p>
-    <p>Esses indicadores são utilizados para organizar e ordenar a lista de animes que o usuário deseja assistir (<em>Plan to Watch</em>), sugerindo títulos que apresentam maior compatibilidade com suas preferências reais, e não apenas o que é popular no momento.</p>
-    <p>O AniMatch não é uma plataforma de streaming, não hospeda episódios, não administra as listas originais dos usuários e não altera os dados nas plataformas de origem.</p>
+    <div class="top-bar">
+      <a href="/" class="back-link">
+        <span data-lang="pt">← Voltar para o AniMatch</span>
+        <span data-lang="en">← Back to AniMatch</span>
+        <span data-lang="ja">← AniMatchへ戻る</span>
+      </a>
+      <nav class="lang-switch" aria-label="Idioma / Language">
+        <button type="button" data-switch="pt" class="active">PT-BR</button>
+        <button type="button" data-switch="en">EN</button>
+        <button type="button" data-switch="ja">日本語</button>
+      </nav>
+    </div>
 
-    <h2>2. Metodologia e Algoritmo Bayesiano</h2>
-    <p>Para evitar distorções estatísticas comuns (por exemplo, um usuário que assistiu a apenas um anime de Mecha e deu nota 10 ter afinidade artificial de 100%), o AniMatch emprega uma suavização Bayesiana ponderada com constante de confiança (C = 25).</p>
-    <p>Dessa forma, gêneros com poucas obras avaliadas convergem suavemente em direção à média geral do usuário, enquanto gêneros com grande histórico de notas mantêm seu peso autêntico.</p>
+    <!-- PT-BR -->
+    <main data-lang="pt">
+      <h1>Sobre o AniMatch</h1>
+      <h2>1. O que é o AniMatch</h2>
+      <p>O AniMatch é uma aplicação web independente, gratuita e sem fins comerciais, desenvolvida para analisar preferências pessoais e oferecer recomendações personalizadas de animes.</p>
+      <p>A ferramenta consulta listas públicas disponibilizadas pelos próprios usuários em plataformas compatíveis, como <strong>AniList</strong>, <strong>Kitsu</strong> e <strong>MyAnimeList</strong>.</p>
+      <p>A partir dessas informações, o AniMatch analisa os animes concluídos ou em andamento, as avaliações pessoais atribuídas pelo usuário e as avaliações da comunidade. Com esses dados, calcula indicadores de afinidade por gêneros e outras características, como formato e país de origem.</p>
+      <p>Esses indicadores são utilizados para organizar e ordenar a lista de animes que o usuário deseja assistir (<em>Plan to Watch</em>), sugerindo títulos que apresentam maior compatibilidade com suas preferências reais, e não apenas o que é popular no momento.</p>
+      <p>O AniMatch não é uma plataforma de streaming, não hospeda episódios, não administra as listas originais dos usuários e não altera os dados nas plataformas de origem.</p>
 
-    <h2>3. Fontes de Dados e Propriedade Intelectual</h2>
-    <p>As informações sobre animes são obtidas por meio de APIs públicas oficiais disponibilizadas por AniList, Kitsu e MyAnimeList. O AniMatch não reivindica propriedade sobre os títulos, personagens, marcas, imagens ou sinopses pertencentes a terceiros. Os direitos autorais e propriedade intelectual pertencem integralmente aos seus respectivos titulares.</p>
+      <h2>2. Metodologia e Algoritmo Bayesiano</h2>
+      <p>Para evitar distorções estatísticas comuns (por exemplo, um usuário que assistiu a apenas um anime de Mecha e deu nota 10 ter afinidade artificial de 100%), o AniMatch emprega uma suavização Bayesiana ponderada com constante de confiança (C = 25).</p>
+      <p>Dessa forma, gêneros com poucas obras avaliadas convergem suavemente em direção à média geral do usuário, enquanto gêneros com grande histórico de notas mantêm seu peso autêntico.</p>
 
-    <h2>4. Independência</h2>
-    <p>O AniMatch é um projeto independente e não possui vínculo, patrocínio ou endosso oficial do AniList, Kitsu ou MyAnimeList. A menção aos nomes e marcas dessas plataformas tem caráter estritamente descritivo de compatibilidade tecnológica.</p>
+      <h2>3. Fontes de Dados e Propriedade Intelectual</h2>
+      <p>As informações sobre animes são obtidas por meio de APIs públicas oficiais disponibilizadas por AniList, Kitsu e MyAnimeList. O AniMatch não reivindica propriedade sobre os títulos, personagens, marcas, imagens ou sinopses pertencentes a terceiros. Os direitos autorais e propriedade intelectual pertencem integralmente aos seus respectivos titulares.</p>
 
-    <footer>
-      <p>© 2026 AniMatch • <a href="/privacidade.html">Política de Privacidade</a> • <a href="/termos.html">Termos de Uso</a> • <a href="/">Início</a></p>
-    </footer>
+      <h2>4. Independência</h2>
+      <p>O AniMatch é um projeto independente e não possui vínculo, patrocínio ou endosso oficial do AniList, Kitsu ou MyAnimeList. A menção aos nomes e marcas dessas plataformas tem caráter estritamente descritivo de compatibilidade tecnológica.</p>
+
+      <footer>
+        <p>© 2026 AniMatch • <a href="/privacidade.html">Política de Privacidade</a> • <a href="/termos.html">Termos de Uso</a> • <a href="/">Início</a></p>
+      </footer>
+    </main>
+
+    <!-- EN -->
+    <main data-lang="en">
+      <h1>About AniMatch</h1>
+      <h2>1. What is AniMatch</h2>
+      <p>AniMatch is an independent, 100% free, and non-commercial web app designed to analyze personal anime preferences and provide truly personalized recommendations.</p>
+      <p>The tool queries public lists shared by users on compatible platforms, including <strong>AniList</strong>, <strong>Kitsu</strong>, and <strong>MyAnimeList</strong>.</p>
+      <p>Based on this information, AniMatch analyzes completed or watching titles, personal ratings, and community averages. It calculates genre affinity indicators and other media traits like format and release era.</p>
+      <p>These insights are used to rank and organize your <em>Plan to Watch</em> list, highlighting titles with the highest genuine compatibility with your tastes rather than just mainstream popularity.</p>
+      <p>AniMatch is not a streaming platform, does not host videos or episodes, does not manage your external accounts, and never modifies your original lists.</p>
+
+      <h2>2. Methodology & Bayesian Algorithm</h2>
+      <p>To avoid statistical distortions (for example, a user who watched only one Mecha anime and rated it 10 having a misleading 100% affinity), AniMatch employs a Bayesian weighted smoothing algorithm with a confidence constant (C = 25).</p>
+      <p>This ensures genres with few evaluated titles smoothly converge toward your global average score, while genres with extensive ratings retain their authentic weight.</p>
+
+      <h2>3. Data Sources & Intellectual Property</h2>
+      <p>Anime information is retrieved from official public APIs provided by AniList, Kitsu, and MyAnimeList. AniMatch claims no ownership over third-party titles, characters, trademarks, cover art, or synopses. All intellectual property rights belong exclusively to their respective owners.</p>
+
+      <h2>4. Independence</h2>
+      <p>AniMatch is an independent community project with no official affiliation, sponsorship, or endorsement from AniList, Kitsu, or MyAnimeList. Reference to these platforms is purely descriptive for technical integration purposes.</p>
+
+      <footer>
+        <p>© 2026 AniMatch • <a href="/privacidade.html">Privacy Policy</a> • <a href="/termos.html">Terms of Use</a> • <a href="/">Home</a></p>
+      </footer>
+    </main>
+
+    <!-- JA -->
+    <main data-lang="ja">
+      <h1>AniMatchについて</h1>
+      <h2>1. AniMatchとは</h2>
+      <p>AniMatchは、個人のアニメの好みを分析し、真にパーソナライズされた推薦を提供する、独立した完全無料・非営利のウェブアプリケーションです。</p>
+      <p><strong>AniList</strong>、<strong>Kitsu</strong>、<strong>MyAnimeList</strong>などの対応プラットフォーム上で公開されているユーザーのリストを参照します。</p>
+      <p>視聴完了作品や視聴中の作品、ユーザー自身の評価点、コミュニティ全体の評価を総合的に分析し、ジャンル別親和性や作品特性（フォーマットや制作年代など）を算出します。</p>
+      <p>これらの指標を用いて視聴予定（<em>Plan to Watch</em>）リストを自動的に並べ替え、単なる流行作品ではなく、あなたの実際の好みに最も合致する作品をご提案します。</p>
+      <p>AniMatchは動画配信サービスではなく、動画ファイルの保存や配信は一切行いません。また、外部プラットフォームのユーザーアカウントを管理したり、元のリストデータを変更したりすることもありません。</p>
+
+      <h2>2. 分析手法とベイズ平滑化アルゴリズム</h2>
+      <p>少数の作品評価による極端な統計の歪み（例：メカ作品を1本だけ観て10点を付けた場合に親和性が100%と誤認される現象）を防ぐため、AniMatchは信頼度定数（C = 25）を用いたベイズ平滑化スコアを採用しています。</p>
+      <p>これにより、視聴数が少ないジャンルは全体の平均点へと緩やかに収束し、十分な視聴履歴があるジャンルは本来の嗜好が正確に反映されます。</p>
+
+      <h2>3. データ提供元と知的財産権</h2>
+      <p>作品情報はAniList、Kitsu、MyAnimeListが提供する公式公開APIから取得しています。タイトル、キャラクター、商標、画像、あらすじ等の知的財産権は各権利者に帰属し、AniMatchがこれらを主張することはありません。</p>
+
+      <h2>4. 独立性</h2>
+      <p>AniMatchは独立したオープンなプロジェクトであり、AniList、Kitsu、MyAnimeListからの公式なスポンサーシップ、提携、推奨を受けるものではありません。プラットフォーム名の記載は技術的な連携を説明する目的でのみ使用されています。</p>
+
+      <footer>
+        <p>© 2026 AniMatch • <a href="/privacidade.html">プライバシーポリシー</a> • <a href="/termos.html">利用規約</a> • <a href="/">トップページ</a></p>
+      </footer>
+    </main>
   </div>
+
+  <script>
+    (function() {
+      var saved = localStorage.getItem('animatch_language') || (navigator.language.startsWith('ja') ? 'ja' : navigator.language.startsWith('en') ? 'en' : 'pt');
+      var lang = saved.startsWith('en') ? 'en' : saved.startsWith('ja') ? 'ja' : 'pt';
+      function setLang(l) {
+        document.body.className = 'lang-' + l;
+        document.documentElement.lang = l === 'pt' ? 'pt-BR' : l;
+        document.querySelectorAll('.lang-switch button').forEach(function(b) {
+          b.classList.toggle('active', b.dataset.switch === l);
+        });
+        localStorage.setItem('animatch_language', l === 'pt' ? 'pt-BR' : l);
+      }
+      setLang(lang);
+      document.querySelectorAll('.lang-switch button').forEach(function(b) {
+        b.addEventListener('click', function() { setLang(b.dataset.switch); });
+      });
+    })();
+  </script>
 </body>
 </html>

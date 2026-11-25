@@ -31,12 +31,12 @@ describe('analytics logic', () => {
     }
   ]
 
-  it('computes overview stats correctly, ignoring PLANNING for totals and DROPPED for average', () => {
+  it('computes overview stats correctly, counting COMPLETED for totalAnimes and ignoring DROPPED for average', () => {
     const stats = computeOverviewStats(sampleEntries)
-    // 3 animes (COMPLETED, COMPLETED, DROPPED) - ignores PLANNING
-    expect(stats.totalAnimes).toBe(3)
-    // 12 + 24 + 12 = 48 episodes
-    expect(stats.totalEpisodes).toBe(48)
+    // 2 animes COMPLETED (ignores PLANNING and DROPPED for completed totals)
+    expect(stats.totalAnimes).toBe(2)
+    // 12 + 24 = 36 episodes
+    expect(stats.totalEpisodes).toBe(36)
     // score sum: 8 + 10 = 18. Count: 2 (DROPPED is ignored) -> average: 9.0
     expect(stats.userAverageScore).toBe(9.0)
   })

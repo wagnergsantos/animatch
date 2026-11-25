@@ -29,6 +29,31 @@ export function isSafeExternalUrl(url) {
   return /^https?:\/\//i.test(url.trim())
 }
 
+const REGION_BLOCKED_SITES_BR = new Set([
+  'hulu',
+  'youtube',
+  'vrv',
+  'funimation',
+  'animelab',
+  'wakanim',
+  'bilibili',
+  'iqiyi',
+])
+
+export function isPlatformAvailableInRegion(siteName, region = 'BR') {
+  if (!siteName || typeof siteName !== 'string') return false
+  const lower = siteName.toLowerCase().trim()
+  if (region === 'BR' || region === 'pt-BR') {
+    if (REGION_BLOCKED_SITES_BR.has(lower)) return false
+  }
+  return true
+}
+
+export function filterRegionalStreamingLinks(links = [], region = 'BR') {
+  if (!Array.isArray(links)) return []
+  return links.filter((link) => link?.site && isPlatformAvailableInRegion(link.site, region))
+}
+
 export function normalizeServiceName(name) {
   if (!name || typeof name !== 'string') return ''
   const lower = name.toLowerCase().trim()

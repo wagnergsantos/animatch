@@ -6,6 +6,8 @@ import {
   matchesUserSubscriptions,
   applyStreamingBoost,
   isSafeExternalUrl,
+  isPlatformAvailableInRegion,
+  filterRegionalStreamingLinks,
 } from './streaming.js'
 
 describe('streaming logic', () => {
@@ -114,5 +116,23 @@ describe('streaming logic', () => {
     expect(isSafeExternalUrl('data:text/html,<script>alert(1)</script>')).toBe(false)
     expect(isSafeExternalUrl('')).toBe(false)
     expect(isSafeExternalUrl(null)).toBe(false)
+  })
+
+  it('filters regional streaming platforms for Brazil (excluding Hulu, YouTube, etc.)', () => {
+    expect(isPlatformAvailableInRegion('Crunchyroll', 'BR')).toBe(true)
+    expect(isPlatformAvailableInRegion('Netflix', 'BR')).toBe(true)
+    expect(isPlatformAvailableInRegion('Prime Video', 'BR')).toBe(true)
+    expect(isPlatformAvailableInRegion('Hulu', 'BR')).toBe(false)
+    expect(isPlatformAvailableInRegion('YouTube', 'BR')).toBe(false)
+    expect(isPlatformAvailableInRegion('VRV', 'BR')).toBe(false)
+
+    const rawLinks = [
+      { site: 'Crunchyroll', url: 'https://crunchyroll.com/anime' },
+      { site: 'Hulu', url: 'https://hulu.com/anime' },
+      { site: 'YouTube', url: 'https://youtube.com/watch?v=123' },
+      { site: 'Netflix', url: 'https://netflix.com/anime' },
+    ]
+    const filtered = filterRegionalStreamingLinks(rawLinks, 'BR')
+    expect(filtered.map((l) => l.site)).toEqual(['Crunchyroll', 'Netflix'])
   })
 })

@@ -539,6 +539,7 @@ export default function Dashboard({
         <AnimeDetailModal
           anime={selectedAnimeDetail}
           titlePref={titlePref}
+          subscriptions={subscriptions}
           onClose={() => setSelectedAnimeDetail(null)}
         />
       )}

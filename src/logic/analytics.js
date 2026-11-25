@@ -12,16 +12,37 @@ export function computeOverviewStats(entries = []) {
   let scoreSum = 0
   let scoredCount = 0
 
-  for (const entry of entries) {
-    if (entry?.status === 'PLANNING') continue
+  const seenIds = new Set()
 
-    totalAnimes += 1
-    
-    if (entry?.media?.episodes) {
-      totalEpisodes += entry.media.episodes
+  for (const entry of entries) {
+    if (!entry) continue
+    if (entry?.media?.status === 'NOT_YET_RELEASED') continue
+
+    const rawStatus = (entry?.status || '').toUpperCase()
+    if (rawStatus === 'PLANNING') continue
+
+    // Deduplica por ID de mídia para evitar contagem duplicada entre contas/provedores
+    const id = entry?.media?.id ?? entry?.id
+    if (id != null) {
+      if (seenIds.has(id)) continue
+      seenIds.add(id)
     }
 
-    if (entry?.status !== 'DROPPED') {
+    if (rawStatus === 'COMPLETED') {
+      totalAnimes += 1
+      if (entry?.media?.episodes) {
+        totalEpisodes += entry.media.episodes
+      } else if (entry?.episodes) {
+        totalEpisodes += Number(entry.episodes) || 0
+      }
+    } else if (rawStatus === 'CURRENT') {
+      const progress = Number(entry?.progress ?? 0)
+      if (progress > 0) {
+        totalEpisodes += progress
+      }
+    }
+
+    if (rawStatus !== 'DROPPED') {
       const score = entry?.score ?? 0
       if (score > 0) {
         scoreSum += score

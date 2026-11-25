@@ -185,7 +185,11 @@ export default function RecommendationGrid({
             onClick={handleLoadMore}
             data-testid="load-more-btn"
           >
-            {t('recommendationGrid.loadMore', 'Carregar mais animes')} ({Math.min(BATCH_STEP, displayRecommendations.length - visibleRecommendations.length)} de {displayRecommendations.length - visibleRecommendations.length} restantes)
+            {t('recommendationGrid.loadMoreWithCount', {
+              count: Math.min(BATCH_STEP, displayRecommendations.length - visibleRecommendations.length),
+              remaining: displayRecommendations.length - visibleRecommendations.length,
+              defaultValue: `${t('recommendationGrid.loadMore', 'Carregar mais animes')} (${Math.min(BATCH_STEP, displayRecommendations.length - visibleRecommendations.length)} de ${displayRecommendations.length - visibleRecommendations.length} restantes)`,
+            })}
           </button>
         </div>
       )}
