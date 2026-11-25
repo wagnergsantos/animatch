@@ -33,6 +33,14 @@
   margin: 0;
 }
 
+.reason-genres-link {
+  font-size: var(--text-xs, 0.75rem);
+  color: var(--color-primary, #60a5fa);
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.35;
+}
+
 .weights-bar {
   display: flex;
   flex-wrap: wrap;
@@ -61,11 +69,22 @@
   border-radius: var(--radius-sm, 6px);
   font-size: var(--text-xs, 0.75rem);
   color: var(--color-text-primary, #ffffff);
+  transition: all 0.15s ease;
+}
+
+.genre-chip--top {
+  border-color: var(--color-primary, #60a5fa);
+  background: rgba(99, 102, 241, 0.18);
+  box-shadow: 0 0 6px rgba(99, 102, 241, 0.25);
 }
 
 .genre-chip__score {
   color: var(--color-primary, #60a5fa);
   font-weight: 600;
+}
+
+.genre-chip--top .genre-chip__score {
+  font-weight: 700;
 }
 
 .anchors-section {

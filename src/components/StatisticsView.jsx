@@ -7,6 +7,7 @@ import {
   computeBayesianGenreStats,
   computeScoreDistribution,
 } from '../logic/analytics.js'
+import { buildTasteProfile } from '../logic/recommender.js'
 import { translateGenre } from '../lib/genreTranslations.js'
 import styles from './StatisticsView.module.css'
 
@@ -14,6 +15,7 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
   const [sortBy, setSortBy] = useState('lowerBound')
   const [sortDir, setSortDir] = useState('desc')
   const [showAllGenres, setShowAllGenres] = useState(false)
+  const [yearFilterMode, setYearFilterMode] = useState('watched')
 
   const toggleSort = (key) => {
     if (sortBy === key) {
@@ -26,9 +28,21 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
   const [confidenceC, setConfidenceC] = useState(25)
   const { t } = useTranslation()
 
+  const tasteProfile = useMemo(() => buildTasteProfile(entries), [entries])
   const overview = useMemo(() => computeOverviewStats(entries), [entries])
-  const statuses = useMemo(() => computeStatusDistribution(entries), [entries])
-  const yearDistribution = useMemo(() => computeYearDistribution(entries), [entries])
+  const statuses = useMemo(() => computeStatusDistribution(entries, tasteProfile), [entries, tasteProfile])
+
+  const filteredYearEntries = useMemo(() => {
+    if (yearFilterMode === 'watched') {
+      return entries.filter((e) => {
+        const s = (e?.status || '').toUpperCase()
+        return s === 'COMPLETED' || s === 'CURRENT' || s === 'DROPPED' || s === 'PAUSED'
+      })
+    }
+    return entries
+  }, [entries, yearFilterMode])
+
+  const yearDistribution = useMemo(() => computeYearDistribution(filteredYearEntries, tasteProfile), [filteredYearEntries, tasteProfile])
   const scoreDistribution = useMemo(() => computeScoreDistribution(entries), [entries])
 
   const genreStats = useMemo(() => {
@@ -119,7 +133,7 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
           <div className={styles['score-chart']}>
             {scoreDistribution.map(({ score, count }) => (
               <div key={score} className={styles['score-chart__bar-wrapper']} title={`Nota ${score}: ${count} animes`}>
-                <span className={styles['score-chart__count']}>{count > 0 ? count : ''}</span>
+                <span className={styles['score-chart__count']}>{count}</span>
                 <div
                   className={styles['score-chart__bar']}
                   style={{ height: `${(count / maxScoreCount) * 100}%` }}
@@ -133,12 +147,48 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
 
       {/* Year Chart */}
       <section className={styles['stats-section']}>
-        <h3 className={styles['stats-section__title']}>{t('stats.releasesByYear')}</h3>
-        <p className={styles['section-subtitle']}>{t('stats.releasesByYearDesc', 'Distribuição de todos os animes da sua lista por ano de lançamento')}</p>
+        <div className={styles['stats-section__header']}>
+          <div>
+            <h3 className={styles['stats-section__title']}>{t('stats.releasesByYear')}</h3>
+            <p className={styles['section-subtitle']}>
+              {yearFilterMode === 'watched'
+                ? t('stats.releasesByYearDescWatched', 'Distribuição dos animes assistidos por ano de lançamento')
+                : t('stats.releasesByYearDesc', 'Distribuição de todos os animes da sua lista por ano de lançamento')}
+            </p>
+          </div>
+          <div className={styles['year-toggle-group']} role="radiogroup" aria-label={t('stats.releasesByYear')}>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={yearFilterMode === 'watched'}
+              className={`${styles['year-toggle-btn']} ${yearFilterMode === 'watched' ? styles['year-toggle-btn--active'] : ''}`}
+              onClick={() => setYearFilterMode('watched')}
+            >
+              {t('stats.releasesByYearFilterWatched', 'Assistidos')}
+            </button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={yearFilterMode === 'all'}
+              className={`${styles['year-toggle-btn']} ${yearFilterMode === 'all' ? styles['year-toggle-btn--active'] : ''}`}
+              onClick={() => setYearFilterMode('all')}
+            >
+              {t('stats.releasesByYearFilterAll', 'Todos')}
+            </button>
+          </div>
+        </div>
+
         <div className={styles['year-chart-container']}>
           <div className={styles['year-chart']}>
             {yearDistribution.map(({ year, count }, index) => {
-              const showYearLabel = index === 0 || index === yearDistribution.length - 1 || year % 5 === 0
+              const isLast = index === yearDistribution.length - 1
+              const prevYear = index > 0 ? yearDistribution[index - 1].year : null
+              const prevWasLabeled = prevYear != null && (index - 1 === 0 || prevYear % 5 === 0)
+              const showYearLabel =
+                index === 0 ||
+                (year % 5 === 0 && (!isLast || !prevWasLabeled || year - prevYear >= 2)) ||
+                (isLast && !prevWasLabeled && (prevYear == null || year - prevYear >= 2))
+
               return (
                 <div key={year} className={styles['year-chart__bar-wrapper']} title={`${year}: ${count} animes`}>
                   <div

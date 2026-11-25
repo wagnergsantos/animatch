@@ -12,8 +12,12 @@ export default function RecommendationReason({ anime }) {
   const topGenres = anime.topContributingGenres ?? []
   const anchors = anime.anchorAnimes ?? []
 
+  const sortedMatchingGenres = [...matchingGenres].sort((a, b) => b.score - a.score)
+  const maxGenreScore = sortedMatchingGenres.length > 0 ? sortedMatchingGenres[0].score : 0
+
   const genreNames = topGenres.slice(0, 2).map((g) => translateGenre(g.genre, t)).join(', ')
-  const anchorTitles = anchors.slice(0, 2).map((a) => a.title).join(', ')
+  const anchorTitles = anchors.map((a) => a.title).join(', ')
+  const sharedGenresText = sortedMatchingGenres.map((g) => translateGenre(g.genre, t)).join(', ')
 
   let summaryText = ''
   if (isCommunity) {
@@ -35,6 +39,15 @@ export default function RecommendationReason({ anime }) {
         <p className={styles['reason-summary']}>{summaryText}</p>
       )}
 
+      {!isCommunity && anchors.length > 0 && sharedGenresText && (
+        <p className={styles['reason-genres-link']}>
+          {t('labels.sharedGenresExplanation', {
+            genres: sharedGenresText,
+            defaultValue: `Pelos gêneros em comum: ${sharedGenresText}.`,
+          })}
+        </p>
+      )}
+
       {isCommunity ? (
         <p className={styles['fallback-note']}>
           🌐 {t('labels.fallbackTooltip')}
@@ -50,14 +63,21 @@ export default function RecommendationReason({ anime }) {
             </span>
           </div>
 
-          {matchingGenres.length > 0 && (
+          {sortedMatchingGenres.length > 0 && (
             <div className={styles['genres-breakdown']}>
-              {matchingGenres.map((item) => (
-                <span key={item.genre} className={styles['genre-chip']}>
-                  <span>{translateGenre(item.genre, t)}:</span>
-                  <span className={styles['genre-chip__score']}>{item.score.toFixed(2)}</span>
-                </span>
-              ))}
+              {sortedMatchingGenres.map((item) => {
+                const isTop = item.score === maxGenreScore
+                return (
+                  <span
+                    key={item.genre}
+                    className={`${styles['genre-chip']} ${isTop ? styles['genre-chip--top'] : ''}`}
+                    title={isTop ? t('labels.topGenreScore', 'Maior nota por gênero') : undefined}
+                  >
+                    <span>{translateGenre(item.genre, t)}:</span>
+                    <span className={styles['genre-chip__score']}>{item.score.toFixed(2)}</span>
+                  </span>
+                )
+              })}
             </div>
           )}
 

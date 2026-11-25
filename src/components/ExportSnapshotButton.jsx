@@ -63,11 +63,29 @@ export default function ExportSnapshotButton({
           {t('wrapped.buttonText', t('wrapped.button', 'Compartilhar Wrapped').replace(/^✨\s*/, ''))}
         </button>
       )}
-      <button type="button" onClick={handleExportCSV} style={buttonStyle}>
-        {t('stats.exportCSV', 'Exportar CSV')}
+      <button
+        type="button"
+        onClick={handleExportCSV}
+        style={{ ...buttonStyle, display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+      >
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="7 10 12 15 17 10" />
+          <line x1="12" y1="15" x2="12" y2="3" />
+        </svg>
+        <span>{t('stats.exportCSV', 'Exportar CSV').replace(/^[^\w\s\u00C0-\u00FF]+/u, '').trim()}</span>
       </button>
-      <button type="button" onClick={handleExportJSON} style={buttonStyle}>
-        {t('stats.exportJSON', 'Exportar JSON')}
+      <button
+        type="button"
+        onClick={handleExportJSON}
+        style={{ ...buttonStyle, display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+      >
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="7 10 12 15 17 10" />
+          <line x1="12" y1="15" x2="12" y2="3" />
+        </svg>
+        <span>{t('stats.exportJSON', 'Exportar JSON').replace(/^[^\w\s\u00C0-\u00FF]+/u, '').trim()}</span>
       </button>
     </div>
   )

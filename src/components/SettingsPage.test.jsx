@@ -4,7 +4,7 @@ import SettingsPage from './SettingsPage.jsx'
 import { STREAMING_SERVICES } from '../logic/streaming.js'
 import { clearProviderCache } from '../api/index.js'
 import { deleteCloudAnimeList } from '../cache/cloudListSync.js'
-import { clearAllLocalData } from '../cache/idbCache.js'
+import { clearAllLocalData, readIdbCache } from '../cache/idbCache.js'
 
 vi.mock('../api/index.js', () => ({
   clearProviderCache: vi.fn(),
@@ -16,6 +16,8 @@ vi.mock('../cache/cloudListSync.js', () => ({
 
 vi.mock('../cache/idbCache.js', () => ({
   clearAllLocalData: vi.fn().mockResolvedValue(undefined),
+  readIdbCache: vi.fn().mockResolvedValue(null),
+  buildProviderCacheKey: vi.fn((prov, user) => `cache_${prov}_${user}`),
 }))
 
 describe('SettingsPage', () => {
@@ -405,6 +407,22 @@ describe('SettingsPage', () => {
       await waitFor(() => {
         expect(onDeleteAccount).toHaveBeenCalledTimes(1)
         expect(onLogout).toHaveBeenCalledTimes(1)
+      })
+    })
+
+    it('displays relative sync time beside connected status badge when cached timestamp is available', async () => {
+      const twoHoursAgo = Date.now() - 2 * 60 * 60 * 1000
+      readIdbCache.mockImplementation(async (key) => {
+        if (key.includes('anilist')) {
+          return { timestamp: twoHoursAgo }
+        }
+        return null
+      })
+
+      render(<SettingsPage {...defaultProps} />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/✓ Conectada • Sincronizado há 2 h/i)).toBeInTheDocument()
       })
     })
   })

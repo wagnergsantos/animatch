@@ -2,6 +2,8 @@ import {
   buildTasteProfile,
   scoreRecommendations,
   resolveYear,
+  normalizeFranchiseTitle,
+  isSameFranchise,
   calculateWeightedGenreAverage,
   isEligiblePlanningMedia,
   isEligiblePlanningEntry,
@@ -838,6 +840,46 @@ describe('scoreRecommendations', () => {
     expect(result).toHaveLength(1)
     // Saiki K tem Jaccard muito maior com Gintama e deve ser a primeira âncora à frente de Demon Slayer
     expect(result[0].anchorAnimes[0].title).toBe('Saiki K')
+  })
+
+  it('excludes same-franchise anime from anchors to prevent circular recommendations', () => {
+    expect(normalizeFranchiseTitle('Hunter x Hunter: Phantom Rouge')).toBe('hunter x hunter')
+    expect(normalizeFranchiseTitle('Bleach (TV)')).toBe('bleach')
+    expect(isSameFranchise('Hunter x Hunter', 'Hunter x Hunter: Phantom Rouge')).toBe(true)
+    expect(isSameFranchise('Hunter x Hunter (2011)', 'Hunter x Hunter')).toBe(true)
+    expect(isSameFranchise('Bleach', 'Bleach: Sennen Kessen-hen')).toBe(true)
+    expect(isSameFranchise('Hunter x Hunter', 'Yu Yu Hakusho')).toBe(false)
+
+    const profile = new Map([
+      [
+        'Action',
+        {
+          average: 9.0,
+          adjustedAverage: 8.8,
+          sourceAnimes: [
+            { id: 901, title: 'Hunter x Hunter: Phantom Rouge', score: 9.5, coverImage: 'pr.jpg' },
+            { id: 902, title: 'Yu Yu Hakusho', score: 9.0, coverImage: 'yyh.jpg' },
+          ],
+        },
+      ],
+    ])
+
+    const planning = [
+      {
+        media: {
+          id: 136,
+          title: { english: 'Hunter x Hunter (2011)', romaji: 'Hunter x Hunter (2011)' },
+          genres: ['Action'],
+          averageScore: 90,
+        },
+      },
+    ]
+
+    const result = scoreRecommendations(planning, profile)
+    expect(result).toHaveLength(1)
+    // Phantom Rouge deve ser excluído e Yu Yu Hakusho deve ser a âncora
+    expect(result[0].anchorAnimes).toHaveLength(1)
+    expect(result[0].anchorAnimes[0].title).toBe('Yu Yu Hakusho')
   })
 
   describe('DISCOVERY badge (Out of Comfort Zone)', () => {

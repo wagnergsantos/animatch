@@ -106,6 +106,7 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
   }
 
   const handleKeyDown = (e) => {
+    if (e.target !== e.currentTarget) return
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
       handleCardClick(e)
@@ -178,6 +179,13 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
                   e.stopPropagation()
                   toggleBadge('community')
                 }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    toggleBadge('community')
+                  }
+                }}
               >
                 <span className={styles['anime-card__badge-icon']}>
                   <BadgeIcon type="COMMUNITY" size={13} />
@@ -200,6 +208,13 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
                   onClick={(e) => {
                     e.stopPropagation()
                     toggleBadge(badgeKey)
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      toggleBadge(badgeKey)
+                    }
                   }}
                 >
                   <span className={styles['anime-card__badge-icon']}>

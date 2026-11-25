@@ -23,6 +23,27 @@ export function resolveYear(item) {
   )
 }
 
+export function normalizeFranchiseTitle(title) {
+  if (!title || typeof title !== 'string') return ''
+  return title
+    .toLowerCase()
+    .replace(/\s*(\(|\[).*?(\)|\])/g, '')
+    .replace(/\s*(:| - | -|–|—).*$/, '')
+    .replace(/\s+(season|the movie|movie|ova|ona|special|2nd season|3rd season|part \d+).*$/i, '')
+    .trim()
+}
+
+export function isSameFranchise(title1, title2) {
+  const norm1 = normalizeFranchiseTitle(title1)
+  const norm2 = normalizeFranchiseTitle(title2)
+  if (!norm1 || !norm2) return false
+  if (norm1 === norm2) return true
+  if (norm1.length >= 4 && norm2.length >= 4) {
+    if (norm1.startsWith(norm2) || norm2.startsWith(norm1)) return true
+  }
+  return false
+}
+
 export function buildTasteProfile(entries = [], options = {}) {
   const {
     minGenreCount = DEFAULT_MIN_GENRE_COUNT,
@@ -223,6 +244,9 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
       const seenAnimeIds = new Set()
       const collectedAnchors = []
       const candidateGenresSet = new Set(genres)
+      const candidateTitleRomaji = media.title?.romaji || ''
+      const candidateTitleEnglish = media.title?.english || ''
+      const candidateTitleFlat = typeof entry.title === 'string' ? entry.title : ''
 
       for (const item of topContributingGenres) {
         const stats = tasteProfile.get(item.genre)
@@ -230,6 +254,14 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
         for (const anime of sources) {
           if (anime?.id && !seenAnimeIds.has(anime.id) && anime.score > 0) {
             seenAnimeIds.add(anime.id)
+            const anchorTitle = anime.title || ''
+            if (
+              (candidateTitleRomaji && isSameFranchise(candidateTitleRomaji, anchorTitle)) ||
+              (candidateTitleEnglish && isSameFranchise(candidateTitleEnglish, anchorTitle)) ||
+              (candidateTitleFlat && isSameFranchise(candidateTitleFlat, anchorTitle))
+            ) {
+              continue
+            }
             const animeGenres = anime.genres ?? []
             let sharedCount = 0
             for (const g of animeGenres) {

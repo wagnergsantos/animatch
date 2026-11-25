@@ -15,6 +15,8 @@ describe('genreTranslations', () => {
     expect(translateGenre('Thriller')).toBe('Suspense')
     expect(translateGenre('Gag Humor')).toBe('Comédia Pastelão')
     expect(translateGenre('Survival')).toBe('Sobrevivência')
+    expect(translateGenre('Combat Sports')).toBe('Esportes de Combate')
+    expect(translateGenre('Martial Arts')).toBe('Artes Marciais')
   })
 
   it('translates correctly when t represents english or japanese locale', () => {

@@ -13,6 +13,9 @@
     },
     "releasesByYear": "年別リリース",
     "releasesByYearDesc": "ライブラリ内のすべてのアニメをリリース年順に集計（5年ごとの目盛り）。",
+    "releasesByYearDescWatched": "視聴済みアニメの公開年別分布",
+    "releasesByYearFilterWatched": "視聴済み",
+    "releasesByYearFilterAll": "すべて",
     "scoreDistributionTitle": "スコア分布（1〜10）",
     "favoriteGenresTitle": "お気に入りジャンル",
     "favoriteGenresDesc": "スコア、作品数、評価の信頼度によるジャンルランキング。",
@@ -30,8 +33,8 @@
     "bayesianAverage": "平滑化平均",
     "lowerBound": "スコア (下限信頼区間)",
     "viewRecommendationsFor": "{{genre}} のおすすめを見る",
-    "exportCSV": "📥 CSV出力",
-    "exportJSON": "📥 JSON出力"
+    "exportCSV": "CSV出力",
+    "exportJSON": "JSON出力"
   },
   "settings": {
     "title": "設定",

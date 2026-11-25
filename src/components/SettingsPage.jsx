@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { STREAMING_SERVICES } from '../logic/streaming.js'
 import { clearProviderCache } from '../api/index.js'
 import { deleteCloudAnimeList } from '../cache/cloudListSync.js'
-import { clearAllLocalData } from '../cache/idbCache.js'
+import { clearAllLocalData, readIdbCache, buildProviderCacheKey } from '../cache/idbCache.js'
 import { deleteOwnAccount } from '../auth/session.js'
 import { STORAGE_KEYS } from '../lib/storageKeys.js'
 import styles from './SettingsPage.module.css'
@@ -13,6 +13,19 @@ const LANG_OPTIONS = [
   { id: 'en' },
   { id: 'ja' },
 ]
+
+function formatRelativeSyncTime(timestamp, t) {
+  if (!timestamp || typeof timestamp !== 'number') return null
+  const diffMs = Math.max(0, Date.now() - timestamp)
+  const diffSec = Math.floor(diffMs / 1000)
+  if (diffSec < 60) return t('settings.sync_just_now', { defaultValue: 'Sincronizado há instantes' })
+  const diffMin = Math.floor(diffSec / 60)
+  if (diffMin < 60) return t('settings.sync_minutes_ago', { count: diffMin, defaultValue: `Sincronizado há ${diffMin} min` })
+  const diffHours = Math.floor(diffMin / 60)
+  if (diffHours < 24) return t('settings.sync_hours_ago', { count: diffHours, defaultValue: `Sincronizado há ${diffHours} h` })
+  const diffDays = Math.floor(diffHours / 24)
+  return t('settings.sync_days_ago', { count: diffDays, defaultValue: `Sincronizado há ${diffDays} d` })
+}
 
 export default function SettingsPage({
   user = null,
@@ -40,6 +53,31 @@ export default function SettingsPage({
   const [confirmingDeleteAccount, setConfirmingDeleteAccount] = useState(false)
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const [isDeletingAccount, setIsDeletingAccount] = useState(false)
+  const [syncTimestamps, setSyncTimestamps] = useState({})
+
+  useEffect(() => {
+    let isMounted = true
+    const providers = ['anilist', 'kitsu', 'mal']
+    Promise.all(
+      providers.map(async (prov) => {
+        const u = linkedUsernames?.[prov]?.trim()
+        if (!u) return [prov, null]
+        try {
+          const cached = await readIdbCache(buildProviderCacheKey(prov, u))
+          return [prov, cached?.timestamp || null]
+        } catch {
+          return [prov, null]
+        }
+      })
+    ).then((entries) => {
+      if (isMounted) {
+        setSyncTimestamps(Object.fromEntries(entries))
+      }
+    })
+    return () => {
+      isMounted = false
+    }
+  }, [linkedUsernames, loadingProviders])
 
   const [themeMode, setThemeMode] = useState(() => {
     if (typeof window !== 'undefined' && window.localStorage) {
@@ -163,7 +201,12 @@ export default function SettingsPage({
       <section className={styles['settings-page__card']} aria-labelledby="settings-auth-title">
         <div className={styles['settings-page__card-header']}>
           <h2 id="settings-auth-title" className={styles['settings-page__card-title']}>
-            <span aria-hidden="true">☁️</span> {t('settings.accountSection', { defaultValue: 'Conta & Sincronização em Nuvem' })}
+            <span aria-hidden="true" style={{ display: 'inline-flex', verticalAlign: 'middle', marginRight: '6px' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" />
+              </svg>
+            </span>
+            {t('settings.accountSection', { defaultValue: 'Conta & Sincronização em Nuvem' })}
           </h2>
           <p className={styles['settings-page__card-desc']}>
             {t('auth.sync_desc', { defaultValue: 'Sincronize suas preferências e contas vinculadas na nuvem.' })}
@@ -219,7 +262,13 @@ export default function SettingsPage({
       <section className={styles['settings-page__card']} aria-labelledby="settings-linked-title">
         <div className={styles['settings-page__card-header']}>
           <h2 id="settings-linked-title" className={styles['settings-page__card-title']}>
-            🔗 {t('settings.linkedAccounts', { defaultValue: 'Contas vinculadas' })}
+            <span aria-hidden="true" style={{ display: 'inline-flex', verticalAlign: 'middle', marginRight: '6px' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+              </svg>
+            </span>
+            {t('settings.linkedAccounts', { defaultValue: 'Contas vinculadas' })}
           </h2>
           <p className={styles['settings-page__card-desc']}>
             {t('settings.linkedAccountsDesc', { defaultValue: 'Cadastre seus usuários para unificar recomendações e históricos.' })}
@@ -256,7 +305,9 @@ export default function SettingsPage({
                     <span
                       className={`${styles['settings-page__field-status']} ${isSyncingAni ? styles['settings-page__field-status--syncing'] : ''}`}
                     >
-                      {isSyncingAni ? '⏳ Sincronizando...' : '✓ Conectada'}
+                      {isSyncingAni
+                        ? '⏳ Sincronizando...'
+                        : `✓ Conectada${syncTimestamps.anilist ? ` • ${formatRelativeSyncTime(syncTimestamps.anilist, t)}` : ''}`}
                     </span>
                   )}
                   <button
@@ -307,7 +358,9 @@ export default function SettingsPage({
                     <span
                       className={`${styles['settings-page__field-status']} ${isSyncingKitsu ? styles['settings-page__field-status--syncing'] : ''}`}
                     >
-                      {isSyncingKitsu ? '⏳ Sincronizando...' : '✓ Conectada'}
+                      {isSyncingKitsu
+                        ? '⏳ Sincronizando...'
+                        : `✓ Conectada${syncTimestamps.kitsu ? ` • ${formatRelativeSyncTime(syncTimestamps.kitsu, t)}` : ''}`}
                     </span>
                   )}
                   <button
@@ -358,7 +411,9 @@ export default function SettingsPage({
                     <span
                       className={`${styles['settings-page__field-status']} ${isSyncingMal ? styles['settings-page__field-status--syncing'] : ''}`}
                     >
-                      {isSyncingMal ? '⏳ Sincronizando...' : '✓ Conectada'}
+                      {isSyncingMal
+                        ? '⏳ Sincronizando...'
+                        : `✓ Conectada${syncTimestamps.mal ? ` • ${formatRelativeSyncTime(syncTimestamps.mal, t)}` : ''}`}
                     </span>
                   )}
                   <button
@@ -394,7 +449,13 @@ export default function SettingsPage({
       <section className={styles['settings-page__card']} aria-labelledby="settings-streaming-title">
         <div className={styles['settings-page__card-header']}>
           <h2 id="settings-streaming-title" className={styles['settings-page__card-title']}>
-            📺 {t('settings.streamingSection', { defaultValue: 'Streaming & Assinaturas' })}
+            <span aria-hidden="true" style={{ display: 'inline-flex', verticalAlign: 'middle', marginRight: '6px' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="7" width="20" height="15" rx="2" ry="2" />
+                <polyline points="17 2 12 7 7 2" />
+              </svg>
+            </span>
+            {t('settings.streamingSection', { defaultValue: 'Streaming & Assinaturas' })}
           </h2>
           <p className={styles['settings-page__card-desc']}>
             {t('settings.streamingSubscriptions', { defaultValue: 'Selecione os serviços que você assina para filtrar animes disponíveis.' })}
@@ -438,7 +499,16 @@ export default function SettingsPage({
       <section className={styles['settings-page__card']} aria-labelledby="settings-ui-title">
         <div className={styles['settings-page__card-header']}>
           <h2 id="settings-ui-title" className={styles['settings-page__card-title']}>
-            🎨 {t('settings.uiSection', { defaultValue: 'Preferências de Interface' })}
+            <span aria-hidden="true" style={{ display: 'inline-flex', verticalAlign: 'middle', marginRight: '6px' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" />
+                <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" />
+                <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" />
+                <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" />
+                <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z" />
+              </svg>
+            </span>
+            {t('settings.uiSection', { defaultValue: 'Preferências de Interface' })}
           </h2>
           <p className={styles['settings-page__card-desc']}>
             {t('settings.uiDesc', { defaultValue: 'Personalize o visual, idioma e padrão de nomenclatura dos títulos' })}
@@ -520,7 +590,15 @@ export default function SettingsPage({
       <section className={styles['settings-page__card']} aria-labelledby="settings-data-title">
         <div className={styles['settings-page__card-header']}>
           <h2 id="settings-data-title" className={styles['settings-page__card-title']}>
-            📦 {t('settings.dataSection', { defaultValue: 'Dados da Lista' })}
+            <span aria-hidden="true" style={{ display: 'inline-flex', verticalAlign: 'middle', marginRight: '6px' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="16.5" y1="9.4" x2="7.5" y2="4.21" />
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                <line x1="12" y1="22.08" x2="12" y2="12" />
+              </svg>
+            </span>
+            {t('settings.dataSection', { defaultValue: 'Dados da Lista' })}
           </h2>
           <p className={styles['settings-page__card-desc']}>
             {t('settings.dataDesc', { defaultValue: 'Atualize a lista de animes a partir dos provedores conectados.' })}
@@ -571,7 +649,14 @@ export default function SettingsPage({
       <section className={`${styles['settings-page__card']} ${styles['settings-page__card--danger']}`} aria-labelledby="settings-danger-title">
         <div className={styles['settings-page__card-header']}>
           <h2 id="settings-danger-title" className={styles['settings-page__card-title']} style={{ color: 'var(--color-danger, #ef4444)' }}>
-            🚨 {t('settings.dangerZone', { defaultValue: 'Zona de risco' })}
+            <span aria-hidden="true" style={{ display: 'inline-flex', verticalAlign: 'middle', marginRight: '6px' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            </span>
+            {t('settings.dangerZone', { defaultValue: 'Zona de risco' })}
           </h2>
           <p className={styles['settings-page__card-desc']}>
             {t('settings.dangerZoneDesc', { defaultValue: 'Ações irreversíveis e limpeza de armazenamento.' })}

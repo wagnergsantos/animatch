@@ -297,6 +297,11 @@
   word-break: break-word;
 }
 
+[data-theme="light"] .anime-card__subtitle,
+[data-theme="light"] .anime-card__meta {
+  color: #4b5563;
+}
+
 [data-theme="light"] .anime-card__genre-pill {
   color: #374151;
   background-color: rgba(0, 0, 0, 0.04);

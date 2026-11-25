@@ -285,13 +285,7 @@ export default function Dashboard({
               })}
             >
               <span className={styles.dashboard__username}>
-                {username ? `${username} ` : ''}
-                <span className="dashboard__provider-badge">
-                  ({t('ensemble.accounts_active', {
-                    count: activeAccountsCount,
-                    defaultValue: `${activeAccountsCount} contas ativas`,
-                  })})
-                </span>
+                {username}
               </span>
             </span>
           ) : (

@@ -126,7 +126,7 @@
 .year-chart__bar {
   width: 100%;
   max-width: 32px;
-  background: var(--accent);
+  background: var(--color-primary);
   border-radius: 4px 4px 0 0;
   min-height: 2px;
   transition: opacity 0.2s ease, transform 0.2s ease;
@@ -135,6 +135,7 @@
 
 .year-chart__bar:hover {
   opacity: 1;
+  filter: brightness(1.15);
 }
 
 .year-chart__label {
@@ -143,6 +144,36 @@
   writing-mode: vertical-rl;
   transform: rotate(180deg);
   height: 40px;
+}
+
+.year-toggle-group {
+  display: inline-flex;
+  background: var(--surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 2px;
+  gap: 2px;
+}
+
+.year-toggle-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-2);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.year-toggle-btn:hover {
+  color: var(--text-1);
+}
+
+.year-toggle-btn--active {
+  background: var(--color-primary);
+  color: #ffffff;
 }
 
 .bayesian-controls {
@@ -158,7 +189,7 @@
 }
 
 .bayesian-controls input[type="range"] {
-  accent-color: var(--accent);
+  accent-color: var(--color-primary);
   cursor: pointer;
 }
 
@@ -245,13 +276,14 @@
 }
 
 .genre-explanation {
-  font-size: var(--text-xs);
-  color: var(--text-2);
+  font-size: var(--text-sm);
+  color: var(--text-1);
   background: var(--surface-2);
   border: 1px solid var(--color-border);
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
   margin-bottom: var(--space-3);
+  line-height: 1.4;
 }
 
 .toggle-genres-btn {
