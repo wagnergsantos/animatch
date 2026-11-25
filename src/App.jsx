@@ -61,12 +61,22 @@ export function AppContent() {
   // Sync language to i18n
   useEffect(() => {
     if (settings?.language && i18n.language !== settings.language) {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEYS.LANG)
+        if (stored && stored !== settings.language) {
+          updateSetting('language', stored)
+          if (i18n.language !== stored) {
+            i18n.changeLanguage(stored)
+          }
+          return
+        }
+      } catch {}
       i18n.changeLanguage(settings.language)
       try {
         localStorage.setItem(STORAGE_KEYS.LANG, settings.language)
       } catch {}
     }
-  }, [settings?.language, i18n])
+  }, [settings?.language, i18n, updateSetting])
 
   // Normalizar recentUsers de arrays legados
   const normalizedRecentUsers = (recentUsers || []).map((item) =>
@@ -279,6 +289,7 @@ export function AppContent() {
           onOpenLegalModal={handleOpenLegalModal}
           onSignOut={handleSignOut}
           linkedUsernames={settings?.linked_usernames}
+          onLanguageChange={(newLang) => updateSetting('language', newLang)}
         />
       )}
 

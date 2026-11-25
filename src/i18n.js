@@ -1,23 +1,11 @@
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
-import { STORAGE_KEYS } from './lib/storageKeys.js'
+import { detectBrowserLanguage } from './lib/languageDetector.js'
 import ptBR from './locales/pt-BR.json'
 import en from './locales/en.json'
 import ja from './locales/ja.json'
 
-function detectInitialLang() {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEYS.LANG)
-    if (stored) return stored
-  } catch {
-    // ignore
-  }
-  const nav = (navigator.language || navigator.userLanguage || 'pt-BR').toLowerCase()
-  if (nav.startsWith('en')) return 'en'
-  if (nav.startsWith('pt')) return 'pt-BR'
-  if (nav.startsWith('ja')) return 'ja'
-  return 'pt-BR'
-}
+export { detectBrowserLanguage }
 
 i18n
   .use(initReactI18next)
@@ -27,8 +15,8 @@ i18n
       en: { translation: en },
       ja: { translation: ja },
     },
-    lng: detectInitialLang(),
-    fallbackLng: 'pt-BR',
+    lng: detectBrowserLanguage(),
+    fallbackLng: 'en',
     interpolation: { escapeValue: false },
     react: { useSuspense: false },
   })

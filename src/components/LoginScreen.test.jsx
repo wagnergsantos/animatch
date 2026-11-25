@@ -232,6 +232,36 @@ describe('LoginScreen', () => {
     fireEvent.click(navCardsBtn)
     expect(onSubmit).toHaveBeenCalledWith('myuser', 'anilist')
   })
+
+  it('renders updated calculation explanation in FAQ', () => {
+    render(<LoginScreen onSubmit={() => {}} isLoading={false} error={null} />)
+
+    expect(screen.getByText('Como a nota é calculada?')).toBeInTheDocument()
+    expect(screen.getByText(/A nota de Match combina duas coisas:/i)).toBeInTheDocument()
+    expect(screen.getByText(/Seu perfil de gostos/i)).toBeInTheDocument()
+    expect(screen.getByText(/Avaliação da comunidade/i)).toBeInTheDocument()
+    expect(screen.getByText(/média ponderada 85\/15/i)).toBeInTheDocument()
+  })
+
+  it('renders language selector in top nav and handles language changes', () => {
+    const onLanguageChange = vi.fn()
+    render(
+      <LoginScreen
+        onSubmit={() => {}}
+        isLoading={false}
+        error={null}
+        onLanguageChange={onLanguageChange}
+      />
+    )
+
+    const select = screen.getByTestId('landing-language-select')
+    expect(select).toBeInTheDocument()
+    expect(select).toHaveValue('pt-BR')
+
+    fireEvent.change(select, { target: { value: 'en' } })
+    expect(onLanguageChange).toHaveBeenCalledWith('en')
+    expect(localStorage.getItem('animatch_lang')).toBe('en')
+  })
 })
 
 
