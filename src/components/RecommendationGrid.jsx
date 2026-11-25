@@ -38,6 +38,7 @@ export default function RecommendationGrid({
   sortBy = 'predicted', 
   provider = 'anilist', 
   titlePref = 'english', 
+  subscriptions = [],
   viewMode = 'grid', 
   headerActions = null, 
   isLoadingMore = false,
@@ -161,6 +162,7 @@ export default function RecommendationGrid({
               key={rec.id}
               anime={rec}
               titlePref={titlePref}
+              subscriptions={subscriptions}
               priority={index < 8}
             />
           ))}
@@ -172,6 +174,7 @@ export default function RecommendationGrid({
               key={rec.id}
               anime={rec}
               titlePref={titlePref}
+              subscriptions={subscriptions}
               priority={index < 8}
             />
           ))}

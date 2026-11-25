@@ -38,6 +38,9 @@ const REGION_BLOCKED_SITES_BR = new Set([
   'wakanim',
   'bilibili',
   'iqiyi',
+  'retrocrush',
+  'tubi',
+  'peacock',
 ])
 
 export function isPlatformAvailableInRegion(siteName, region = 'BR') {

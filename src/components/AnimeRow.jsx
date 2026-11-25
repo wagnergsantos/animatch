@@ -2,11 +2,12 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import RecommendationReason from './RecommendationReason.jsx'
 import { translateGenre } from '../lib/genreTranslations.js'
+import { isSafeExternalUrl, filterRegionalStreamingLinks, normalizeServiceName } from '../logic/streaming.js'
 import styles from './AnimeRow.module.css'
 
-export default function AnimeRow({ anime, titlePref = 'english', priority = false }) {
+export default function AnimeRow({ anime, titlePref = 'english', priority = false, subscriptions = [] }) {
   const [isExpanded, setIsExpanded] = useState(false)
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
 
   if (!anime) return null
 
@@ -45,14 +46,30 @@ export default function AnimeRow({ anime, titlePref = 'english', priority = fals
     metaParts.push(statusMap[anime.status] || anime.status)
   }
 
+  const region = (i18n.language || 'pt-BR').startsWith('pt') ? 'BR' : 'ALL'
+  const rawLinks = anime?.streamingLinks ?? anime?.media?.streamingLinks ?? []
+  const regionalLinks = filterRegionalStreamingLinks(rawLinks, region)
+
   const streamingLinks = []
   const seenSites = new Set()
-  for (const link of (anime?.streamingLinks ?? [])) {
-    if (!seenSites.has(link.site)) {
+  for (const link of regionalLinks) {
+    if (link?.site && isSafeExternalUrl(link?.url) && !seenSites.has(link.site)) {
       seenSites.add(link.site)
-      streamingLinks.push(link)
+      const normalized = normalizeServiceName(link.site)
+      const isSubscribed = Array.isArray(subscriptions) && subscriptions.includes(normalized)
+      streamingLinks.push({
+        ...link,
+        normalizedSite: normalized,
+        isSubscribed,
+      })
     }
   }
+
+  streamingLinks.sort((a, b) => {
+    if (a.isSubscribed && !b.isSubscribed) return -1
+    if (!a.isSubscribed && b.isSubscribed) return 1
+    return 0
+  })
 
   const cleanDescription = anime?.description
     ? anime.description.replace(/<br\s*\/?/gi, '\n').replace(/<[^>]+>/g, '')

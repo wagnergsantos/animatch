@@ -154,6 +154,7 @@ export function computeBayesianGenreStats(
       continue
     }
 
+    const isCompleted = rawStatus === 'COMPLETED'
     const weight = isWatching ? WATCHING_SCORE_WEIGHT : 1.0
     const genres = entry.media.genres ?? []
 
@@ -167,7 +168,9 @@ export function computeBayesianGenreStats(
         genreStats.set(genre, { total: 0, weightTotal: 0, count: 0, scoredCount: 0, plannedCount: 0 })
       }
       const stats = genreStats.get(genre)
-      stats.count += 1
+      if (isCompleted) {
+        stats.count += 1
+      }
 
       if (rawScore > 0) {
         stats.total += rawScore * weight

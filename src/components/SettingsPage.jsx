@@ -14,6 +14,93 @@ const LANG_OPTIONS = [
   { id: 'ja' },
 ]
 
+function SyncIcon({ size = 14, style = {} }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ verticalAlign: 'middle', marginRight: '5px', ...style }}>
+      <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+      <path d="M3 3v5h5" />
+      <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+      <path d="M16 16h5v5" />
+    </svg>
+  )
+}
+
+function SpinnerIcon({ size = 14 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ verticalAlign: 'middle', marginRight: '5px' }}>
+      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+    </svg>
+  )
+}
+
+function SunIcon({ size = 14 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ verticalAlign: 'middle', marginRight: '5px' }}>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+    </svg>
+  )
+}
+
+function MoonIcon({ size = 14 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ verticalAlign: 'middle', marginRight: '5px' }}>
+      <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+    </svg>
+  )
+}
+
+function MonitorIcon({ size = 14 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ verticalAlign: 'middle', marginRight: '5px' }}>
+      <rect width="20" height="14" x="2" y="3" rx="2" />
+      <line x1="8" x2="16" y1="21" y2="21" />
+      <line x1="12" x2="12" y1="17" y2="21" />
+    </svg>
+  )
+}
+
+function GlobeIcon({ size = 14 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ verticalAlign: 'middle', marginRight: '5px' }}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
+      <path d="M2 12h20" />
+    </svg>
+  )
+}
+
+function LogOutIcon({ size = 14 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ verticalAlign: 'middle', marginRight: '5px' }}>
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" x2="9" y1="12" y2="12" />
+    </svg>
+  )
+}
+
+function BroomIcon({ size = 14 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ verticalAlign: 'middle', marginRight: '5px' }}>
+      <path d="m3 21 7-7" />
+      <path d="m15 4 5 5-8 8H7v-5l8-8Z" />
+    </svg>
+  )
+}
+
+function TrashIcon({ size = 14 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ verticalAlign: 'middle', marginRight: '5px' }}>
+      <path d="M3 6h18" />
+      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+      <line x1="10" x2="10" y1="11" y2="17" />
+      <line x1="14" x2="14" y1="11" y2="17" />
+    </svg>
+  )
+}
+
 function formatRelativeSyncTime(timestamp, t) {
   if (!timestamp || typeof timestamp !== 'number') return null
   const diffMs = Math.max(0, Date.now() - timestamp)
@@ -232,7 +319,12 @@ export default function SettingsPage({
         ) : (
           <div className={styles['settings-page__auth-user']}>
             <div className={styles['settings-page__auth-user-header']}>
-              <span className={styles['settings-page__auth-avatar']} aria-hidden="true">👤</span>
+              <span className={styles['settings-page__auth-avatar']} aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              </span>
               <div className={styles['settings-page__auth-user-details']}>
                 <span className={styles['settings-page__auth-email']}>{user.email}</span>
                 <span
@@ -317,9 +409,17 @@ export default function SettingsPage({
                     onClick={() => (onRefreshProvider ? onRefreshProvider('anilist') : onRefresh?.())}
                     title={t('settings.sync_provider_title', { provider: 'AniList', defaultValue: 'Sincronizar AniList' })}
                   >
-                    {isSyncingAni
-                      ? `⏳ ${t('settings.syncing_short', { defaultValue: 'Sincronizando...' })}`
-                      : `🔄 ${t('settings.sync_short', { defaultValue: 'Sincronizar' })}`}
+                    {isSyncingAni ? (
+                      <>
+                        <SpinnerIcon />
+                        {t('settings.syncing_short', { defaultValue: 'Sincronizando...' })}
+                      </>
+                    ) : (
+                      <>
+                        <SyncIcon />
+                        {t('settings.sync_short', { defaultValue: 'Sincronizar' })}
+                      </>
+                    )}
                   </button>
                   {Boolean(linkedUsernames?.anilist?.trim()) && (
                     <button
@@ -370,9 +470,17 @@ export default function SettingsPage({
                     onClick={() => (onRefreshProvider ? onRefreshProvider('kitsu') : onRefresh?.())}
                     title={t('settings.sync_provider_title', { provider: 'Kitsu', defaultValue: 'Sincronizar Kitsu' })}
                   >
-                    {isSyncingKitsu
-                      ? `⏳ ${t('settings.syncing_short', { defaultValue: 'Sincronizando...' })}`
-                      : `🔄 ${t('settings.sync_short', { defaultValue: 'Sincronizar' })}`}
+                    {isSyncingKitsu ? (
+                      <>
+                        <SpinnerIcon />
+                        {t('settings.syncing_short', { defaultValue: 'Sincronizando...' })}
+                      </>
+                    ) : (
+                      <>
+                        <SyncIcon />
+                        {t('settings.sync_short', { defaultValue: 'Sincronizar' })}
+                      </>
+                    )}
                   </button>
                   {Boolean(linkedUsernames?.kitsu?.trim()) && (
                     <button
@@ -423,9 +531,17 @@ export default function SettingsPage({
                     onClick={() => (onRefreshProvider ? onRefreshProvider('mal') : onRefresh?.())}
                     title={t('settings.sync_provider_title', { provider: 'MyAnimeList', defaultValue: 'Sincronizar MyAnimeList' })}
                   >
-                    {isSyncingMal
-                      ? `⏳ ${t('settings.syncing_short', { defaultValue: 'Sincronizando...' })}`
-                      : `🔄 ${t('settings.sync_short', { defaultValue: 'Sincronizar' })}`}
+                    {isSyncingMal ? (
+                      <>
+                        <SpinnerIcon />
+                        {t('settings.syncing_short', { defaultValue: 'Sincronizando...' })}
+                      </>
+                    ) : (
+                      <>
+                        <SyncIcon />
+                        {t('settings.sync_short', { defaultValue: 'Sincronizar' })}
+                      </>
+                    )}
                   </button>
                   {Boolean(linkedUsernames?.mal?.trim()) && (
                     <button
@@ -528,7 +644,8 @@ export default function SettingsPage({
                 className={`${styles['settings-page__segment-btn']} ${themeMode === 'light' ? styles['settings-page__segment-btn--active'] : ''}`}
                 onClick={() => setThemeMode('light')}
               >
-                ☀️ {t('settings.theme_light', 'Claro')}
+                <SunIcon />
+                {t('settings.theme_light', 'Claro')}
               </button>
               <button
                 type="button"
@@ -537,7 +654,8 @@ export default function SettingsPage({
                 className={`${styles['settings-page__segment-btn']} ${themeMode === 'dark' ? styles['settings-page__segment-btn--active'] : ''}`}
                 onClick={() => setThemeMode('dark')}
               >
-                🌙 {t('settings.theme_dark', 'Escuro')}
+                <MoonIcon />
+                {t('settings.theme_dark', 'Escuro')}
               </button>
               <button
                 type="button"
@@ -546,7 +664,8 @@ export default function SettingsPage({
                 className={`${styles['settings-page__segment-btn']} ${themeMode === 'system' ? styles['settings-page__segment-btn--active'] : ''}`}
                 onClick={() => setThemeMode('system')}
               >
-                💻 {t('settings.theme_system', 'Sistema')}
+                <MonitorIcon />
+                {t('settings.theme_system', 'Sistema')}
               </button>
             </div>
           </div>
@@ -613,13 +732,21 @@ export default function SettingsPage({
               onClick={onRefresh}
               disabled={isLoading || loadingProviders.length > 0}
             >
-              {(isLoading || loadingProviders.length > 0)
-                ? isMultiProvider
-                  ? t('settings.syncing_all', { defaultValue: '⏳ Sincronizando todos os provedores...' })
-                  : t('settings.syncing', { provider: providerLabel })
-                : isMultiProvider
-                ? t('settings.sync_all', { defaultValue: '🌐 Sincronizar todos os provedores' })
-                : t('settings.sync', { provider: providerLabel })}
+              {(isLoading || loadingProviders.length > 0) ? (
+                <>
+                  <SpinnerIcon />
+                  {isMultiProvider
+                    ? t('settings.syncing_all', { defaultValue: 'Sincronizando todos os provedores...' })
+                    : t('settings.syncing', { provider: providerLabel })}
+                </>
+              ) : (
+                <>
+                  {isMultiProvider ? <GlobeIcon /> : <SyncIcon />}
+                  {isMultiProvider
+                    ? t('settings.sync_all', { defaultValue: 'Sincronizar todos os provedores' })
+                    : t('settings.sync', { provider: providerLabel })}
+                </>
+              )}
             </button>
           )}
 
@@ -637,8 +764,9 @@ export default function SettingsPage({
                   : undefined
               }
             >
+              <LogOutIcon />
               {isMultiProvider
-                ? t('settings.logout_session', { defaultValue: '🚪 Desconectar sessão atual' })
+                ? t('settings.logout_session', { defaultValue: 'Desconectar sessão atual' })
                 : t('settings.logout', { defaultValue: 'Trocar de conta' })}
             </button>
           )}
@@ -678,7 +806,8 @@ export default function SettingsPage({
             className={`${styles['settings-page__btn']} ${styles['settings-page__btn--danger-outline']}`}
             onClick={handleClearLocalData}
           >
-            <span aria-hidden="true">🧹</span> {t('settings.clearLocalData', { defaultValue: 'Limpar dados locais' })}
+            <BroomIcon />
+            {t('settings.clearLocalData', { defaultValue: 'Limpar dados locais' })}
           </button>
         </div>
 
@@ -700,7 +829,8 @@ export default function SettingsPage({
                   className={`${styles['settings-page__btn']} ${styles['settings-page__btn--danger-solid']}`}
                   onClick={() => setConfirmingDeleteAccount(true)}
                 >
-                  🗑️ {t('settings.deleteCloudAccount', { defaultValue: 'Excluir conta' })}
+                  <TrashIcon />
+                  {t('settings.deleteCloudAccount', { defaultValue: 'Excluir conta' })}
                 </button>
               )}
             </div>

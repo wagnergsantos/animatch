@@ -26,7 +26,7 @@
 .stat-card__value {
   font-size: 2.5rem;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--color-primary);
   margin-bottom: 0.5rem;
   line-height: 1;
 }

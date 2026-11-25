@@ -462,6 +462,7 @@ export default function Dashboard({
                 sortBy={sortBy}
                 provider={currentScopedProvider}
                 titlePref={titlePref}
+                subscriptions={subscriptions}
                 viewMode={viewMode}
                 headerActions={
                   <ResultsActions

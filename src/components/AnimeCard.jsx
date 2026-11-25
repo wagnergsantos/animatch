@@ -18,7 +18,7 @@ const PROVIDER_FULL_LABELS = {
   anilist: 'AniList',
 }
 
-export default function AnimeCard({ anime, titlePref = 'english', priority = false, onCardClick }) {
+export default function AnimeCard({ anime, titlePref = 'english', priority = false, subscriptions = [], onCardClick }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [imgLoaded, setImgLoaded] = useState(false)
   const [imgError, setImgError] = useState(false)
@@ -345,6 +345,7 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
         <AnimeDetailModal
           anime={anime}
           titlePref={titlePref}
+          subscriptions={subscriptions}
           onClose={() => {
             setIsModalOpen(false)
             cardRef.current?.focus()
