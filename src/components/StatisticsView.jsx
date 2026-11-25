@@ -5,12 +5,15 @@ import {
   computeStatusDistribution,
   computeYearDistribution,
   computeBayesianGenreStats,
+  computeScoreDistribution,
 } from '../logic/analytics.js'
+import { translateGenre } from '../lib/genreTranslations.js'
 import styles from './StatisticsView.module.css'
 
 export default function StatisticsView({ entries = [], onSelectGenre }) {
   const [sortBy, setSortBy] = useState('lowerBound')
   const [sortDir, setSortDir] = useState('desc')
+  const [showAllGenres, setShowAllGenres] = useState(false)
 
   const toggleSort = (key) => {
     if (sortBy === key) {
@@ -26,6 +29,7 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
   const overview = useMemo(() => computeOverviewStats(entries), [entries])
   const statuses = useMemo(() => computeStatusDistribution(entries), [entries])
   const yearDistribution = useMemo(() => computeYearDistribution(entries), [entries])
+  const scoreDistribution = useMemo(() => computeScoreDistribution(entries), [entries])
 
   const genreStats = useMemo(() => {
     return computeBayesianGenreStats(entries, confidenceC)
@@ -37,7 +41,7 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
     arr.sort((a, b) => {
       switch (sortBy) {
         case 'genre':
-          return dir * (a.genre.localeCompare(b.genre))
+          return dir * translateGenre(a.genre, t).localeCompare(translateGenre(b.genre, t))
         case 'watched':
           return dir * ((a.count || 0) - (b.count || 0))
         case 'scored':
@@ -54,9 +58,14 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
       }
     })
     return arr
-  }, [genreStats, sortBy, sortDir])
+  }, [genreStats, sortBy, sortDir, t])
+
+  const displayedGenreStats = useMemo(() => {
+    return showAllGenres ? sortedGenreStats : sortedGenreStats.slice(0, 10)
+  }, [sortedGenreStats, showAllGenres])
 
   const maxYearCount = Math.max(...yearDistribution.map((y) => y.count), 1)
+  const maxScoreCount = Math.max(...scoreDistribution.map((s) => s.count), 1)
 
   return (
     <div className={styles['statistics-view']}>
@@ -64,7 +73,7 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
       <section className={styles['stats-overview']}>
         <div className={styles['stat-card']}>
           <span className={styles['stat-card__value']}>{overview.totalAnimes}</span>
-          <span className={styles['stat-card__label']}>{t('stats.totalAnimes')}</span>
+          <span className={styles['stat-card__label']}>{t('stats.totalAnimes', 'Animes assistidos')}</span>
         </div>
         <div className={styles['stat-card']}>
           <span className={styles['stat-card__value']}>{overview.totalEpisodes}</span>
@@ -103,20 +112,43 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
         </div>
       </section>
 
+      {/* Score Distribution Histogram */}
+      <section className={styles['stats-section']}>
+        <h3 className={styles['stats-section__title']}>{t('stats.scoreDistributionTitle', 'Distribuição de Notas (1 a 10)')}</h3>
+        <div className={styles['score-chart-container']}>
+          <div className={styles['score-chart']}>
+            {scoreDistribution.map(({ score, count }) => (
+              <div key={score} className={styles['score-chart__bar-wrapper']} title={`Nota ${score}: ${count} animes`}>
+                <span className={styles['score-chart__count']}>{count > 0 ? count : ''}</span>
+                <div
+                  className={styles['score-chart__bar']}
+                  style={{ height: `${(count / maxScoreCount) * 100}%` }}
+                ></div>
+                <span className={styles['score-chart__label']}>★ {score}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Year Chart */}
       <section className={styles['stats-section']}>
         <h3 className={styles['stats-section__title']}>{t('stats.releasesByYear')}</h3>
+        <p className={styles['section-subtitle']}>{t('stats.releasesByYearDesc', 'Distribuição de todos os animes da sua lista por ano de lançamento')}</p>
         <div className={styles['year-chart-container']}>
           <div className={styles['year-chart']}>
-            {yearDistribution.map(({ year, count }) => (
-              <div key={year} className={styles['year-chart__bar-wrapper']} title={`${year}: ${count} animes`}>
-                <div
-                  className={styles['year-chart__bar']}
-                  style={{ height: `${(count / maxYearCount) * 100}%` }}
-                ></div>
-                <span className={styles['year-chart__label']}>{year}</span>
-              </div>
-            ))}
+            {yearDistribution.map(({ year, count }, index) => {
+              const showYearLabel = index === 0 || index === yearDistribution.length - 1 || year % 5 === 0
+              return (
+                <div key={year} className={styles['year-chart__bar-wrapper']} title={`${year}: ${count} animes`}>
+                  <div
+                    className={styles['year-chart__bar']}
+                    style={{ height: `${(count / maxYearCount) * 100}%` }}
+                  ></div>
+                  <span className={styles['year-chart__label']}>{showYearLabel ? year : '·'}</span>
+                </div>
+              )
+            })}
           </div>
         </div>
       </section>
@@ -124,8 +156,8 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
       {/* Genres Table */}
       <section className={styles['stats-section']}>
         <div className={styles['stats-section__header']}>
-          <h3 className={styles['stats-section__title']}>{t('stats.favoriteGenresTitle')}</h3>
-          <div className={styles['bayesian-controls']} title={t('stats.confidence') }>
+          <h3 className={styles['stats-section__title']}>{t('stats.favoriteGenresTitle', 'Gêneros Favoritos')}</h3>
+          <div className={styles['bayesian-controls']} title={t('stats.confidenceTooltip', 'Quantidade de avaliações necessárias para que o gênero tenha peso total')}>
             <label htmlFor="confidence-c">{t('stats.confidence', { c: confidenceC })}</label>
             <input
               id="confidence-c"
@@ -138,6 +170,10 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
           </div>
         </div>
 
+        <p className={styles['genre-explanation']}>
+          💡 {t('stats.favoriteGenresDesc', 'Ordenado pela pontuação ajustada (limite inferior) para priorizar gêneros consistentes com mais avaliações.')}
+        </p>
+
         <div className={styles['genre-table-container']}>
           <table className={styles['genre-table']}>
             <thead>
@@ -148,8 +184,8 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
                   { key: 'scored', label: t('stats.scored') },
                   { key: 'planned', label: t('stats.planned') },
                   { key: 'realAverage', label: t('stats.realAverage') },
-                  { key: 'bayesian', label: t('stats.bayesianAverage') },
-                  { key: 'lowerBound', label: t('stats.lowerBound') },
+                  { key: 'bayesian', label: t('stats.bayesianAverage'), tooltip: t('stats.bayesianAverageTooltip') },
+                  { key: 'lowerBound', label: t('stats.lowerBound'), tooltip: t('stats.lowerBoundTooltip') },
                 ].map((col) => {
                   const isSorted = sortBy === col.key
                   const ariaSort = isSorted ? (sortDir === 'desc' ? 'descending' : 'ascending') : 'none'
@@ -166,10 +202,11 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
                       tabIndex={0}
                       role="button"
                       aria-sort={ariaSort}
+                      title={col.tooltip}
                     >
                       {col.label}{' '}
                       <span aria-hidden="true">
-                        {isSorted ? (sortDir === 'desc' ? '▼' : '▲') : ''}
+                        {isSorted ? (sortDir === 'desc' ? '▼' : '▲') : ' ↕'}
                       </span>
                     </th>
                   )
@@ -177,33 +214,62 @@ export default function StatisticsView({ entries = [], onSelectGenre }) {
               </tr>
             </thead>
             <tbody>
-                {sortedGenreStats.map((item) => (
-                <tr
-                  key={item.genre}
-                  className={styles['genre-table__row']}
-                  tabIndex={0}
-                  role="button"
-                  onClick={() => onSelectGenre && onSelectGenre(item.genre)}
-                  onKeyDown={(e) => {
-                    if ((e.key === 'Enter' || e.key === ' ') && onSelectGenre) {
-                      e.preventDefault()
-                      onSelectGenre(item.genre)
-                    }
-                  }}
-                  title={t('stats.viewRecommendationsFor', { genre: item.genre })}
-                >
-                  <td className={styles['genre-table__genre']}>{item.genre} 🔍</td>
-                  <td>{item.count}</td>
-                  <td>{item.scoredCount}</td>
-                  <td>{item.plannedCount}</td>
-                  <td>{typeof item.realAverage === 'number' ? item.realAverage.toFixed(2) : '—'}</td>
-                  <td className={styles['genre-table__bayesian']}>{typeof item.bayesianAverage === 'number' ? item.bayesianAverage.toFixed(2) : '—'}</td>
-                  <td className={styles['genre-table__lower-bound']}>{typeof item.lowerBound === 'number' ? item.lowerBound.toFixed(2) : '—'}</td>
-                </tr>
-              ))}
+              {displayedGenreStats.map((item) => {
+                const translated = translateGenre(item.genre, t)
+                return (
+                  <tr
+                    key={item.genre}
+                    className={styles['genre-table__row']}
+                    tabIndex={0}
+                    role="button"
+                    onClick={() => onSelectGenre && onSelectGenre(item.genre)}
+                    onKeyDown={(e) => {
+                      if ((e.key === 'Enter' || e.key === ' ') && onSelectGenre) {
+                        e.preventDefault()
+                        onSelectGenre(item.genre)
+                      }
+                    }}
+                    title={t('stats.viewRecommendationsFor', { genre: translated })}
+                  >
+                    <td className={styles['genre-table__genre']}>
+                      <span>{translated}</span>
+                      <span
+                        className={styles['genre-filter-icon']}
+                        title={t('stats.viewRecommendationsFor', { genre: translated })}
+                        aria-label={t('stats.viewRecommendationsFor', { genre: translated })}
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <circle cx="11" cy="11" r="8" />
+                          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                        </svg>
+                      </span>
+                    </td>
+                    <td>{item.count}</td>
+                    <td>{item.scoredCount}</td>
+                    <td>{item.plannedCount}</td>
+                    <td>{typeof item.realAverage === 'number' ? item.realAverage.toFixed(2) : '—'}</td>
+                    <td className={styles['genre-table__bayesian']}>{typeof item.bayesianAverage === 'number' ? item.bayesianAverage.toFixed(2) : '—'}</td>
+                    <td className={styles['genre-table__lower-bound']}>{typeof item.lowerBound === 'number' ? item.lowerBound.toFixed(2) : '—'}</td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
+
+        {sortedGenreStats.length > 10 && (
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 'var(--space-4)' }}>
+            <button
+              type="button"
+              className={styles['toggle-genres-btn']}
+              onClick={() => setShowAllGenres((prev) => !prev)}
+            >
+              {showAllGenres
+                ? t('stats.showLess', 'Mostrar menos')
+                : t('stats.showAll', { count: sortedGenreStats.length, defaultValue: `Ver todos os ${sortedGenreStats.length} gêneros` })}
+            </button>
+          </div>
+        )}
       </section>
     </div>
   )

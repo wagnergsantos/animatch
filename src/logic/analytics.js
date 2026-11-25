@@ -35,7 +35,7 @@ export function computeOverviewStats(entries = []) {
   return { totalAnimes, totalEpisodes, userAverageScore }
 }
 
-export function computeStatusDistribution(entries = []) {
+export function computeStatusDistribution(entries = [], tasteProfile = null) {
   const dist = {
     COMPLETED: 0,
     PLANNING: 0,
@@ -47,7 +47,7 @@ export function computeStatusDistribution(entries = []) {
   for (const entry of entries) {
     if (entry?.media?.status === 'NOT_YET_RELEASED') continue
     const st = entry?.status
-    if (st === 'PLANNING' && !isEligiblePlanningEntry(entry)) continue
+    if (st === 'PLANNING' && !isEligiblePlanningEntry(entry, tasteProfile)) continue
     if (st && dist[st] !== undefined) {
       dist[st] += 1
     }
@@ -56,15 +56,20 @@ export function computeStatusDistribution(entries = []) {
   return dist
 }
 
-export function computeYearDistribution(entries = []) {
+export function computeYearDistribution(entries = [], tasteProfile = null) {
   const yearCounts = new Map()
 
   for (const entry of entries) {
     if (entry?.media?.status === 'NOT_YET_RELEASED') continue
-    if (entry?.status === 'PLANNING' && !isEligiblePlanningEntry(entry)) continue
-    const year = entry?.media?.seasonYear || entry?.media?.startDate?.year
+    if (entry?.status === 'PLANNING' && !isEligiblePlanningEntry(entry, tasteProfile)) continue
+    const year =
+      entry?.media?.seasonYear ||
+      entry?.media?.startDate?.year ||
+      entry?.year ||
+      entry?.seasonYear ||
+      entry?.startDate?.year
     if (year && year > 1960 && year <= 2030) {
-      yearCounts.set(year, (yearCounts.get(year) || 0) + 1)
+      yearCounts.set(Number(year), (yearCounts.get(Number(year)) || 0) + 1)
     }
   }
 
@@ -73,6 +78,23 @@ export function computeYearDistribution(entries = []) {
     .sort((a, b) => a.year - b.year)
 
   return sortedYears
+}
+
+export function computeScoreDistribution(entries = []) {
+  const bins = Array.from({ length: 10 }, (_, i) => ({ score: i + 1, count: 0 }))
+
+  for (const entry of entries) {
+    if (entry?.status === 'PLANNING' || entry?.status === 'DROPPED') continue
+    const raw = entry?.score ?? entry?.media?.score
+    const score = Number(raw)
+    if (score > 0) {
+      const normalized = score > 10 ? Math.round(score / 10) : Math.round(score)
+      const clamped = Math.max(1, Math.min(10, normalized))
+      bins[clamped - 1].count += 1
+    }
+  }
+
+  return bins
 }
 
 export function computeBayesianGenreStats(

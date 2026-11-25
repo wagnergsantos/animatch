@@ -1,5 +1,23 @@
-.statistics-page { padding: 1rem }
-.statistics-header { display:flex; justify-content:space-between; align-items:center }
+.statistics-page {
+  padding: 1rem 0;
+}
+
+.statistics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.statistics-header h2 {
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  color: var(--text-1);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
 .statistics-grid { display:flex; gap:1rem; margin-top:1rem }
 .statistics-left { flex:2 }
 .statistics-right { flex:1 }

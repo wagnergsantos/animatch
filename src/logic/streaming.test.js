@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
   STREAMING_SERVICES,
-  STREAMING_BOOST_MULTIPLIER,
   normalizeServiceName,
   getAnimeStreamingServices,
   matchesUserSubscriptions,
@@ -72,28 +71,26 @@ describe('streaming logic', () => {
     expect(matchesUserSubscriptions(null, ['Crunchyroll'])).toBe(false)
   })
 
-  it('applies boost to recommendations available on user subscriptions with default 1.02 multiplier', () => {
+  it('marks streaming boost flag on recommendations available on user subscriptions without altering predictedScore', () => {
     const recs = [
       { id: 1, predictedScore: 8.0, streamingLinks: [{ site: 'Netflix' }] },
       { id: 2, predictedScore: 8.2, streamingLinks: [{ site: 'Hulu' }] },
     ]
     const boosted = applyStreamingBoost(recs, ['Netflix'])
-    expect(STREAMING_BOOST_MULTIPLIER).toBe(1.02)
     expect(boosted[0].id).toBe(1)
-    // 8.0 * 1.02 = 8.16
-    expect(boosted[0].predictedScore).toBe(8.16)
+    // Score remains unmodified
+    expect(boosted[0].predictedScore).toBe(8.0)
     expect(boosted[0].hasStreamingBoost).toBe(true)
     expect(boosted[1].predictedScore).toBe(8.2)
     expect(boosted[1].hasStreamingBoost).toBeUndefined()
   })
 
-  it('caps boosted predictedScore at 10.0 strictly', () => {
+  it('preserves high predictedScore without mutating score', () => {
     const recs = [
       { id: 1, predictedScore: 9.9, streamingLinks: [{ site: 'Crunchyroll' }] },
     ]
     const boosted = applyStreamingBoost(recs, ['Crunchyroll'])
-    // 9.9 * 1.02 = 10.098 -> limitado em 10.0
-    expect(boosted[0].predictedScore).toBe(10.0)
+    expect(boosted[0].predictedScore).toBe(9.9)
     expect(boosted[0].hasStreamingBoost).toBe(true)
   })
 

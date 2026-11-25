@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import AnimeDetailModal from './AnimeDetailModal.jsx'
 import BadgeIcon from './BadgeIcon.jsx'
@@ -23,6 +23,7 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
   const [imgLoaded, setImgLoaded] = useState(false)
   const [imgError, setImgError] = useState(false)
   const [expandedBadge, setExpandedBadge] = useState(null)
+  const cardRef = useRef(null)
   const { t } = useTranslation()
 
   const genres = anime?.genres ?? []
@@ -99,6 +100,7 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
     if (onCardClick) {
       onCardClick(anime)
     } else {
+      cardRef.current?.focus()
       setIsModalOpen(true)
     }
   }
@@ -121,6 +123,7 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
   return (
     <>
       <article
+        ref={cardRef}
         className={styles['anime-card']}
         onClick={handleCardClick}
         onKeyDown={handleKeyDown}
@@ -327,7 +330,11 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
         <AnimeDetailModal
           anime={anime}
           titlePref={titlePref}
-          onClose={() => setIsModalOpen(false)}
+          onClose={() => {
+            setIsModalOpen(false)
+            cardRef.current?.focus()
+          }}
+          triggerRef={cardRef}
         />
       )}
     </>

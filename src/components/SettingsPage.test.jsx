@@ -222,7 +222,7 @@ describe('SettingsPage', () => {
       )
 
       const boostCheckbox = screen.getByRole('checkbox', {
-        name: /priorizar no ranking/i,
+        name: /mostrar primeiro os animes das minhas assinaturas/i,
       })
       expect(boostCheckbox).not.toBeChecked()
 
@@ -260,7 +260,7 @@ describe('SettingsPage', () => {
 
     it('renders theme switcher and language selector', () => {
       render(<SettingsPage {...defaultProps} />)
-      expect(screen.getByText(/tema/i)).toBeInTheDocument()
+      expect(screen.getByText(/^tema$/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/idioma/i)).toBeInTheDocument()
     })
   })
@@ -393,8 +393,13 @@ describe('SettingsPage', () => {
       const deleteBtn = screen.getByTestId('delete-cloud-account-btn')
       fireEvent.click(deleteBtn)
 
-      // Confirmation step appears
+      // Confirmation step appears and requires typing "excluir"
+      const input = screen.getByTestId('delete-account-input')
       const confirmBtn = screen.getByTestId('confirm-delete-account-btn')
+      expect(confirmBtn).toBeDisabled()
+
+      fireEvent.change(input, { target: { value: 'excluir' } })
+      expect(confirmBtn).not.toBeDisabled()
       fireEvent.click(confirmBtn)
 
       await waitFor(() => {

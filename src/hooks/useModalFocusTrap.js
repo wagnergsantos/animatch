@@ -5,13 +5,15 @@ const FOCUSABLE_SELECTOR =
 
 /**
  * Prende o foco de teclado (Tab / Shift+Tab) dentro de um modal aberto,
- * fecha ao pressionar Escape e restaura o foco ao elemento acionador ao fechar.
+ * fecha ao pressionar Escape, trava a rolagem do body de fundo
+ * e restaura o foco ao elemento acionador (ou ao triggerRef) ao fechar.
  *
  * @param {boolean} isOpen
  * @param {import('react').RefObject<HTMLElement>} modalRef
  * @param {() => void} [onClose]
+ * @param {import('react').RefObject<HTMLElement>} [triggerRef]
  */
-export function useModalFocusTrap(isOpen, modalRef, onClose) {
+export function useModalFocusTrap(isOpen, modalRef, onClose, triggerRef) {
   const previousFocusRef = useRef(null)
   const onCloseRef = useRef(onClose)
 
@@ -22,8 +24,15 @@ export function useModalFocusTrap(isOpen, modalRef, onClose) {
   useEffect(() => {
     if (!isOpen) return
 
+    const triggerEl = triggerRef?.current
     if (typeof document !== 'undefined') {
-      previousFocusRef.current = document.activeElement
+      previousFocusRef.current = triggerEl || document.activeElement
+    }
+
+    // Trava rolagem do fundo (background scroll lock)
+    const originalOverflow = typeof document !== 'undefined' ? document.body.style.overflow : ''
+    if (typeof document !== 'undefined') {
+      document.body.style.overflow = 'hidden'
     }
 
     const modalElement = modalRef?.current
@@ -43,8 +52,11 @@ export function useModalFocusTrap(isOpen, modalRef, onClose) {
       }
 
       if (e.key === 'Tab' && modalRef?.current) {
-        const focusableElements = modalRef.current.querySelectorAll(FOCUSABLE_SELECTOR)
-        if (focusableElements.length === 0) return
+        const focusableElements = Array.from(modalRef.current.querySelectorAll(FOCUSABLE_SELECTOR))
+        if (focusableElements.length === 0) {
+          e.preventDefault()
+          return
+        }
 
         const firstElement = focusableElements[0]
         const lastElement = focusableElements[focusableElements.length - 1]
@@ -66,7 +78,11 @@ export function useModalFocusTrap(isOpen, modalRef, onClose) {
     window.addEventListener('keydown', handleKeyDown)
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
-      const prev = previousFocusRef.current
+      if (typeof document !== 'undefined') {
+        document.body.style.overflow = originalOverflow
+      }
+
+      const prev = triggerEl || previousFocusRef.current
       if (prev && typeof prev.focus === 'function') {
         try {
           prev.focus()
@@ -75,7 +91,7 @@ export function useModalFocusTrap(isOpen, modalRef, onClose) {
         }
       }
     }
-  }, [isOpen, modalRef])
+  }, [isOpen, modalRef, triggerRef])
 }
 
 export default useModalFocusTrap

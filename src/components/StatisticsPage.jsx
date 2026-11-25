@@ -5,7 +5,7 @@ import ExportSnapshotButton from './ExportSnapshotButton.jsx'
 import StatisticsView from './StatisticsView.jsx'
 import styles from './StatisticsPage.module.css'
 
-export default function StatisticsPage({ entries = [], user = '', onSelectGenre, onOpenWrapped }) {
+export default function StatisticsPage({ entries = [], user = '', onSelectGenre, _onOpenWrapped }) {
   const { t } = useTranslation()
 
   const normalized = useMemo(() => normalizeEntries(entries), [entries])
@@ -24,7 +24,6 @@ export default function StatisticsPage({ entries = [], user = '', onSelectGenre,
             summary={summary}
             genreStats={genreStats}
             details={unique}
-            onOpenWrapped={onOpenWrapped}
           />
         </div>
       </header>

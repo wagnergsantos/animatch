@@ -796,6 +796,50 @@ describe('scoreRecommendations', () => {
     expect(result[0].anchorAnimes).toHaveLength(3)
   })
 
+  it('prioritizes high Jaccard anime (e.g. Comedy/Parody) as anchor over a higher-scored anime with low overlap', () => {
+    const profile = new Map([
+      [
+        'Action',
+        {
+          average: 9.0,
+          adjustedAverage: 8.8,
+          sourceAnimes: [
+            // Demon Slayer: Action, Historical, Supernatural (score 10)
+            { id: 10, title: 'Demon Slayer', score: 10, genres: ['Action', 'Historical', 'Supernatural'] },
+          ],
+        },
+      ],
+      [
+        'Comedy',
+        {
+          average: 8.5,
+          adjustedAverage: 8.2,
+          sourceAnimes: [
+            // Saiki K: Action, Comedy, Parody, Sci-Fi (score 9)
+            { id: 20, title: 'Saiki K', score: 9, genres: ['Action', 'Comedy', 'Parody', 'Sci-Fi'] },
+          ],
+        },
+      ],
+    ])
+
+    // Candidato: Gintama (Action, Comedy, Parody, Sci-Fi)
+    const planning = [
+      {
+        media: {
+          id: 999,
+          title: { english: 'Gintama' },
+          genres: ['Action', 'Comedy', 'Parody', 'Sci-Fi'],
+          averageScore: 89,
+        },
+      },
+    ]
+
+    const result = scoreRecommendations(planning, profile)
+    expect(result).toHaveLength(1)
+    // Saiki K tem Jaccard muito maior com Gintama e deve ser a primeira âncora à frente de Demon Slayer
+    expect(result[0].anchorAnimes[0].title).toBe('Saiki K')
+  })
+
   describe('DISCOVERY badge (Out of Comfort Zone)', () => {
     const discoveryProfile = new Map([
       ['Action', { average: 8.5, adjustedAverage: 8.2, count: 60, scoredCount: 50 }],

@@ -145,6 +145,13 @@ export function useRecommendationPipeline({
     }
 
     recs.sort((a, b) => {
+      if (streamingBoost) {
+        const aBoost = a.hasStreamingBoost ? 1 : 0
+        const bBoost = b.hasStreamingBoost ? 1 : 0
+        if (bBoost !== aBoost) {
+          return bBoost - aBoost
+        }
+      }
       if (b.predictedScore !== a.predictedScore) {
         return (b.predictedScore || 0) - (a.predictedScore || 0)
       }

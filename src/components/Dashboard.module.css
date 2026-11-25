@@ -111,8 +111,8 @@
 }
 
 .dashboard__nav button.active {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
   font-weight: 600;
 }
 

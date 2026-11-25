@@ -38,15 +38,13 @@ export default function SettingsPage({
 }) {
   const { t, i18n } = useTranslation()
   const [confirmingDeleteAccount, setConfirmingDeleteAccount] = useState(false)
+  const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const [isDeletingAccount, setIsDeletingAccount] = useState(false)
 
-  const [theme, setTheme] = useState(() => {
+  const [themeMode, setThemeMode] = useState(() => {
     if (typeof window !== 'undefined' && window.localStorage) {
       const saved = localStorage.getItem(STORAGE_KEYS.THEME)
       if (saved) return saved
-    }
-    if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
-      return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
     }
     return 'dark'
   })
@@ -54,15 +52,26 @@ export default function SettingsPage({
   const currentLang = i18n.language || 'pt-BR'
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme)
-    if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.setItem(STORAGE_KEYS.THEME, theme)
+    const applyTheme = (mode) => {
+      let resolvedTheme = mode
+      if (mode === 'system' && typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+        resolvedTheme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+      }
+      document.documentElement.setAttribute('data-theme', resolvedTheme)
     }
-  }, [theme])
 
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
-  }
+    applyTheme(themeMode)
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem(STORAGE_KEYS.THEME, themeMode)
+    }
+
+    if (themeMode === 'system' && typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+      const mq = window.matchMedia('(prefers-color-scheme: light)')
+      const handler = () => applyTheme('system')
+      mq.addEventListener('change', handler)
+      return () => mq.removeEventListener('change', handler)
+    }
+  }, [themeMode])
 
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng)
@@ -201,50 +210,16 @@ export default function SettingsPage({
               >
                 {t('auth.logout', { defaultValue: 'Sair da conta' })}
               </button>
-              {!confirmingDeleteAccount ? (
-                <button
-                  type="button"
-                  data-testid="delete-cloud-account-btn"
-                  className={`${styles['settings-page__btn']} ${styles['settings-page__btn--danger']}`}
-                  onClick={() => setConfirmingDeleteAccount(true)}
-                >
-                  🗑️ {t('settings.deleteCloudAccount', { defaultValue: 'Excluir minha conta e dados da nuvem' })}
-                </button>
-              ) : (
-                <div style={{ display: 'inline-flex', gap: 'var(--space-2)', alignItems: 'center', flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-danger, #ef4444)', fontWeight: 600 }}>
-                    {t('settings.deleteCloudAccountConfirmPrompt', { defaultValue: 'Tem certeza? Esta ação é irreversível.' })}
-                  </span>
-                  <button
-                    type="button"
-                    data-testid="confirm-delete-account-btn"
-                    className={`${styles['settings-page__btn']} ${styles['settings-page__btn--danger']}`}
-                    disabled={isDeletingAccount}
-                    onClick={handleConfirmDeleteAccount}
-                  >
-                    {t('settings.confirmDeleteAccount', { defaultValue: 'Confirmar exclusão permanente' })}
-                  </button>
-                  <button
-                    type="button"
-                    data-testid="cancel-delete-account-btn"
-                    className={styles['settings-page__btn']}
-                    disabled={isDeletingAccount}
-                    onClick={() => setConfirmingDeleteAccount(false)}
-                  >
-                    {t('auth.close', { defaultValue: 'Cancelar' })}
-                  </button>
-                </div>
-              )}
             </div>
           </div>
         )}
       </section>
 
-      {/* Seção 2: Contas Vinculadas (Multi-Provider) */}
+      {/* Seção 2: Contas vinculadas */}
       <section className={styles['settings-page__card']} aria-labelledby="settings-linked-title">
         <div className={styles['settings-page__card-header']}>
           <h2 id="settings-linked-title" className={styles['settings-page__card-title']}>
-            🔗 {t('settings.linkedAccounts', { defaultValue: 'Contas Vinculadas (Multi-Provider)' })}
+            🔗 {t('settings.linkedAccounts', { defaultValue: 'Contas vinculadas' })}
           </h2>
           <p className={styles['settings-page__card-desc']}>
             {t('settings.linkedAccountsDesc', { defaultValue: 'Cadastre seus usuários para unificar recomendações e históricos.' })}
@@ -277,6 +252,11 @@ export default function SettingsPage({
                   }
                 />
                 <div className={styles['settings-page__field-actions']}>
+                  {Boolean(linkedUsernames?.anilist?.trim()) && (
+                    <span style={{ fontSize: 'var(--text-xs)', color: isSyncingAni ? '#3b82f6' : '#10b981', fontWeight: 500, marginRight: 'auto' }}>
+                      {isSyncingAni ? '⏳ Sincronizando...' : '✓ Conectada'}
+                    </span>
+                  )}
                   <button
                     type="button"
                     className={styles['settings-page__btn-subtle']}
@@ -321,6 +301,11 @@ export default function SettingsPage({
                   }
                 />
                 <div className={styles['settings-page__field-actions']}>
+                  {Boolean(linkedUsernames?.kitsu?.trim()) && (
+                    <span style={{ fontSize: 'var(--text-xs)', color: isSyncingKitsu ? '#3b82f6' : '#10b981', fontWeight: 500, marginRight: 'auto' }}>
+                      {isSyncingKitsu ? '⏳ Sincronizando...' : '✓ Conectada'}
+                    </span>
+                  )}
                   <button
                     type="button"
                     className={styles['settings-page__btn-subtle']}
@@ -365,6 +350,11 @@ export default function SettingsPage({
                   }
                 />
                 <div className={styles['settings-page__field-actions']}>
+                  {Boolean(linkedUsernames?.mal?.trim()) && (
+                    <span style={{ fontSize: 'var(--text-xs)', color: isSyncingMal ? '#3b82f6' : '#10b981', fontWeight: 500, marginRight: 'auto' }}>
+                      {isSyncingMal ? '⏳ Sincronizando...' : '✓ Conectada'}
+                    </span>
+                  )}
                   <button
                     type="button"
                     className={styles['settings-page__btn-subtle']}
@@ -451,18 +441,38 @@ export default function SettingsPage({
 
         <div className={styles['settings-page__ui-grid']}>
           <div className={styles['settings-page__field']}>
-            <label className={styles['settings-page__field-label']} htmlFor="page-theme-btn">
+            <label className={styles['settings-page__field-label']}>
               {t('settings.theme', { defaultValue: 'Tema' })}
             </label>
-            <button
-              id="page-theme-btn"
-              type="button"
-              className={styles['settings-page__theme-btn']}
-              onClick={toggleTheme}
-              aria-label={theme === 'dark' ? t('settings.theme_light') : t('settings.theme_dark')}
-            >
-              {theme === 'dark' ? `☀️ ${t('settings.theme_light')}` : `🌙 ${t('settings.theme_dark')}`}
-            </button>
+            <div className={styles['settings-page__segmented-control']} role="radiogroup" aria-label={t('settings.theme', 'Tema')}>
+              <button
+                type="button"
+                role="radio"
+                aria-checked={themeMode === 'light'}
+                className={`${styles['settings-page__segment-btn']} ${themeMode === 'light' ? styles['settings-page__segment-btn--active'] : ''}`}
+                onClick={() => setThemeMode('light')}
+              >
+                ☀️ {t('settings.theme_light', 'Claro')}
+              </button>
+              <button
+                type="button"
+                role="radio"
+                aria-checked={themeMode === 'dark'}
+                className={`${styles['settings-page__segment-btn']} ${themeMode === 'dark' ? styles['settings-page__segment-btn--active'] : ''}`}
+                onClick={() => setThemeMode('dark')}
+              >
+                🌙 {t('settings.theme_dark', 'Escuro')}
+              </button>
+              <button
+                type="button"
+                role="radio"
+                aria-checked={themeMode === 'system'}
+                className={`${styles['settings-page__segment-btn']} ${themeMode === 'system' ? styles['settings-page__segment-btn--active'] : ''}`}
+                onClick={() => setThemeMode('system')}
+              >
+                💻 {t('settings.theme_system', 'Sistema')}
+              </button>
+            </div>
           </div>
 
           <div className={styles['settings-page__field']}>
@@ -507,7 +517,7 @@ export default function SettingsPage({
             📦 {t('settings.dataSection', { defaultValue: 'Dados da Lista' })}
           </h2>
           <p className={styles['settings-page__card-desc']}>
-            {t('settings.dataDesc', { defaultValue: 'Atualize os animes salvos ou troque de usuário/provedor' })}
+            {t('settings.dataDesc', { defaultValue: 'Atualize a lista de animes a partir dos provedores conectados.' })}
           </p>
         </div>
 
@@ -529,7 +539,7 @@ export default function SettingsPage({
             </button>
           )}
 
-          {onLogout && (
+          {!user && onLogout && (
             <button
               type="button"
               className={`${styles['settings-page__btn']} ${styles['settings-page__btn--danger']}`}
@@ -548,16 +558,106 @@ export default function SettingsPage({
                 : t('settings.logout', { defaultValue: 'Trocar de conta' })}
             </button>
           )}
+        </div>
+      </section>
 
+      {/* Seção 6: Zona de risco */}
+      <section className={`${styles['settings-page__card']} ${styles['settings-page__card--danger']}`} aria-labelledby="settings-danger-title">
+        <div className={styles['settings-page__card-header']}>
+          <h2 id="settings-danger-title" className={styles['settings-page__card-title']} style={{ color: 'var(--color-danger, #ef4444)' }}>
+            🚨 {t('settings.dangerZone', { defaultValue: 'Zona de risco' })}
+          </h2>
+          <p className={styles['settings-page__card-desc']}>
+            {t('settings.dangerZoneDesc', { defaultValue: 'Ações irreversíveis e limpeza de armazenamento.' })}
+          </p>
+        </div>
+
+        <div className={styles['settings-page__danger-item']}>
+          <div className={styles['settings-page__danger-info']}>
+            <span className={styles['settings-page__danger-title']}>
+              {t('settings.clearLocalData', { defaultValue: 'Limpar dados locais do navegador' })}
+            </span>
+            <span className={styles['settings-page__danger-desc']}>
+              {t('settings.clearLocalDataDesc', { defaultValue: 'Apaga os animes e configurações salvos em cache neste navegador (IndexedDB e LocalStorage). Não afeta sua conta nem dados na nuvem.' })}
+            </span>
+          </div>
           <button
             type="button"
             data-testid="clear-local-data-btn"
-            className={`${styles['settings-page__btn']} ${styles['settings-page__btn--danger']}`}
+            className={`${styles['settings-page__btn']} ${styles['settings-page__btn--danger-outline']}`}
             onClick={handleClearLocalData}
           >
-            <span aria-hidden="true">🧹</span> {t('settings.clearLocalData', { defaultValue: 'Limpar dados locais do navegador' })}
+            <span aria-hidden="true">🧹</span> {t('settings.clearLocalData', { defaultValue: 'Limpar dados locais' })}
           </button>
         </div>
+
+        {user && (
+          <div className={styles['settings-page__danger-item']} style={{ flexDirection: 'column', alignItems: 'stretch' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--space-4)', flexWrap: 'wrap' }}>
+              <div className={styles['settings-page__danger-info']}>
+                <span className={styles['settings-page__danger-title']} style={{ color: 'var(--color-danger, #ef4444)' }}>
+                  {t('settings.deleteCloudAccount', { defaultValue: 'Excluir minha conta e dados da nuvem' })}
+                </span>
+                <span className={styles['settings-page__danger-desc']}>
+                  {t('settings.deleteCloudAccountDesc', { defaultValue: 'Exclui permanentemente sua conta no AniMatch, preferências sincronizadas e dados na nuvem. Suas contas nos provedores externos não são modificadas.' })}
+                </span>
+              </div>
+              {!confirmingDeleteAccount && (
+                <button
+                  type="button"
+                  data-testid="delete-cloud-account-btn"
+                  className={`${styles['settings-page__btn']} ${styles['settings-page__btn--danger-solid']}`}
+                  onClick={() => setConfirmingDeleteAccount(true)}
+                >
+                  🗑️ {t('settings.deleteCloudAccount', { defaultValue: 'Excluir conta' })}
+                </button>
+              )}
+            </div>
+
+            {confirmingDeleteAccount && (
+              <div className={styles['settings-page__confirm-box']} data-testid="delete-account-confirm-box">
+                <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-danger, #ef4444)', fontWeight: 600 }}>
+                  {t('settings.deleteCloudAccountConfirmPrompt', { defaultValue: 'Tem certeza? Esta ação é irreversível.' })}
+                </span>
+                <label style={{ fontSize: 'var(--text-xs)', color: 'var(--text-2)' }} htmlFor="delete-account-input">
+                  {t('settings.typeExcluirToConfirm', { defaultValue: 'Para confirmar, digite "excluir" abaixo:' })}
+                </label>
+                <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <input
+                    id="delete-account-input"
+                    data-testid="delete-account-input"
+                    type="text"
+                    className={styles['settings-page__confirm-input']}
+                    placeholder="excluir"
+                    value={deleteConfirmText}
+                    onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    data-testid="confirm-delete-account-btn"
+                    className={`${styles['settings-page__btn']} ${styles['settings-page__btn--danger-solid']}`}
+                    disabled={isDeletingAccount || deleteConfirmText.trim().toLowerCase() !== 'excluir'}
+                    onClick={handleConfirmDeleteAccount}
+                  >
+                    {t('settings.confirmDeleteAccount', { defaultValue: 'Confirmar exclusão permanente' })}
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="cancel-delete-account-btn"
+                    className={styles['settings-page__btn']}
+                    disabled={isDeletingAccount}
+                    onClick={() => {
+                      setConfirmingDeleteAccount(false)
+                      setDeleteConfirmText('')
+                    }}
+                  >
+                    {t('auth.close', { defaultValue: 'Cancelar' })}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </section>
     </div>
   )

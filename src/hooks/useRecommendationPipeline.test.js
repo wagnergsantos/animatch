@@ -107,7 +107,8 @@ describe('useRecommendationPipeline', () => {
 
     const basePluto = baseResult.current.recommendations.find((r) => r.id === 10)
     const boostedPluto = boostedResult.current.recommendations.find((r) => r.id === 10)
-    expect(boostedPluto.predictedScore).toBeGreaterThan(basePluto.predictedScore)
+    expect(boostedPluto.hasStreamingBoost).toBe(true)
+    expect(boostedPluto.predictedScore).toBe(basePluto.predictedScore)
   })
 
   it('resgata obras sem averageScore compatíveis com o gosto e respeita recommenderOptions', () => {

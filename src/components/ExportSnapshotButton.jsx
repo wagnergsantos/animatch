@@ -38,22 +38,35 @@ export default function ExportSnapshotButton({
     URL.revokeObjectURL(url)
   }
 
+  const buttonStyle = {
+    padding: 'var(--space-2) var(--space-4)',
+    fontSize: 'var(--text-sm)',
+    fontWeight: 600,
+    borderRadius: 'var(--radius-md)',
+    background: 'var(--surface-2)',
+    border: '1px solid var(--color-border)',
+    color: 'var(--text-1)',
+    cursor: 'pointer',
+    transition: 'all 0.15s ease',
+  }
+
   return (
-    <div className="export-buttons" style={{ display: 'flex', gap: 'var(--space-2, 8px)', flexWrap: 'wrap' }}>
+    <div className="export-buttons" style={{ display: 'flex', gap: 'var(--space-3, 12px)', flexWrap: 'wrap' }}>
       {onOpenWrapped && (
         <button
           type="button"
           onClick={onOpenWrapped}
           data-testid="export-wrapped-btn"
+          style={buttonStyle}
         >
           <span aria-hidden="true">✨ </span>
           {t('wrapped.buttonText', t('wrapped.button', 'Compartilhar Wrapped').replace(/^✨\s*/, ''))}
         </button>
       )}
-      <button type="button" onClick={handleExportCSV}>
+      <button type="button" onClick={handleExportCSV} style={buttonStyle}>
         {t('stats.exportCSV', 'Exportar CSV')}
       </button>
-      <button type="button" onClick={handleExportJSON}>
+      <button type="button" onClick={handleExportJSON} style={buttonStyle}>
         {t('stats.exportJSON', 'Exportar JSON')}
       </button>
     </div>

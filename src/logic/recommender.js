@@ -249,8 +249,8 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
       }
 
       collectedAnchors.sort((a, b) => {
-        const weightA = a.score * (1 + (a.jaccard || 0) * 0.5)
-        const weightB = b.score * (1 + (b.jaccard || 0) * 0.5)
+        const weightA = a.score * (1 + (a.jaccard || 0) * 2.0)
+        const weightB = b.score * (1 + (b.jaccard || 0) * 2.0)
         if (Math.abs(weightB - weightA) > 0.001) {
           return weightB - weightA
         }

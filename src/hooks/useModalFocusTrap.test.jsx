@@ -49,4 +49,16 @@ describe('useModalFocusTrap', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(document.activeElement).toBe(openBtn)
   })
+
+  it('locks body scroll on open and restores body scroll on close', () => {
+    document.body.style.overflow = 'visible'
+    render(<TestModalApp />)
+    const openBtn = screen.getByTestId('open-btn')
+
+    fireEvent.click(openBtn)
+    expect(document.body.style.overflow).toBe('hidden')
+
+    fireEvent.keyDown(window, { key: 'Escape' })
+    expect(document.body.style.overflow).toBe('visible')
+  })
 })

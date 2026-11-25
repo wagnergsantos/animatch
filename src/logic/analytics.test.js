@@ -4,6 +4,7 @@ import {
   computeStatusDistribution,
   computeYearDistribution,
   computeBayesianGenreStats,
+  computeScoreDistribution,
 } from './analytics.js'
 
 describe('analytics logic', () => {
@@ -55,6 +56,15 @@ describe('analytics logic', () => {
       { year: 2020, count: 3 },
       { year: 2021, count: 1 }
     ])
+  })
+
+  it('computes score distribution (1 to 10)', () => {
+    const dist = computeScoreDistribution(sampleEntries)
+    expect(dist).toHaveLength(10)
+    // score 8 has 1 count, score 10 has 1 count. DROPPED (score 2) is ignored.
+    expect(dist.find((d) => d.score === 8)?.count).toBe(1)
+    expect(dist.find((d) => d.score === 10)?.count).toBe(1)
+    expect(dist.find((d) => d.score === 1)?.count).toBe(0)
   })
 
   it('computes bayesian genre stats filtered by min 2 scored entries including plannedCount and lowerBound', () => {

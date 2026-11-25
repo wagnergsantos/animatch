@@ -18,11 +18,11 @@ const PROVIDER_FULL_LABELS = {
   anilist: 'AniList',
 }
 
-export default function AnimeDetailModal({ anime, titlePref = 'english', onClose }) {
+export default function AnimeDetailModal({ anime, titlePref = 'english', onClose, triggerRef }) {
   const { t } = useTranslation()
   const modalRef = useRef(null)
 
-  useModalFocusTrap(Boolean(anime), modalRef, onClose)
+  useModalFocusTrap(Boolean(anime), modalRef, onClose, triggerRef)
 
   if (!anime) return null
 

@@ -71,11 +71,8 @@ export function applyStreamingBoost(
     if (!rec) return rec
     const isAvailable = matchesUserSubscriptions(rec, userSubscriptions)
     if (!isAvailable) return rec
-    const originalScore = rec.predictedScore ?? 0
-    const boostedScore = Math.min(10.0, Math.round(originalScore * boostMultiplier * 100) / 100)
     return {
       ...rec,
-      predictedScore: boostedScore,
       hasStreamingBoost: true,
     }
   })

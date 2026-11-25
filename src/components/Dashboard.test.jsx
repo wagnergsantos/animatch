@@ -763,7 +763,7 @@ describe('Dashboard', () => {
     expect(refetchEnsemble).toHaveBeenCalledWith('kitsu')
   })
 
-  it('opens WrappedModal from header button and from Statistics tab', () => {
+  it('opens WrappedModal from header button and keeps it exclusively in the header without duplication', () => {
     render(<Dashboard allEntries={mockEntries} username="testuser" onLogout={vi.fn()} />)
 
     const headerWrappedBtn = screen.getByTestId('dashboard-wrapped-btn')
@@ -777,12 +777,9 @@ describe('Dashboard', () => {
     fireEvent.click(closeBtn)
     expect(screen.queryByText(/Seu AniMatch Wrapped/i)).not.toBeInTheDocument()
 
-    // Switch to Statistics tab and open WrappedModal from ExportSnapshotButton
+    // Switch to Statistics tab: Wrapped button is kept in header only, not duplicated in statistics export buttons
     fireEvent.click(screen.getByRole('button', { name: /Estatísticas/i }))
-    const statsWrappedBtn = screen.getByTestId('export-wrapped-btn')
-    fireEvent.click(statsWrappedBtn)
-
-    expect(screen.getByText(/Seu AniMatch Wrapped/i)).toBeInTheDocument()
+    expect(screen.queryByTestId('export-wrapped-btn')).not.toBeInTheDocument()
   })
 
   it('displays offline mode badge when allEntries has _cacheMeta.isStale=true and triggers onRefresh on click', () => {
