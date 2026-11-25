@@ -398,31 +398,3 @@ export function mergeAnimeEntries(entriesByProvider = {}) {
   return merged
 }
 
-/**
- * Boosts predicted scores for planning recommendations that are present in multiple providers.
- *
- * @param {object[]} recommendations - Array of recommendation items
- * @param {number} [k=0.05] - Multiplier step factor per additional provider
- * @returns {object[]} Recommendations with boosted predicted scores and presenceMultiplier attached
- */
-export function applyMultiPresenceBoost(recommendations = [], k = 0.05) {
-  if (!Array.isArray(recommendations)) return []
-
-  return recommendations.map((rec) => {
-    if (!rec) return rec
-    const providersCount = Array.isArray(rec.planningProviders) ? rec.planningProviders.length : 1
-    if (providersCount <= 1) {
-      return { ...rec, presenceMultiplier: 1.0 }
-    }
-
-    const multiplier = 1 + k * (providersCount - 1)
-    const base = rec.predictedScore ?? rec.communityScore ?? 0
-    const boosted = Math.min(10.0, Math.round(base * multiplier * 100) / 100)
-
-    return {
-      ...rec,
-      predictedScore: boosted,
-      presenceMultiplier: Math.round(multiplier * 100) / 100,
-    }
-  })
-}

@@ -609,7 +609,7 @@ describe('Dashboard', () => {
     expect(screen.getByText('Kitsu Only Anime')).toBeInTheDocument()
   })
 
-  it('applies multi-presence boost when activeScope is ensemble', async () => {
+  it('displays multi-presence badges without artificial score boost when activeScope is ensemble', async () => {
     const linkedUsernames = { anilist: 'alice', mal: 'alice_mal', kitsu: '' }
     const sharedAnime = {
       id: 201,
@@ -620,7 +620,7 @@ describe('Dashboard', () => {
         id: 201,
         title: { romaji: 'Cross-Platform Anime' },
         genres: ['Sci-Fi'],
-        averageScore: 80, // community = 8.0, predicted = 8.0 -> boosted with k=0.05 (2-1=1) => 8.4
+        averageScore: 80,
       },
     }
     const singleAnime = {
@@ -632,7 +632,7 @@ describe('Dashboard', () => {
         id: 202,
         title: { romaji: 'Single Provider Anime' },
         genres: ['Sci-Fi'],
-        averageScore: 80, // community = 8.0, predicted = 8.0 -> no boost => 8.0
+        averageScore: 80,
       },
     }
 
@@ -660,17 +660,16 @@ describe('Dashboard', () => {
       expect(screen.getByText('Single Provider Anime')).toBeInTheDocument()
     })
 
-    // In ensemble mode, Cross-Platform Anime has higher score due to multi-presence boost (8.4 vs 8.0),
-    // and displays its presence badge with +5% in tooltip
+    // In ensemble mode, Cross-Platform Anime displays its presence badge with provider chips without artificial score boost
     const badgeContainer = screen.getByTestId('card-provider-badges')
     expect(badgeContainer).toBeInTheDocument()
-    expect(badgeContainer).toHaveAttribute('title', expect.stringContaining('+5%'))
+    expect(badgeContainer).toHaveAttribute('title', expect.stringContaining('AniList'))
     expect(within(badgeContainer).getByText('AniList')).toBeInTheDocument()
     expect(within(badgeContainer).getByText('MAL')).toBeInTheDocument()
 
-    // Assert that Cross-Platform Anime has boosted score 8.40/10 and Single has 8.00/10
-    expect(screen.getByText(/(Match|Afinidade): 8\.40\/10/i)).toBeInTheDocument()
-    expect(screen.getByText(/(Match|Afinidade): 8\.00\/10/i)).toBeInTheDocument()
+    // Scores remain true without artificial score inflation
+    const scores = screen.getAllByText(/(Match|Afinidade): 8\.00\/10/i)
+    expect(scores.length).toBeGreaterThanOrEqual(1)
   })
 
   it('calls refetchEnsemble when refreshing while activeScope is ensemble', () => {

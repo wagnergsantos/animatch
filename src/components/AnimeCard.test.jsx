@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import AnimeCard from './AnimeCard.jsx'
 
 describe('AnimeCard', () => {
@@ -167,7 +167,7 @@ describe('AnimeCard', () => {
     expect(badgeContainer).toBeInTheDocument()
     expect(badgeContainer).toHaveAttribute(
       'title',
-      'Presente no seu Planning em: AniList, MyAnimeList (+5% de afinidade)'
+      'Presente no seu Planning em: AniList, MyAnimeList'
     )
   })
 
@@ -206,7 +206,7 @@ describe('AnimeCard', () => {
     const badgeContainer = screen.getByTestId('card-provider-badges')
     expect(badgeContainer).toHaveAttribute(
       'title',
-      'Presente no seu Planning em: AniList, Kitsu, MyAnimeList (+10% de afinidade)'
+      'Presente no seu Planning em: AniList, Kitsu, MyAnimeList'
     )
   })
 
@@ -229,9 +229,10 @@ describe('AnimeCard', () => {
     expect(modalBadges).toBeInTheDocument()
     expect(modalBadges).toHaveAttribute(
       'title',
-      'Presente no seu Planning em: AniList, MyAnimeList (+5% de afinidade)'
+      'Presente no seu Planning em: AniList, MyAnimeList'
     )
-    expect(screen.getByText('+5%')).toBeInTheDocument()
+    expect(within(modalBadges).getByText('AniList')).toBeInTheDocument()
+    expect(within(modalBadges).getByText('MAL')).toBeInTheDocument()
   })
 
   it('renders DISCOVERY floating badge on taste and community predictions', () => {
@@ -298,30 +299,6 @@ describe('AnimeCard', () => {
     expect(img).toHaveAttribute('decoding', 'async')
   })
 
-  it('renders top match badge and data-score-tier when scoreTier="excellent"', () => {
-    const anime = {
-      title: 'Top Tier Anime',
-      predictedScore: 9.2,
-      scoreTier: 'excellent',
-    }
-    const { container } = render(<AnimeCard anime={anime} />)
-    const article = container.querySelector('article')
-    expect(article).toHaveAttribute('data-score-tier', 'excellent')
-    expect(screen.getByTestId('top-match-badge')).toBeInTheDocument()
-    expect(screen.getByTestId('top-match-badge')).toHaveTextContent(/Top Match/i)
-  })
-
-  it('does not render top match badge when scoreTier is not excellent', () => {
-    const anime = {
-      title: 'Normal Anime',
-      predictedScore: 7.2,
-    }
-    const { container } = render(<AnimeCard anime={anime} />)
-    const article = container.querySelector('article')
-    expect(article).not.toHaveAttribute('data-score-tier')
-    expect(screen.queryByTestId('top-match-badge')).not.toBeInTheDocument()
-  })
-
   it('renders fallback cover with title when image encounters error', () => {
     const anime = {
       title: 'Broken Cover Anime',
@@ -340,19 +317,18 @@ describe('AnimeCard', () => {
   it('provides accessible badges with tabIndex, role and expands on click/tap', () => {
     const anime = {
       title: 'Badge Test Anime',
-      scoreTier: 'excellent',
       badges: ['ACCLAIMED'],
     }
     render(<AnimeCard anime={anime} />)
 
-    const topBadge = screen.getByTestId('top-match-badge')
-    expect(topBadge).toHaveAttribute('tabindex', '0')
-    expect(topBadge).toHaveAttribute('role', 'status')
-    expect(topBadge).toHaveAttribute('aria-label', 'Top Match')
+    const badge = screen.getByRole('status', { name: /Aclamado pela crítica/i })
+    expect(badge).toHaveAttribute('tabindex', '0')
+    expect(badge).toHaveAttribute('role', 'status')
+    expect(badge).toHaveAttribute('aria-label', 'Aclamado pela crítica')
 
     // Click badge expands it without activating card modal
-    fireEvent.click(topBadge)
-    expect(topBadge).toHaveAttribute('data-expanded', 'true')
+    fireEvent.click(badge)
+    expect(badge).toHaveAttribute('data-expanded', 'true')
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 

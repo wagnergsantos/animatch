@@ -275,7 +275,7 @@
     "scope_label": "ソース:",
     "partial_failure": "{{providers}} のデータを読み込めませんでした。取得可能なデータを表示しています。",
     "retry_provider": "{{provider}} を再試行",
-    "presence_badge_tooltip": "次のサービスで計画中: {{providers}} (+{{percent}}% ブースト)",
+    "presence_badge_tooltip": "次のサービスで計画中: {{providers}}",
     "accounts_active": "{{count}} 件のアカウント"
   },
   "wrapped": {

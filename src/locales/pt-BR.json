@@ -303,7 +303,7 @@
     "scope_label": "Fonte:",
     "partial_failure": "Não foi possível carregar dados de {{providers}}. Mostrando dados disponíveis.",
     "retry_provider": "Tentar novamente {{provider}}",
-    "presence_badge_tooltip": "Presente no seu Planning em: {{providers}} (+{{percent}}% de afinidade)",
+    "presence_badge_tooltip": "Presente no seu Planning em: {{providers}}",
     "accounts_active": "{{count}} contas ativas"
   },
   "wrapped": {

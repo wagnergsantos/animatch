@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest'
 import {
   normalizeAnimeKey,
   mergeAnimeEntries,
-  applyMultiPresenceBoost,
 } from './ensemble.js'
 
 describe('ensemble logic', () => {
@@ -317,67 +316,6 @@ describe('ensemble logic', () => {
       expect(merged).toHaveLength(1)
       expect(merged[0].media.description).toBe('A spy must build a fake family.')
       expect(merged[0].media.bannerImage).toBe('https://anilist.co/banner.jpg')
-    })
-  })
-
-  describe('applyMultiPresenceBoost', () => {
-    it('returns empty array when recommendations is empty or invalid', () => {
-      expect(applyMultiPresenceBoost([])).toEqual([])
-      expect(applyMultiPresenceBoost(null)).toEqual([])
-      expect(applyMultiPresenceBoost(undefined)).toEqual([])
-    })
-
-    it('applies no boost when present in only 1 provider', () => {
-      const recs = [{ id: 1, predictedScore: 8.0, planningProviders: ['anilist'] }]
-      const boosted = applyMultiPresenceBoost(recs, 0.05)
-      expect(boosted[0].predictedScore).toBe(8.0)
-      expect(boosted[0].presenceMultiplier).toBe(1.0)
-    })
-
-    it('applies no boost when planningProviders is missing or empty', () => {
-      const recs = [{ id: 1, predictedScore: 7.5 }]
-      const boosted = applyMultiPresenceBoost(recs)
-      expect(boosted[0].predictedScore).toBe(7.5)
-      expect(boosted[0].presenceMultiplier).toBe(1.0)
-    })
-
-    it('applies 5% boost when present in 2 providers with default k=0.05', () => {
-      const recs = [{ id: 1, predictedScore: 8.0, planningProviders: ['anilist', 'mal'] }]
-      const boosted = applyMultiPresenceBoost(recs)
-      // 8.0 * (1 + 0.05 * 1) = 8.4
-      expect(boosted[0].predictedScore).toBe(8.4)
-      expect(boosted[0].presenceMultiplier).toBe(1.05)
-    })
-
-    it('applies 10% boost when present in 3 providers, capped at 10.0', () => {
-      const recs = [{ id: 1, predictedScore: 9.5, planningProviders: ['anilist', 'kitsu', 'mal'] }]
-      const boosted = applyMultiPresenceBoost(recs, 0.05)
-      // 9.5 * (1 + 0.05 * 2) = 10.45 -> capped at 10.0
-      expect(boosted[0].predictedScore).toBe(10.0)
-      expect(boosted[0].presenceMultiplier).toBe(1.1)
-    })
-
-    it('supports custom k multiplier parameter', () => {
-      const recs = [{ id: 1, predictedScore: 8.0, planningProviders: ['anilist', 'mal'] }]
-      const boosted = applyMultiPresenceBoost(recs, 0.10)
-      // 8.0 * (1 + 0.10 * 1) = 8.8
-      expect(boosted[0].predictedScore).toBe(8.8)
-      expect(boosted[0].presenceMultiplier).toBe(1.1)
-    })
-
-    it('falls back to communityScore if predictedScore is null/undefined', () => {
-      const recs = [{ id: 1, communityScore: 7.0, planningProviders: ['anilist', 'mal'] }]
-      const boosted = applyMultiPresenceBoost(recs, 0.05)
-      // 7.0 * (1 + 0.05 * 1) = 7.35
-      expect(boosted[0].predictedScore).toBe(7.35)
-      expect(boosted[0].presenceMultiplier).toBe(1.05)
-    })
-
-    it('caps score at 10.0 even when raw boost exceeds 10', () => {
-      const recs = [{ id: 1, predictedScore: 9.8, planningProviders: ['anilist', 'mal'] }]
-      const boosted = applyMultiPresenceBoost(recs, 0.05)
-      // 9.8 * 1.05 = 10.29 -> 10.0
-      expect(boosted[0].predictedScore).toBe(10.0)
     })
   })
 

@@ -275,7 +275,7 @@
     "scope_label": "Source:",
     "partial_failure": "Could not load data from {{providers}}. Showing available data.",
     "retry_provider": "Retry {{provider}}",
-    "presence_badge_tooltip": "Present in your Planning on: {{providers}} (+{{percent}}% boost)",
+    "presence_badge_tooltip": "Present in your Planning on: {{providers}}",
     "accounts_active": "{{count}} active accounts"
   },
   "wrapped": {

@@ -78,7 +78,6 @@ export default function AnimeRow({ anime, titlePref = 'english', priority = fals
     <div
       className={styles['anime-row-container']}
       data-testid="anime-row"
-      data-score-tier={anime?.scoreTier || undefined}
     >
       <div
         className={styles['anime-row-header']}
@@ -102,22 +101,6 @@ export default function AnimeRow({ anime, titlePref = 'english', priority = fals
         <div className={styles['anime-row-main']}>
           <div className={styles['anime-row-title-group']}>
             <h3 className={styles['anime-row-title']}>{mainTitle}</h3>
-            {anime?.scoreTier === 'excellent' && (
-              <span
-                style={{
-                  fontSize: 'var(--text-xs, 0.75rem)',
-                  background: 'var(--color-primary)',
-                  color: '#000000',
-                  padding: '2px 6px',
-                  borderRadius: 'var(--radius-sm, 4px)',
-                  fontWeight: 700,
-                  marginLeft: 8,
-                }}
-                data-testid="top-match-badge"
-              >
-                ★ {t('labels.topMatch')}
-              </span>
-            )}
             {subTitle && <span className={styles['anime-row-subtitle']}>({subTitle})</span>}
           </div>
 

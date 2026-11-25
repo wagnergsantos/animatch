@@ -6,7 +6,6 @@ import {
   isEligiblePlanningEntry,
 } from '../logic/recommender.js'
 import { applyStreamingBoost, matchesUserSubscriptions } from '../logic/streaming.js'
-import { applyMultiPresenceBoost } from '../logic/ensemble.js'
 import { mark, measure } from '../lib/perfMarks.js'
 
 /**
@@ -19,32 +18,6 @@ import { mark, measure } from '../lib/perfMarks.js'
  */
 const EMPTY_ARRAY = []
 const EMPTY_OBJECT = {}
-
-/**
- * B1: Marca scoreTier='excellent' para animes com predictedScore >= 8.5
- * e no top 10% da lista (evita inflação visual).
- */
-export function enrichWithScoreTiers(recs) {
-  if (!Array.isArray(recs) || recs.length === 0) return []
-  const topCount = Math.max(1, Math.ceil(recs.length * 0.1))
-  const p90Threshold =
-    recs.length >= 10 && typeof recs[topCount - 1]?.predictedScore === 'number'
-      ? recs[topCount - 1].predictedScore
-      : 8.5
-  const threshold = Math.max(8.5, p90Threshold)
-
-  return recs.map((r, index) => {
-    const score = typeof r.predictedScore === 'number' ? r.predictedScore : 0
-    if (score >= threshold && (recs.length < 10 || index < topCount)) {
-      return { ...r, scoreTier: 'excellent' }
-    }
-    if (r.scoreTier) {
-      const { scoreTier: _, ...rest } = r
-      return rest
-    }
-    return r
-  })
-}
 
 /**
  * Assinatura barata (O(N)) dos campos que afetam scoring/elegibilidade.
@@ -184,10 +157,6 @@ export function useProgressiveRecommendationPipeline({
       (recs) => {
         let filtered = [...recs]
 
-        if (activeScope === 'ensemble') {
-          filtered = applyMultiPresenceBoost(filtered)
-        }
-
         if (streamingBoost) {
           filtered = applyStreamingBoost(filtered, subscriptions)
         }
@@ -234,11 +203,9 @@ export function useProgressiveRecommendationPipeline({
           return (b.communityScore || 0) - (a.communityScore || 0)
         })
 
-        // B1: Destaque para scores excelentes
-        return enrichWithScoreTiers(filtered)
+        return filtered
       },
     [
-      activeScope,
       streamingBoost,
       subscriptions,
       isStreamingOnly,

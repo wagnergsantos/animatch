@@ -227,7 +227,7 @@ export default function LoginScreen({
           </div>
 
           <div className={styles['example-cards-grid']}>
-            {/* Card 1: Odd Taxi (Top Match) */}
+            {/* Card 1: Odd Taxi (Aclamado pela crítica) */}
             <article className={styles['example-vertical-card']}>
               <div className={styles['example-card-img-wrapper']}>
                 <img
@@ -236,9 +236,9 @@ export default function LoginScreen({
                   className={styles['example-card-img']}
                   loading="lazy"
                 />
-                <span className={`${styles['example-badge']} ${styles['example-badge--top']}`} title={t('labels.topMatch')}>
-                  <BadgeIcon type="topMatch" size={13} className={styles['example-badge-icon']} />
-                  <span>{t('labels.topMatch')}</span>
+                <span className={`${styles['example-badge']} ${styles['example-badge--gem']}`} title={t('labels.badge_ACCLAIMED')}>
+                  <BadgeIcon type="ACCLAIMED" size={13} className={styles['example-badge-icon']} />
+                  <span>{t('labels.badge_ACCLAIMED').replace(/^[^\w\s\u00C0-\u00FF]+/u, '').trim()}</span>
                 </span>
                 <a
                   href="https://anilist.co/anime/128547"

@@ -6,7 +6,6 @@ import {
   isEligiblePlanningEntry,
 } from '../logic/recommender.js'
 import { applyStreamingBoost, matchesUserSubscriptions } from '../logic/streaming.js'
-import { applyMultiPresenceBoost } from '../logic/ensemble.js'
 
 /**
  * @deprecated Use `useProgressiveRecommendationPipeline` instead for progressive 2-phase rendering.
@@ -16,7 +15,7 @@ import { applyMultiPresenceBoost } from '../logic/ensemble.js'
  */
 export function useRecommendationPipeline({
   entries = [],
-  activeScope = 'anilist',
+  _activeScope = 'anilist',
   selectedFilterGenre = 'ALL',
   searchQuery = '',
   selectedFormat = 'ALL',
@@ -107,10 +106,6 @@ export function useRecommendationPipeline({
       }
     })
 
-    if (activeScope === 'ensemble') {
-      recs = applyMultiPresenceBoost(recs)
-    }
-
     if (streamingBoost) {
       recs = applyStreamingBoost(recs, subscriptions)
     }
@@ -161,7 +156,6 @@ export function useRecommendationPipeline({
     planningEntries,
     tasteProfile,
     selectedFilterGenre,
-    activeScope,
     streamingBoost,
     subscriptions,
     isStreamingOnly,

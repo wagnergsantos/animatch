@@ -29,8 +29,6 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
   const planningProviders = Array.isArray(anime?.planningProviders) ? anime.planningProviders : []
   const sourceProviders = Array.isArray(anime?.sourceProviders) ? anime.sourceProviders : []
   const hasMultiProviders = planningProviders.length > 1
-  const presenceMultiplier = typeof anime?.presenceMultiplier === 'number' ? anime.presenceMultiplier : 1
-  const presencePercent = Math.round((presenceMultiplier - 1) * 100)
 
   const toggleBadge = (badgeKey) => {
     setExpandedBadge((prev) => (prev === badgeKey ? null : badgeKey))
@@ -124,7 +122,6 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
     <>
       <article
         className={styles['anime-card']}
-        data-score-tier={anime?.scoreTier || undefined}
         onClick={handleCardClick}
         onKeyDown={handleKeyDown}
         tabIndex={0}
@@ -166,26 +163,6 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
           )}
 
           <div className={styles['anime-card__badges-overlay']}>
-            {anime?.scoreTier === 'excellent' && (
-              <span
-                className={`${styles['anime-card__badge-floating']} ${styles['anime-card__badge-floating--excellent']} ${styles['anime-card__tier-badge']}`}
-                data-testid="top-match-badge"
-                title={t('labels.topMatch')}
-                tabIndex={0}
-                role="status"
-                aria-label={t('labels.topMatch')}
-                data-expanded={expandedBadge === 'topMatch'}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  toggleBadge('topMatch')
-                }}
-              >
-                <span className={styles['anime-card__badge-icon']}>
-                  <BadgeIcon type="topMatch" size={13} />
-                </span>
-                <span className={styles['anime-card__badge-label']}>{t('labels.topMatch')}</span>
-              </span>
-            )}
             {anime?.predictionSource === 'community' && (
               <span
                 className={`${styles['anime-card__badge-floating']} ${styles['anime-card__badge-floating--community']}`}
@@ -237,8 +214,7 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
               providers: planningProviders
                 .map((p) => t(`providers.${p}`, { defaultValue: PROVIDER_FULL_LABELS[p] || p }))
                 .join(', '),
-              percent: presencePercent,
-              defaultValue: `Presente no seu Planning em: ${planningProviders.map((p) => PROVIDER_FULL_LABELS[p] || p).join(', ')} (+${presencePercent}%)`,
+              defaultValue: `Presente no seu Planning em: ${planningProviders.map((p) => PROVIDER_FULL_LABELS[p] || p).join(', ')}`,
             }) : undefined}
           >
             {activeProviders.map((p) => {

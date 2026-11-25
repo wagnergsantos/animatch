@@ -46,8 +46,6 @@ export default function AnimeDetailModal({ anime, titlePref = 'english', onClose
   const planningProviders = Array.isArray(anime?.planningProviders) ? anime.planningProviders : []
   const sourceProviders = Array.isArray(anime?.sourceProviders) ? anime.sourceProviders : []
   const hasMultiProviders = planningProviders.length > 1
-  const presenceMultiplier = typeof anime?.presenceMultiplier === 'number' ? anime.presenceMultiplier : 1
-  const presencePercent = Math.round((presenceMultiplier - 1) * 100)
 
   const activeProviders = planningProviders.length > 0
     ? planningProviders
@@ -138,8 +136,7 @@ export default function AnimeDetailModal({ anime, titlePref = 'english', onClose
                   providers: planningProviders
                     .map((p) => t(`providers.${p}`, { defaultValue: PROVIDER_FULL_LABELS[p] || p }))
                     .join(', '),
-                  percent: presencePercent,
-                  defaultValue: `Presente no seu Planning em: ${planningProviders.map((p) => PROVIDER_FULL_LABELS[p] || p).join(', ')} (+${presencePercent}%)`,
+                  defaultValue: `Presente no seu Planning em: ${planningProviders.map((p) => PROVIDER_FULL_LABELS[p] || p).join(', ')}`,
                 })}
               >
                 <div className={styles['anime-modal__presence-pills']}>
@@ -152,11 +149,6 @@ export default function AnimeDetailModal({ anime, titlePref = 'english', onClose
                     </span>
                   ))}
                 </div>
-                {presencePercent > 0 && (
-                  <span className={styles['anime-modal__presence-boost']}>
-                    +{presencePercent}%
-                  </span>
-                )}
               </div>
             )}
 
