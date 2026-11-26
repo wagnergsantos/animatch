@@ -1,7 +1,7 @@
 import { UserNotFoundError, RetryableError, ProviderError } from '../errors.js'
 
 const KITSU_API = 'https://kitsu.io/api/edge'
-import { readCache, writeCache, clearCache, DEFAULT_CACHE_TTL } from '../../cache/apiCache.js'
+import { readCache, writeCache, clearCache, DEFAULT_CACHE_TTL, fetchWithSingleFlight } from '../../cache/apiCache.js'
 import { CACHE_PREFIXES } from '../../lib/storageKeys.js'
 
 const KITSU_CACHE_PREFIX = CACHE_PREFIXES.KITSU
@@ -140,60 +140,67 @@ export async function kitsuFetchAll(username, options = {}) {
     if (Array.isArray(cached)) return cached
   }
 
-  try {
-    const userRes = await fetch(`${KITSU_API}/users?filter[name]=${encodeURIComponent(username)}`, {
-      headers: KITSU_HEADERS
-    })
-    if (!userRes.ok) throw new RetryableError('Erro ao conectar com o Kitsu.')
-    
-    const userData = await userRes.json()
-    if (!userData.data || userData.data.length === 0) {
-      throw new UserNotFoundError('Kitsu')
+  return fetchWithSingleFlight(cacheKey, async () => {
+    if (!options.forceRefresh) {
+      const cached = readCache(cacheKey, KITSU_CACHE_TTL)
+      if (Array.isArray(cached)) return cached
     }
-    
-    const userId = userData.data[0].id
-    
-    let entries = []
-    let nextUrl = `${KITSU_API}/library-entries?filter[userId]=${userId}&filter[kind]=anime&include=anime,anime.categories,anime.streamingLinks,anime.streamingLinks.streamer&page[limit]=500`
-    let pageCount = 0
 
-    while (nextUrl && pageCount < MAX_PAGES) {
-      pageCount += 1
-      const res = await fetch(nextUrl, { headers: KITSU_HEADERS })
-      if (!res.ok) throw new RetryableError('Erro ao conectar com o Kitsu.')
-      const data = await res.json()
-      
-      const included = data.included || []
-      
-      data.data.forEach(entry => {
-        if (entry.type === 'libraryEntries') {
-          const normalized = normalizeEntry(entry, included)
-          if (normalized) {
-            entries.push(normalized)
-          }
-        }
+    try {
+      const userRes = await fetch(`${KITSU_API}/users?filter[name]=${encodeURIComponent(username)}`, {
+        headers: KITSU_HEADERS
       })
+      if (!userRes.ok) throw new RetryableError('Erro ao conectar com o Kitsu.')
       
-      const nextCandidate = data.links?.next || null
-      nextUrl =
-        typeof nextCandidate === 'string' && nextCandidate.startsWith('https://kitsu.io/api/edge/')
-          ? nextCandidate
-          : null
+      const userData = await userRes.json()
+      if (!userData.data || userData.data.length === 0) {
+        throw new UserNotFoundError('Kitsu')
+      }
+      
+      const userId = userData.data[0].id
+      
+      let entries = []
+      let nextUrl = `${KITSU_API}/library-entries?filter[userId]=${userId}&filter[kind]=anime&include=anime,anime.categories,anime.streamingLinks,anime.streamingLinks.streamer&page[limit]=500`
+      let pageCount = 0
+
+      while (nextUrl && pageCount < MAX_PAGES) {
+        pageCount += 1
+        const res = await fetch(nextUrl, { headers: KITSU_HEADERS })
+        if (!res.ok) throw new RetryableError('Erro ao conectar com o Kitsu.')
+        const data = await res.json()
+        
+        const included = data.included || []
+        
+        data.data.forEach(entry => {
+          if (entry.type === 'libraryEntries') {
+            const normalized = normalizeEntry(entry, included)
+            if (normalized) {
+              entries.push(normalized)
+            }
+          }
+        })
+        
+        const nextCandidate = data.links?.next || null
+        nextUrl =
+          typeof nextCandidate === 'string' && nextCandidate.startsWith('https://kitsu.io/api/edge/')
+            ? nextCandidate
+            : null
+      }
+
+      const seen = new Set()
+      const deduped = entries.filter((entry) => {
+        if (seen.has(entry.media.id)) return false
+        seen.add(entry.media.id)
+        return true
+      })
+
+      writeCache(cacheKey, deduped)
+
+      return deduped
+    } catch (error) {
+      if (error instanceof ProviderError) throw error;
+      throw new RetryableError('Erro ao conectar com o Kitsu.', { cause: error })
     }
-
-    const seen = new Set()
-    const deduped = entries.filter((entry) => {
-      if (seen.has(entry.media.id)) return false
-      seen.add(entry.media.id)
-      return true
-    })
-
-    writeCache(cacheKey, deduped)
-
-    return deduped
-  } catch (error) {
-    if (error instanceof ProviderError) throw error;
-    throw new RetryableError('Erro ao conectar com o Kitsu.', { cause: error })
-  }
+  })
 }
 

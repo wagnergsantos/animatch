@@ -17,6 +17,45 @@ const INDEX_KEY = STORAGE_KEYS.CACHE_INDEX
 const MAX_CACHED_USERS = 15 // mesmo teto usado por recentUsers em App.jsx
 export const DEFAULT_CACHE_TTL = 6 * 60 * 60 * 1000 // 6 horas em ms
 
+const inFlightRequests = new Map()
+
+/**
+ * Executa `fetchFn` garantindo coalescência de requisições paralelas (Single-Flight).
+ * Se já houver uma Promise pendente para a mesma `cacheKey`, retorna a mesma Promise em trânsito.
+ *
+ * @template T
+ * @param {string} cacheKey
+ * @param {() => Promise<T>} fetchFn
+ * @returns {Promise<T>}
+ */
+export function fetchWithSingleFlight(cacheKey, fetchFn) {
+  if (typeof fetchFn !== 'function') {
+    throw new TypeError('fetchFn must be a function returning a Promise')
+  }
+
+  if (inFlightRequests.has(cacheKey)) {
+    return inFlightRequests.get(cacheKey)
+  }
+
+  let promise
+  try {
+    promise = Promise.resolve(fetchFn()).finally(() => {
+      inFlightRequests.delete(cacheKey)
+    })
+  } catch (err) {
+    inFlightRequests.delete(cacheKey)
+    return Promise.reject(err)
+  }
+
+  inFlightRequests.set(cacheKey, promise)
+  return promise
+}
+
+/** Limpa todas as requisições em voo (útil para testes e reset de sessão). */
+export function clearInFlightRequests() {
+  inFlightRequests.clear()
+}
+
 function readIndex() {
   try {
     const raw = localStorage.getItem(INDEX_KEY)
@@ -121,6 +160,7 @@ export function clearCache(cacheKey) {
 
 /** Limpa todas as chaves rastreadas no índice de cache e chaves `animatch_*` do `localStorage`. */
 export function clearAllApiCache() {
+  clearInFlightRequests()
   try {
     const indexed = readIndex()
     for (const key of indexed) {

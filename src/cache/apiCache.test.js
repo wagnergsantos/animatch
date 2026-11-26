@@ -1,10 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { readCache, readStaleCache, writeCache, clearCache, DEFAULT_CACHE_TTL } from './apiCache.js'
+import { readCache, readStaleCache, writeCache, clearCache, DEFAULT_CACHE_TTL, fetchWithSingleFlight, clearInFlightRequests } from './apiCache.js'
 
 const INDEX_KEY = 'animatch_cache_index'
 
 beforeEach(() => {
   localStorage.clear()
+  clearInFlightRequests()
   vi.useRealTimers()
 })
 
@@ -88,5 +89,79 @@ describe('eviction LRU (A1)', () => {
 
     expect(readCache('user-0', 5000)).toEqual(['atualizado']) // sobreviveu
     expect(readCache('user-1', 5000)).toBeNull() // foi evictada no lugar
+  })
+})
+
+describe('fetchWithSingleFlight', () => {
+  it('lança TypeError se fetchFn não for uma função', () => {
+    expect(() => fetchWithSingleFlight('key-invalid', null)).toThrow(TypeError)
+  })
+
+  it('coalesce chamadas concorrentes para a mesma chave executando o fetcher apenas uma vez', async () => {
+    let callCount = 0
+    const mockFetcher = vi.fn(async () => {
+      callCount += 1
+      await new Promise((resolve) => setTimeout(resolve, 20))
+      return { id: 42, title: 'Frieren' }
+    })
+
+    const [p1, p2, p3] = await Promise.all([
+      fetchWithSingleFlight('key-same', mockFetcher),
+      fetchWithSingleFlight('key-same', mockFetcher),
+      fetchWithSingleFlight('key-same', mockFetcher),
+    ])
+
+    expect(mockFetcher).toHaveBeenCalledTimes(1)
+    expect(callCount).toBe(1)
+    expect(p1).toEqual({ id: 42, title: 'Frieren' })
+    expect(p2).toBe(p1)
+    expect(p3).toBe(p1)
+  })
+
+  it('permite que chaves diferentes executem em paralelo separadamente', async () => {
+    const fetcherA = vi.fn(async () => 'resultado-a')
+    const fetcherB = vi.fn(async () => 'resultado-b')
+
+    const [resA, resB] = await Promise.all([
+      fetchWithSingleFlight('key-a', fetcherA),
+      fetchWithSingleFlight('key-b', fetcherB),
+    ])
+
+    expect(fetcherA).toHaveBeenCalledTimes(1)
+    expect(fetcherB).toHaveBeenCalledTimes(1)
+    expect(resA).toBe('resultado-a')
+    expect(resB).toBe('resultado-b')
+  })
+
+  it('limpa o registro em voo após a conclusão, permitindo nova execução posterior', async () => {
+    let count = 0
+    const fetcher = vi.fn(async () => ++count)
+
+    const first = await fetchWithSingleFlight('key-sequential', fetcher)
+    expect(first).toBe(1)
+
+    const second = await fetchWithSingleFlight('key-sequential', fetcher)
+    expect(second).toBe(2)
+    expect(fetcher).toHaveBeenCalledTimes(2)
+  })
+
+  it('limpa o registro em voo após rejeição e propaga o erro', async () => {
+    const failingFetcher = vi.fn(async () => {
+      throw new Error('Falha de rede')
+    })
+
+    await expect(
+      Promise.all([
+        fetchWithSingleFlight('key-fail', failingFetcher),
+        fetchWithSingleFlight('key-fail', failingFetcher),
+      ])
+    ).rejects.toThrow('Falha de rede')
+
+    expect(failingFetcher).toHaveBeenCalledTimes(1)
+
+    // Após o erro ser consumido, uma nova chamada consegue tentar novamente
+    const recoveryFetcher = vi.fn(async () => 'recuperado')
+    const result = await fetchWithSingleFlight('key-fail', recoveryFetcher)
+    expect(result).toBe('recuperado')
   })
 })

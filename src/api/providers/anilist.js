@@ -6,7 +6,7 @@ import {
   NonRetryableError,
   ProviderError,
 } from '../errors.js'
-import { readCache, writeCache, clearCache, DEFAULT_CACHE_TTL } from '../../cache/apiCache.js'
+import { readCache, writeCache, clearCache, DEFAULT_CACHE_TTL, fetchWithSingleFlight } from '../../cache/apiCache.js'
 import { CACHE_PREFIXES } from '../../lib/storageKeys.js'
 
 const _DEV = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.DEV) || false
@@ -233,14 +233,23 @@ export async function fetchAllLists(userName, options = {}) {
     }
   }
 
-  const data = await queryAniList(ALL_LISTS_QUERY, { userName })
-  const entries = flattenEntries(data)
+  return fetchWithSingleFlight(cacheKey, async () => {
+    if (!forceRefresh) {
+      const cached = readCache(cacheKey, CACHE_TTL)
+      if (Array.isArray(cached)) {
+        return cached
+      }
+    }
 
-  if (entries.length > 0) {
-    writeCache(cacheKey, entries)
-  }
+    const data = await queryAniList(ALL_LISTS_QUERY, { userName })
+    const entries = flattenEntries(data)
 
-  return entries
+    if (entries.length > 0) {
+      writeCache(cacheKey, entries)
+    }
+
+    return entries
+  })
 }
 
 export function clearUserCache(userName) {
