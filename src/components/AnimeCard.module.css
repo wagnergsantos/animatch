@@ -385,13 +385,54 @@
   color: #ffffff;
 }
 
+.franchise-child-badge {
+  display: inline-block;
+  font-size: var(--text-xs, 0.75rem);
+  font-weight: 600;
+  color: #818cf8;
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: var(--radius-sm, 4px);
+  padding: 1px 6px;
+  margin-bottom: var(--space-1, 4px);
+  width: fit-content;
+}
+
+.anime-card__franchise-actions {
+  margin-top: var(--space-2, 8px);
+  margin-bottom: var(--space-1, 4px);
+}
+
+.franchise-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  color: #a5b4fc;
+  border-radius: var(--radius-full, 9999px);
+  font-size: var(--text-xs, 0.75rem);
+  font-weight: 600;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.franchise-pill-btn:hover {
+  background: rgba(99, 102, 241, 0.25);
+  border-color: rgba(99, 102, 241, 0.6);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .anime-card:hover,
   .anime-card:focus-visible {
     transform: none;
   }
 
-  .anime-card__anilist-quickbtn:hover {
+  .anime-card__anilist-quickbtn:hover,
+  .franchise-pill-btn:hover {
     transform: none;
   }
 }

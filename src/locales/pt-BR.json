@@ -186,7 +186,10 @@
     "collapseDetails": "Recolher detalhes",
     "viewGrid": "Grade",
     "viewList": "Lista",
-    "lowConfidenceBanner": "Poucas notas: usando seu histórico de status. Avalie mais animes para recomendações mais precisas."
+    "lowConfidenceBanner": "Poucas notas: usando seu histórico de status. Avalie mais animes para recomendações mais precisas.",
+    "franchiseCount": "+{{count}} na franquia",
+    "franchiseCollapse": "Ocultar {{count}} da franquia",
+    "franchiseBadge": "Franquia"
   },
   "status": {
     "FINISHED": "Concluído",

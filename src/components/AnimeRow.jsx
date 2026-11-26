@@ -5,7 +5,14 @@ import { translateGenre } from '../lib/genreTranslations.js'
 import { isSafeExternalUrl, filterRegionalStreamingLinks, normalizeServiceName } from '../logic/streaming.js'
 import styles from './AnimeRow.module.css'
 
-export default function AnimeRow({ anime, titlePref = 'english', priority = false, subscriptions = [] }) {
+export default function AnimeRow({
+  anime,
+  titlePref = 'english',
+  priority = false,
+  subscriptions = [],
+  isFranchiseExpanded = false,
+  onToggleFranchise,
+}) {
   const [isExpanded, setIsExpanded] = useState(false)
   const { t, i18n } = useTranslation()
 
@@ -117,6 +124,11 @@ export default function AnimeRow({ anime, titlePref = 'english', priority = fals
 
         <div className={styles['anime-row-main']}>
           <div className={styles['anime-row-title-group']}>
+            {anime?._isFranchiseChild && (
+              <span className={styles['anime-row-franchise-badge']} title={t('labels.franchiseBadge', 'Franquia')}>
+                🔗 {t('labels.franchiseBadge', 'Franquia')}
+              </span>
+            )}
             <h3 className={styles['anime-row-title']}>{mainTitle}</h3>
             {subTitle && <span className={styles['anime-row-subtitle']}>({subTitle})</span>}
           </div>
@@ -167,6 +179,31 @@ export default function AnimeRow({ anime, titlePref = 'english', priority = fals
         </div>
 
         <div className={styles['anime-row-actions']}>
+          {Array.isArray(anime?.franchiseChildren) && anime.franchiseChildren.length > 0 && (
+            <button
+              type="button"
+              className={styles['anime-row-franchise-btn']}
+              onClick={(e) => {
+                e.stopPropagation()
+                onToggleFranchise?.(e)
+              }}
+              data-testid="franchise-toggle-btn"
+              aria-expanded={isFranchiseExpanded}
+              title={
+                isFranchiseExpanded
+                  ? t('labels.franchiseCollapse', { count: anime.franchiseChildren.length, defaultValue: `Ocultar ${anime.franchiseChildren.length} da franquia` })
+                  : t('labels.franchiseCount', { count: anime.franchiseChildren.length, defaultValue: `+${anime.franchiseChildren.length} na franquia` })
+              }
+            >
+              <span aria-hidden="true">{isFranchiseExpanded ? '▲' : '▼'}</span>
+              <span>
+                {isFranchiseExpanded
+                  ? t('labels.franchiseCollapse', { count: anime.franchiseChildren.length, defaultValue: `Ocultar ${anime.franchiseChildren.length} da franquia` })
+                  : t('labels.franchiseCount', { count: anime.franchiseChildren.length, defaultValue: `+${anime.franchiseChildren.length} na franquia` })}
+              </span>
+            </button>
+          )}
+
           <button
             className={styles['anime-row-quick-btn']}
             onClick={handleDirectProviderClick}

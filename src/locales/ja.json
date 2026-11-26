@@ -186,7 +186,10 @@
     "viewGrid": "グリッド",
     "viewList": "リスト",
     "lowConfidenceBanner": "評価数が少ないため視聴ステータス履歴を使用しています。より正確な推薦のために評価を追加してください。",
-    "sharedGenresExplanation": "共通ジャンル: {{genres}}。"
+    "sharedGenresExplanation": "共通ジャンル: {{genres}}。",
+    "franchiseCount": "他{{count}}作（シリーズ）",
+    "franchiseCollapse": "シリーズ作品を非表示（{{count}}）",
+    "franchiseBadge": "シリーズ"
   },
   "status": {
     "FINISHED": "完了",

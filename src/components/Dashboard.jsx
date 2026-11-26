@@ -229,6 +229,16 @@ export default function Dashboard({
     isLoading || (hasMultiAccounts && isEnsembleLoading && currentEntries.length === 0)
   )
 
+  const isFiltered = Boolean(
+    (searchQuery && searchQuery.trim().length > 0) ||
+      selectedFilterGenre !== 'ALL' ||
+      selectedYear !== 'ALL' ||
+      selectedFormat !== 'ALL' ||
+      selectedBadge !== 'ALL' ||
+      isSeasonOnly ||
+      isStreamingOnly
+  )
+
   const activeProviderLabels = useMemo(() => {
     return Object.entries(linkedUsernames || {})
       .filter(([, name]) => typeof name === 'string' && name.trim().length > 0)
@@ -470,6 +480,7 @@ export default function Dashboard({
                 isLoadingMore={isLoadingMore}
                 totalCount={totalCount}
                 sortBy={sortBy}
+                isFiltered={isFiltered}
                 provider={currentScopedProvider}
                 titlePref={titlePref}
                 subscriptions={subscriptions}

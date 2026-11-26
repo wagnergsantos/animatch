@@ -186,7 +186,10 @@
     "collapseDetails": "Collapse details",
     "viewGrid": "Grid",
     "viewList": "List",
-    "lowConfidenceBanner": "Few ratings: using your status history. Rate more anime for more accurate recommendations."
+    "lowConfidenceBanner": "Few ratings: using your status history. Rate more anime for more accurate recommendations.",
+    "franchiseCount": "+{{count}} in franchise",
+    "franchiseCollapse": "Hide {{count}} in franchise",
+    "franchiseBadge": "Franchise"
   },
   "status": {
     "FINISHED": "Finished",

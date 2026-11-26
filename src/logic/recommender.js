@@ -199,7 +199,7 @@ export function normalizeFranchiseTitle(title) {
     .toLowerCase()
     .replace(/\s*(\(|\[).*?(\)|\])/g, '')
     .replace(/\s*(:| - | -|–|—).*$/, '')
-    .replace(/\s+(season|the movie|movie|ova|ona|special|2nd season|3rd season|part \d+).*$/i, '')
+    .replace(/\s+(season|the movie|movie|ova|ona|special|\d+(st|nd|rd|th)? season|part \d+)\b.*$/i, '')
     .trim()
 }
 
@@ -209,9 +209,44 @@ export function isSameFranchise(title1, title2) {
   if (!norm1 || !norm2) return false
   if (norm1 === norm2) return true
   if (norm1.length >= 4 && norm2.length >= 4) {
-    if (norm1.startsWith(norm2) || norm2.startsWith(norm1)) return true
+    if (norm1.startsWith(norm2 + ' ') || norm2.startsWith(norm1 + ' ')) return true
   }
   return false
+}
+
+export function isSameFranchiseAnime(anime1, anime2) {
+  if (!anime1 || !anime2) return false
+  const t1 = anime1.title || anime1.titleObj?.romaji || anime1.titleObj?.english
+  const t2 = anime2.title || anime2.titleObj?.romaji || anime2.titleObj?.english
+  if (!t1 || !t2) return false
+  if (isSameFranchise(t1, t2)) return true
+  if (anime1.titleObj?.romaji && anime2.titleObj?.romaji && isSameFranchise(anime1.titleObj.romaji, anime2.titleObj.romaji)) return true
+  if (anime1.titleObj?.english && anime2.titleObj?.english && isSameFranchise(anime1.titleObj.english, anime2.titleObj.english)) return true
+  return false
+}
+
+export function groupRecommendationsByFranchise(recommendations = [], isEnabled = true) {
+  if (!isEnabled || !Array.isArray(recommendations) || recommendations.length === 0) {
+    return recommendations
+  }
+
+  const grouped = []
+  for (const item of recommendations) {
+    const parent = grouped.find((root) => isSameFranchiseAnime(root, item))
+    if (parent) {
+      if (!parent.franchiseChildren) {
+        parent.franchiseChildren = []
+      }
+      parent.franchiseChildren.push(item)
+    } else {
+      grouped.push({
+        ...item,
+        franchiseChildren: [],
+      })
+    }
+  }
+
+  return grouped
 }
 
 export function buildTasteProfile(entries = [], options = {}) {

@@ -19,7 +19,15 @@ const PROVIDER_FULL_LABELS = {
   anilist: 'AniList',
 }
 
-export default function AnimeCard({ anime, titlePref = 'english', priority = false, subscriptions = [], onCardClick }) {
+export default function AnimeCard({
+  anime,
+  titlePref = 'english',
+  priority = false,
+  subscriptions = [],
+  onCardClick,
+  isFranchiseExpanded = false,
+  onToggleFranchise,
+}) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [expandedBadge, setExpandedBadge] = useState(null)
   const cardRef = useRef(null)
@@ -263,6 +271,11 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
           </div>
         </div>
         <div className={styles['anime-card__body']}>
+          {anime?._isFranchiseChild && (
+            <span className={styles['franchise-child-badge']} title={t('labels.franchiseBadge', 'Franquia')}>
+              🔗 {t('labels.franchiseBadge', 'Franquia')}
+            </span>
+          )}
           <h3 className={styles['anime-card__title']} title={mainTitle}>{mainTitle}</h3>
           {subTitle && <div className={styles['anime-card__subtitle']}>{subTitle}</div>}
           {(() => {
@@ -297,6 +310,33 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
             <p className={styles['anime-card__community']}>
               {t('labels.community')}: {(anime.communityScore).toFixed(1)}/10
             </p>
+          )}
+
+          {Array.isArray(anime?.franchiseChildren) && anime.franchiseChildren.length > 0 && (
+            <div className={styles['anime-card__franchise-actions']}>
+              <button
+                type="button"
+                className={styles['franchise-pill-btn']}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onToggleFranchise?.(e)
+                }}
+                data-testid="franchise-toggle-btn"
+                aria-expanded={isFranchiseExpanded}
+                title={
+                  isFranchiseExpanded
+                    ? t('labels.franchiseCollapse', { count: anime.franchiseChildren.length, defaultValue: `Ocultar ${anime.franchiseChildren.length} da franquia` })
+                    : t('labels.franchiseCount', { count: anime.franchiseChildren.length, defaultValue: `+${anime.franchiseChildren.length} na franquia` })
+                }
+              >
+                <span aria-hidden="true">{isFranchiseExpanded ? '▲' : '▼'}</span>
+                <span>
+                  {isFranchiseExpanded
+                    ? t('labels.franchiseCollapse', { count: anime.franchiseChildren.length, defaultValue: `Ocultar ${anime.franchiseChildren.length} da franquia` })
+                    : t('labels.franchiseCount', { count: anime.franchiseChildren.length, defaultValue: `+${anime.franchiseChildren.length} na franquia` })}
+                </span>
+              </button>
+            </div>
           )}
 
           {(() => {

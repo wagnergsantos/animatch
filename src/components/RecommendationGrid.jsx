@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useDeferredValue } from 'react'
 import { useTranslation } from 'react-i18next'
 import AnimeCard from './AnimeCard.jsx'
 import AnimeRow from './AnimeRow.jsx'
-import { resolveYear } from '../logic/recommender.js'
+import { resolveYear, groupRecommendationsByFranchise } from '../logic/recommender.js'
 import styles from './RecommendationGrid.module.css'
 import cardStyles from './AnimeCard.module.css'
 
@@ -43,9 +43,29 @@ export default function RecommendationGrid({
   headerActions = null, 
   isLoadingMore = false,
   totalCount = 0,
-  initialBatchSize = INITIAL_BATCH_SIZE 
+  initialBatchSize = INITIAL_BATCH_SIZE,
+  isFiltered = false,
+  isGroupFranchisesEnabled = true
 }) {
   const { t } = useTranslation()
+
+  // Estado para franquias expandidas inline
+  const [expandedFranchises, setExpandedFranchises] = useState(() => new Set())
+
+  const toggleFranchise = (id, e) => {
+    if (e && typeof e.stopPropagation === 'function') {
+      e.stopPropagation()
+    }
+    setExpandedFranchises((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
 
   // Garantir que sempre temos um array
   const safeRecommendations = useMemo(
@@ -66,7 +86,9 @@ export default function RecommendationGrid({
     setVisibleCount((prev) => (Number.isFinite(prev) ? prev + BATCH_STEP : prev))
   }
 
-  const displayRecommendations = useMemo(() => {
+  const shouldGroupFranchises = isGroupFranchisesEnabled && sortBy === 'predicted' && !isFiltered
+
+  const baseRecommendations = useMemo(() => {
     if (!safeRecommendations || safeRecommendations.length === 0) return []
 
     const sorted = [...safeRecommendations].sort((a, b) => {
@@ -108,8 +130,27 @@ export default function RecommendationGrid({
       return (b.communityScore || 0) - (a.communityScore || 0)
     })
 
-    return sorted
-  }, [safeRecommendations, sortBy])
+    return shouldGroupFranchises ? groupRecommendationsByFranchise(sorted, true) : sorted
+  }, [safeRecommendations, sortBy, shouldGroupFranchises])
+
+  const displayRecommendations = useMemo(() => {
+    if (!shouldGroupFranchises) return baseRecommendations
+
+    const flattened = []
+    for (const item of baseRecommendations) {
+      flattened.push(item)
+      if (expandedFranchises.has(item.id) && Array.isArray(item.franchiseChildren)) {
+        for (const child of item.franchiseChildren) {
+          flattened.push({
+            ...child,
+            _isFranchiseChild: true,
+            _parentFranchiseTitle: item.title,
+          })
+        }
+      }
+    }
+    return flattened
+  }, [baseRecommendations, shouldGroupFranchises, expandedFranchises])
 
   const visibleRecommendations = useMemo(
     () => displayRecommendations.slice(0, visibleCount),
@@ -159,11 +200,13 @@ export default function RecommendationGrid({
         <div className={styles['recommendation-grid__list']}>
           {visibleRecommendations.map((rec, index) => (
             <AnimeRow
-              key={rec.id}
+              key={rec._isFranchiseChild ? `${rec.id}-franchise-child` : rec.id}
               anime={rec}
               titlePref={titlePref}
               subscriptions={subscriptions}
               priority={index < 8}
+              isFranchiseExpanded={expandedFranchises.has(rec.id)}
+              onToggleFranchise={(e) => toggleFranchise(rec.id, e)}
             />
           ))}
         </div>
@@ -171,11 +214,13 @@ export default function RecommendationGrid({
         <div className={styles['recommendation-grid__grid']}>
           {visibleRecommendations.map((rec, index) => (
             <AnimeCard
-              key={rec.id}
+              key={rec._isFranchiseChild ? `${rec.id}-franchise-child` : rec.id}
               anime={rec}
               titlePref={titlePref}
               subscriptions={subscriptions}
               priority={index < 8}
+              isFranchiseExpanded={expandedFranchises.has(rec.id)}
+              onToggleFranchise={(e) => toggleFranchise(rec.id, e)}
             />
           ))}
         </div>

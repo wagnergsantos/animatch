@@ -4,6 +4,8 @@ import {
   resolveYear,
   normalizeFranchiseTitle,
   isSameFranchise,
+  isSameFranchiseAnime,
+  groupRecommendationsByFranchise,
   calculateWeightedGenreAverage,
   calculateDampedCommunityScore,
   evaluateStatusProxy,
@@ -1232,6 +1234,48 @@ describe('calculateDampedCommunityScore', () => {
     expect(result[0].id).toBe(2)
     expect(result[1].id).toBe(1)
     expect(result[0].communityScore).toBeGreaterThan(result[1].communityScore)
+  })
+})
+
+describe('groupRecommendationsByFranchise', () => {
+  it('groups subsequent franchise entries under the primary entry', () => {
+    const list = [
+      { id: 1, title: 'Made in Abyss', predictedScore: 8.5 },
+      { id: 2, title: 'Steins;Gate', predictedScore: 8.4 },
+      { id: 3, title: 'Made in Abyss: Golden City of the Scorching Sun', predictedScore: 8.2 },
+      { id: 4, title: 'One Piece', predictedScore: 7.9 },
+      { id: 5, title: 'One Piece Film: Red', predictedScore: 7.5 },
+    ]
+
+    const grouped = groupRecommendationsByFranchise(list, true)
+    expect(grouped).toHaveLength(3)
+    expect(grouped[0].title).toBe('Made in Abyss')
+    expect(grouped[0].franchiseChildren).toHaveLength(1)
+    expect(grouped[0].franchiseChildren[0].id).toBe(3)
+
+    expect(grouped[1].title).toBe('Steins;Gate')
+    expect(grouped[1].franchiseChildren).toHaveLength(0)
+
+    expect(grouped[2].title).toBe('One Piece')
+    expect(grouped[2].franchiseChildren).toHaveLength(1)
+    expect(grouped[2].franchiseChildren[0].id).toBe(5)
+  })
+
+  it('returns original list when isEnabled is false', () => {
+    const list = [
+      { id: 1, title: 'One Piece', predictedScore: 7.9 },
+      { id: 2, title: 'One Piece Film: Red', predictedScore: 7.5 },
+    ]
+
+    const result = groupRecommendationsByFranchise(list, false)
+    expect(result).toHaveLength(2)
+  })
+
+  it('matches franchise across titleObj properties', () => {
+    const anime1 = { id: 1, title: 'Attack on Titan', titleObj: { romaji: 'Shingeki no Kyojin', english: 'Attack on Titan' } }
+    const anime2 = { id: 2, title: 'Shingeki no Kyojin Season 2', titleObj: { romaji: 'Shingeki no Kyojin Season 2', english: 'Attack on Titan Season 2' } }
+
+    expect(isSameFranchiseAnime(anime1, anime2)).toBe(true)
   })
 })
 
