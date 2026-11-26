@@ -12,6 +12,11 @@ export const DEFAULT_COMMUNITY_WEIGHT = 0.15
 export const DEFAULT_BAYESIAN_GLOBAL_MEAN = 7.0
 export const DEFAULT_BAYESIAN_MIN_VOTES = 1000
 
+/**
+ * Distribuição a priori global de gêneros (probabilidade marginal P(g | catálogo)).
+ * Origem: Amostragem histórica consolidada das distribuições de gêneros do AniList/MAL.
+ * Calibração: Referência estática base (2024) para o cálculo de Genre Frequency Lift.
+ */
 export const GENRE_GLOBAL_PRIORS = Object.freeze({
   Action: 0.20,
   Adventure: 0.14,
@@ -193,6 +198,32 @@ export function resolveYear(item) {
   )
 }
 
+export const FORMAT_PRIORITY = Object.freeze({
+  TV: 1,
+  MOVIE: 2,
+  OVA: 3,
+  ONA: 4,
+  SPECIAL: 5,
+  OTHER: 6,
+})
+
+export function resolveFormat(item) {
+  if (!item) return 'OTHER'
+  const raw = item?.format ?? item?.media?.format ?? 'OTHER'
+  return typeof raw === 'string' ? raw.toUpperCase() : 'OTHER'
+}
+
+export function getFormatRank(format) {
+  if (!format || typeof format !== 'string') return FORMAT_PRIORITY.OTHER
+  const upper = format.toUpperCase()
+  return FORMAT_PRIORITY[upper] ?? FORMAT_PRIORITY.OTHER
+}
+
+function hasSeasonOrPart(title) {
+  if (!title || typeof title !== 'string') return false
+  return /\b(season|\d+(st|nd|rd|th)?\s+season|part\s*\d+|2nd|3rd|4th)\b/i.test(title)
+}
+
 export function normalizeFranchiseTitle(title) {
   if (!title || typeof title !== 'string') return ''
   return title
@@ -225,26 +256,140 @@ export function isSameFranchiseAnime(anime1, anime2) {
   return false
 }
 
+/**
+ * Identifica se duas obras da mesma franquia são adaptações alternativas/remakes
+ * em vez de continuações diretas:
+ * - Mesmo título normalizado
+ * - Nenhum possui Season / Part explícita no título
+ * - Diferença de ano de lançamento >= 5 anos
+ */
+export function isAlternativeAdaptation(anime1, anime2) {
+  if (!anime1 || !anime2) return false
+  if (!isSameFranchiseAnime(anime1, anime2)) return false
+
+  const y1 = resolveYear(anime1)
+  const y2 = resolveYear(anime2)
+  if (y1 == null || y2 == null) return false
+  if (Math.abs(y1 - y2) < 5) return false
+
+  const t1 = anime1.title || anime1.titleObj?.romaji || anime1.titleObj?.english || ''
+  const t2 = anime2.title || anime2.titleObj?.romaji || anime2.titleObj?.english || ''
+  if (hasSeasonOrPart(t1) || hasSeasonOrPart(t2)) return false
+
+  return true
+}
+
+/**
+ * Seleciona a entrada raiz de um grupo de franquia.
+ * Regras:
+ * 1. Se o grupo contiver adaptações alternativas (remakes entre si com delta de ano >= 5):
+ *    A raiz deve ser a de maior Match (predictedScore).
+ * 2. Para continuações da mesma obra (sequências):
+ *    A raiz deve ser a primeira entrada ainda não vista:
+ *    Hierarquia de formato: TV > MOVIE > OVA > ONA > SPECIAL > OTHER.
+ *    Menor ano de lançamento primeiro.
+ *    Desempate por maior Match.
+ */
+export function pickFranchiseRoot(group = []) {
+  if (!Array.isArray(group) || group.length === 0) return null
+  if (group.length === 1) return group[0]
+
+  const hasRemake = group.some((a, i) =>
+    group.some((b, j) => i < j && isAlternativeAdaptation(a, b))
+  )
+
+  if (hasRemake) {
+    // Entre re-adaptações, a raiz é a de maior Match
+    return [...group].sort((a, b) => {
+      const scoreDiff = (b.predictedScore || 0) - (a.predictedScore || 0)
+      if (Math.abs(scoreDiff) > 0.0001) return scoreDiff
+      const rankA = getFormatRank(resolveFormat(a))
+      const rankB = getFormatRank(resolveFormat(b))
+      if (rankA !== rankB) return rankA - rankB
+      const yA = resolveYear(a)
+      const yB = resolveYear(b)
+      if (yA != null && yB != null && yA !== yB) return yA - yB
+      return 0
+    })[0]
+  }
+
+  // Continuações normais: TV > MOVIE > OVA..., menor ano de lançamento primeiro, maior Match como desempate
+  return [...group].sort((a, b) => {
+    const rankA = getFormatRank(resolveFormat(a))
+    const rankB = getFormatRank(resolveFormat(b))
+    if (rankA !== rankB) return rankA - rankB
+
+    const yA = resolveYear(a)
+    const yB = resolveYear(b)
+    if (yA != null && yB != null && yA !== yB) return yA - yB
+    if (yA != null && yB == null) return -1
+    if (yA == null && yB != null) return 1
+
+    const scoreDiff = (b.predictedScore || 0) - (a.predictedScore || 0)
+    if (Math.abs(scoreDiff) > 0.0001) return scoreDiff
+    return 0
+  })[0]
+}
+
 export function groupRecommendationsByFranchise(recommendations = [], isEnabled = true) {
   if (!isEnabled || !Array.isArray(recommendations) || recommendations.length === 0) {
     return recommendations
   }
 
-  const grouped = []
+  const buckets = []
   for (const item of recommendations) {
-    const parent = grouped.find((root) => isSameFranchiseAnime(root, item))
-    if (parent) {
-      if (!parent.franchiseChildren) {
-        parent.franchiseChildren = []
-      }
-      parent.franchiseChildren.push(item)
+    const bucket = buckets.find((b) => b.some((existing) => isSameFranchiseAnime(existing, item)))
+    if (bucket) {
+      bucket.push(item)
     } else {
-      grouped.push({
-        ...item,
-        franchiseChildren: [],
-      })
+      buckets.push([item])
     }
   }
+
+  const grouped = []
+  for (const bucket of buckets) {
+    if (bucket.length === 1) {
+      grouped.push({
+        ...bucket[0],
+        franchiseChildren: [],
+      })
+      continue
+    }
+
+    const rootItem = pickFranchiseRoot(bucket)
+    const children = bucket
+      .filter((item) => item !== rootItem)
+      .map((child) => {
+        const isAlt = isAlternativeAdaptation(child, rootItem)
+        const childYear = resolveYear(child)
+        return {
+          ...child,
+          _isFranchiseChild: true,
+          _isAlternativeAdaptation: isAlt,
+          _childYear: childYear,
+        }
+      })
+      .sort((a, b) => {
+        const yA = resolveYear(a)
+        const yB = resolveYear(b)
+        if (yA != null && yB != null && yA !== yB) return yA - yB
+        return (b.predictedScore || 0) - (a.predictedScore || 0)
+      })
+
+    grouped.push({
+      ...rootItem,
+      franchiseChildren: children,
+    })
+  }
+
+  // O card raiz não herda nota do grupo: grupo posicionado pelo próprio Match da raiz
+  grouped.sort((a, b) => {
+    const scoreDiff = (b.predictedScore || 0) - (a.predictedScore || 0)
+    if (Math.abs(scoreDiff) > 0.0001) return scoreDiff
+    const commDiff = (b.communityScore || 0) - (a.communityScore || 0)
+    if (Math.abs(commDiff) > 0.0001) return commDiff
+    return (a.title || '').localeCompare(b.title || '')
+  })
 
   return grouped
 }
@@ -420,7 +565,9 @@ export function buildTasteProfile(entries = [], options = {}) {
   profile.confidence = Math.round(confidence * 100) / 100
   profile.dynamicTasteWeight = dynamicTasteWeight
   profile.dynamicCommunityWeight = dynamicCommunityWeight
-  profile.isLowConfidence = confidence < 0.5
+  // Banner de baixa confiança desacoplado do proxy: dispara quando há poucas notas explícitas (< 10) em perfil não-vazio
+  // O ponto nExplicit = 10 corresponde ao momento em que o proxyDecay atinge 0.50
+  profile.isLowConfidence = nExplicit < 10 && entries.length > 0
 
   return profile
 }

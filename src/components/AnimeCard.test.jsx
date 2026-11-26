@@ -351,6 +351,33 @@ describe('AnimeCard', () => {
     expect(screen.getByText('Mistério')).toBeInTheDocument()
     expect(screen.getByText(/Combina com seu gosto por Ação, Comédia/i)).toBeInTheDocument()
   })
+
+  it('renders franchise child badge with SVG icon and alternative adaptation tag', () => {
+    const regularChild = {
+      id: 201,
+      title: 'Mob Psycho 100 II',
+      _isFranchiseChild: true,
+      predictedScore: 8.9,
+    }
+
+    const { rerender } = render(<AnimeCard anime={regularChild} />)
+    const badge = screen.getByTitle('Franquia')
+    expect(badge).toBeInTheDocument()
+    expect(badge.querySelector('svg')).toBeInTheDocument()
+    expect(badge.textContent).not.toContain('🔗')
+
+    const altChild = {
+      id: 202,
+      title: 'Hunter x Hunter (1999)',
+      _isFranchiseChild: true,
+      _isAlternativeAdaptation: true,
+      _childYear: 1999,
+      predictedScore: 8.2,
+    }
+
+    rerender(<AnimeCard anime={altChild} />)
+    expect(screen.getByText('Adaptação alternativa (1999)')).toBeInTheDocument()
+  })
 })
 
 

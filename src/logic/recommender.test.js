@@ -5,6 +5,8 @@ import {
   normalizeFranchiseTitle,
   isSameFranchise,
   isSameFranchiseAnime,
+  isAlternativeAdaptation,
+  pickFranchiseRoot,
   groupRecommendationsByFranchise,
   calculateWeightedGenreAverage,
   calculateDampedCommunityScore,
@@ -1276,6 +1278,98 @@ describe('groupRecommendationsByFranchise', () => {
     const anime2 = { id: 2, title: 'Shingeki no Kyojin Season 2', titleObj: { romaji: 'Shingeki no Kyojin Season 2', english: 'Attack on Titan Season 2' } }
 
     expect(isSameFranchiseAnime(anime1, anime2)).toBe(true)
+  })
+
+  describe('isAlternativeAdaptation and pickFranchiseRoot', () => {
+    it('detects alternative adaptations (remakes) with delta year >= 5 and no season/part', () => {
+      const hxh1999 = { id: 1, title: 'Hunter x Hunter', year: 1999, format: 'TV' }
+      const hxh2011 = { id: 2, title: 'Hunter x Hunter (2011)', year: 2011, format: 'TV' }
+      expect(isAlternativeAdaptation(hxh1999, hxh2011)).toBe(true)
+
+      const fma2003 = { id: 3, title: 'Fullmetal Alchemist', year: 2003, format: 'TV' }
+      const fma2009 = { id: 4, title: 'Fullmetal Alchemist: Brotherhood', year: 2009, format: 'TV' }
+      expect(isAlternativeAdaptation(fma2003, fma2009)).toBe(true)
+    })
+
+    it('rejects sequels with explicit Season or Part or delta year < 5 as alternative adaptations', () => {
+      const s1 = { id: 1, title: 'Vinland Saga', year: 2019, format: 'TV' }
+      const s2 = { id: 2, title: 'Vinland Saga Season 2', year: 2023, format: 'TV' }
+      expect(isAlternativeAdaptation(s1, s2)).toBe(false)
+
+      const cg1 = { id: 3, title: 'Code Geass: Lelouch of the Rebellion', year: 2006, format: 'TV' }
+      const cg2 = { id: 4, title: 'Code Geass: Lelouch of the Rebellion R2', year: 2008, format: 'TV' }
+      expect(isAlternativeAdaptation(cg1, cg2)).toBe(false)
+    })
+
+    it('picks root with highest match for alternative adaptations (remakes)', () => {
+      const hxh1999 = { id: 1, title: 'Hunter x Hunter', year: 1999, format: 'TV', predictedScore: 8.2 }
+      const hxh2011 = { id: 2, title: 'Hunter x Hunter (2011)', year: 2011, format: 'TV', predictedScore: 8.9 }
+
+      const root = pickFranchiseRoot([hxh1999, hxh2011])
+      expect(root.id).toBe(2)
+      expect(root.predictedScore).toBe(8.9)
+    })
+
+    it('picks first entry by TV format and lowest year for regular sequels', () => {
+      const s1 = { id: 1, title: 'Mob Psycho 100', year: 2016, format: 'TV', predictedScore: 8.4 }
+      const s2 = { id: 2, title: 'Mob Psycho 100 II', year: 2019, format: 'TV', predictedScore: 8.9 }
+      const movie = { id: 3, title: 'Mob Psycho 100 Reigen', year: 2018, format: 'MOVIE', predictedScore: 7.5 }
+
+      const root = pickFranchiseRoot([s2, movie, s1])
+      expect(root.id).toBe(1)
+      expect(root.title).toBe('Mob Psycho 100')
+    })
+
+    it('does not inflate root match with higher child match and tags child adaptation', () => {
+      const list = [
+        { id: 2, title: 'Mob Psycho 100 II', year: 2019, format: 'TV', predictedScore: 9.0 },
+        { id: 1, title: 'Mob Psycho 100', year: 2016, format: 'TV', predictedScore: 8.4 },
+        { id: 10, title: 'Death Note', year: 2006, format: 'TV', predictedScore: 8.7 },
+      ]
+
+      const grouped = groupRecommendationsByFranchise(list, true)
+      expect(grouped).toHaveLength(2)
+
+      // Death Note tem 8.7, maior que a raiz de Mob Psycho (8.4), então Death Note vem primeiro
+      expect(grouped[0].title).toBe('Death Note')
+      expect(grouped[0].predictedScore).toBe(8.7)
+
+      // Raiz de Mob Psycho é a Season 1 (2016) e mantém o seu próprio score de 8.4
+      expect(grouped[1].title).toBe('Mob Psycho 100')
+      expect(grouped[1].predictedScore).toBe(8.4)
+      expect(grouped[1].franchiseChildren).toHaveLength(1)
+      expect(grouped[1].franchiseChildren[0].id).toBe(2)
+      expect(grouped[1].franchiseChildren[0].predictedScore).toBe(9.0)
+      expect(grouped[1].franchiseChildren[0]._isFranchiseChild).toBe(true)
+    })
+  })
+
+  describe('banner low confidence decoupling', () => {
+    it('sets isLowConfidence true when nExplicit < 10 and entries > 0', () => {
+      const entries = Array.from({ length: 9 }, () => ({
+        score: 8,
+        media: { genres: ['Action'] },
+      }))
+      const profile = buildTasteProfile(entries)
+      expect(profile.nExplicit).toBe(9)
+      expect(profile.isLowConfidence).toBe(true)
+    })
+
+    it('sets isLowConfidence false when nExplicit >= 10', () => {
+      const entries = Array.from({ length: 10 }, () => ({
+        score: 8,
+        media: { genres: ['Action'] },
+      }))
+      const profile = buildTasteProfile(entries)
+      expect(profile.nExplicit).toBe(10)
+      expect(profile.isLowConfidence).toBe(false)
+    })
+
+    it('sets isLowConfidence false when entries is empty', () => {
+      const profile = buildTasteProfile([])
+      expect(profile.nExplicit).toBe(0)
+      expect(profile.isLowConfidence).toBe(false)
+    })
   })
 })
 

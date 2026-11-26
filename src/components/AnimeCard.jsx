@@ -272,8 +272,36 @@ export default function AnimeCard({
         </div>
         <div className={styles['anime-card__body']}>
           {anime?._isFranchiseChild && (
-            <span className={styles['franchise-child-badge']} title={t('labels.franchiseBadge', 'Franquia')}>
-              🔗 {t('labels.franchiseBadge', 'Franquia')}
+            <span
+              className={styles['franchise-child-badge']}
+              title={
+                anime._isAlternativeAdaptation
+                  ? (anime._childYear
+                      ? t('recommendationGrid.alternativeAdaptation', { year: anime._childYear })
+                      : t('recommendationGrid.alternativeAdaptationNoYear', 'Adaptação alternativa'))
+                  : t('labels.franchiseBadge', 'Franquia')
+              }
+            >
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+                style={{ display: 'inline-block', verticalAlign: '-1px', marginRight: '4px' }}
+              >
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+              </svg>
+              {anime._isAlternativeAdaptation
+                ? (anime._childYear
+                    ? t('recommendationGrid.alternativeAdaptation', { year: anime._childYear })
+                    : t('recommendationGrid.alternativeAdaptationNoYear', 'Adaptação alternativa'))
+                : t('labels.franchiseBadge', 'Franquia')}
             </span>
           )}
           <h3 className={styles['anime-card__title']} title={mainTitle}>{mainTitle}</h3>
@@ -323,6 +351,7 @@ export default function AnimeCard({
                 }}
                 data-testid="franchise-toggle-btn"
                 aria-expanded={isFranchiseExpanded}
+                aria-controls={`franchise-children-${anime.id}`}
                 title={
                   isFranchiseExpanded
                     ? t('labels.franchiseCollapse', { count: anime.franchiseChildren.length, defaultValue: `Ocultar ${anime.franchiseChildren.length} da franquia` })

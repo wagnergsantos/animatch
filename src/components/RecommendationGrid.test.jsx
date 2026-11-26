@@ -139,17 +139,24 @@ describe('RecommendationGrid', () => {
     it('groups franchise sequels under the root entry and toggles expansion inline', () => {
       render(<RecommendationGrid isLoading={false} recommendations={franchiseRecs} sortBy="predicted" />)
 
+      // Header com grupos indica quantidade de recomendações e total de animes
+      const headerTitle = screen.getByRole('heading', { level: 2 })
+      expect(headerTitle).toHaveTextContent(/2 recomendações, 3 animes no total/i)
+
       // Inicialmente, apenas Made in Abyss e Steins;Gate estão no nível raiz
       const headings = screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)
       expect(headings).toEqual(['Made in Abyss', 'Steins;Gate'])
 
-      // O card de Made in Abyss deve exibir o pill de franquia "+1 na franquia"
+      // O card de Made in Abyss deve exibir o pill de franquia "+1 na franquia" com aria-controls
       const toggleBtn = screen.getByTestId('franchise-toggle-btn')
       expect(toggleBtn).toBeInTheDocument()
       expect(toggleBtn).toHaveTextContent(/\+1 na franquia/i)
+      expect(toggleBtn).toHaveAttribute('aria-controls', 'franchise-children-101')
 
       // Clicar no botão expande a sequência inline
       fireEvent.click(toggleBtn)
+      expect(document.getElementById('franchise-children-101')).toBeInTheDocument()
+
       const expandedHeadings = screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)
       expect(expandedHeadings).toEqual([
         'Made in Abyss',
@@ -162,6 +169,35 @@ describe('RecommendationGrid', () => {
       fireEvent.click(toggleBtn)
       const collapsedHeadings = screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)
       expect(collapsedHeadings).toEqual(['Made in Abyss', 'Steins;Gate'])
+    })
+
+    it('paginates by franchise group instead of raw entries', () => {
+      const recs = [
+        { id: 1, title: 'Series A', predictedScore: 9.0 },
+        { id: 2, title: 'Series A Season 2', predictedScore: 8.9 },
+        { id: 3, title: 'Series B', predictedScore: 8.5 },
+        { id: 4, title: 'Series B Movie', predictedScore: 8.0 },
+      ]
+
+      render(
+        <RecommendationGrid
+          isLoading={false}
+          recommendations={recs}
+          sortBy="predicted"
+          initialBatchSize={1}
+        />
+      )
+
+      // Com batchSize = 1, mostra apenas a raiz do primeiro grupo
+      const headings = screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)
+      expect(headings).toEqual(['Series A'])
+
+      const loadMoreBtn = screen.getByTestId('load-more-btn')
+      expect(loadMoreBtn).toBeInTheDocument()
+
+      fireEvent.click(loadMoreBtn)
+      const afterLoadHeadings = screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)
+      expect(afterLoadHeadings).toEqual(['Series A', 'Series B'])
     })
 
     it('disables franchise grouping when isFiltered is true', () => {

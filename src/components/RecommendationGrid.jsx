@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useDeferredValue } from 'react'
+import { Fragment, useEffect, useMemo, useState, useDeferredValue } from 'react'
 import { useTranslation } from 'react-i18next'
 import AnimeCard from './AnimeCard.jsx'
 import AnimeRow from './AnimeRow.jsx'
@@ -133,31 +133,12 @@ export default function RecommendationGrid({
     return shouldGroupFranchises ? groupRecommendationsByFranchise(sorted, true) : sorted
   }, [safeRecommendations, sortBy, shouldGroupFranchises])
 
-  const displayRecommendations = useMemo(() => {
-    if (!shouldGroupFranchises) return baseRecommendations
-
-    const flattened = []
-    for (const item of baseRecommendations) {
-      flattened.push(item)
-      if (expandedFranchises.has(item.id) && Array.isArray(item.franchiseChildren)) {
-        for (const child of item.franchiseChildren) {
-          flattened.push({
-            ...child,
-            _isFranchiseChild: true,
-            _parentFranchiseTitle: item.title,
-          })
-        }
-      }
-    }
-    return flattened
-  }, [baseRecommendations, shouldGroupFranchises, expandedFranchises])
-
-  const visibleRecommendations = useMemo(
-    () => displayRecommendations.slice(0, visibleCount),
-    [displayRecommendations, visibleCount]
+  const visibleRoots = useMemo(
+    () => baseRecommendations.slice(0, visibleCount),
+    [baseRecommendations, visibleCount]
   )
-  const hasMore = displayRecommendations.length > visibleRecommendations.length
-  const deferredCount = useDeferredValue(displayRecommendations.length)
+  const hasMore = baseRecommendations.length > visibleCount
+  const deferredCount = useDeferredValue(baseRecommendations.length)
 
   if (isLoading) {
     return (
@@ -192,37 +173,89 @@ export default function RecommendationGrid({
       </p>
       <div className={styles['recommendation-grid__header']}>
         <h2 className={styles['recommendation-grid__title']} style={{ marginBottom: 0 }}>
-          {t('recommendationGrid.header', { count: displayRecommendations.length })}
+          {shouldGroupFranchises && baseRecommendations.length < safeRecommendations.length
+            ? t('recommendationGrid.headerWithGroups', {
+                groupsCount: baseRecommendations.length,
+                totalCount: safeRecommendations.length,
+                defaultValue: `Recomendações — O Que Assistir Agora (${baseRecommendations.length} recomendações, ${safeRecommendations.length} animes no total)`,
+              })
+            : t('recommendationGrid.header', { count: baseRecommendations.length })}
         </h2>
         {headerActions}
       </div>
       {viewMode === 'list' ? (
         <div className={styles['recommendation-grid__list']}>
-          {visibleRecommendations.map((rec, index) => (
-            <AnimeRow
-              key={rec._isFranchiseChild ? `${rec.id}-franchise-child` : rec.id}
-              anime={rec}
-              titlePref={titlePref}
-              subscriptions={subscriptions}
-              priority={index < 8}
-              isFranchiseExpanded={expandedFranchises.has(rec.id)}
-              onToggleFranchise={(e) => toggleFranchise(rec.id, e)}
-            />
-          ))}
+          {visibleRoots.map((rec, index) => {
+            const isExpanded = expandedFranchises.has(rec.id)
+            const hasChildren = shouldGroupFranchises && Array.isArray(rec.franchiseChildren) && rec.franchiseChildren.length > 0
+            return (
+              <Fragment key={rec.id}>
+                <AnimeRow
+                  anime={rec}
+                  titlePref={titlePref}
+                  subscriptions={subscriptions}
+                  priority={index < 8}
+                  isFranchiseExpanded={isExpanded}
+                  onToggleFranchise={(e) => toggleFranchise(rec.id, e)}
+                />
+                {isExpanded && hasChildren && (
+                  <div id={`franchise-children-${rec.id}`} style={{ display: 'contents' }}>
+                    {rec.franchiseChildren.map((child) => (
+                      <AnimeRow
+                        key={`${child.id}-franchise-child`}
+                        anime={{
+                          ...child,
+                          _isFranchiseChild: true,
+                          _parentFranchiseTitle: rec.title,
+                        }}
+                        titlePref={titlePref}
+                        subscriptions={subscriptions}
+                        priority={false}
+                        isFranchiseExpanded={false}
+                      />
+                    ))}
+                  </div>
+                )}
+              </Fragment>
+            )
+          })}
         </div>
       ) : (
         <div className={styles['recommendation-grid__grid']}>
-          {visibleRecommendations.map((rec, index) => (
-            <AnimeCard
-              key={rec._isFranchiseChild ? `${rec.id}-franchise-child` : rec.id}
-              anime={rec}
-              titlePref={titlePref}
-              subscriptions={subscriptions}
-              priority={index < 8}
-              isFranchiseExpanded={expandedFranchises.has(rec.id)}
-              onToggleFranchise={(e) => toggleFranchise(rec.id, e)}
-            />
-          ))}
+          {visibleRoots.map((rec, index) => {
+            const isExpanded = expandedFranchises.has(rec.id)
+            const hasChildren = shouldGroupFranchises && Array.isArray(rec.franchiseChildren) && rec.franchiseChildren.length > 0
+            return (
+              <Fragment key={rec.id}>
+                <AnimeCard
+                  anime={rec}
+                  titlePref={titlePref}
+                  subscriptions={subscriptions}
+                  priority={index < 8}
+                  isFranchiseExpanded={isExpanded}
+                  onToggleFranchise={(e) => toggleFranchise(rec.id, e)}
+                />
+                {isExpanded && hasChildren && (
+                  <div id={`franchise-children-${rec.id}`} style={{ display: 'contents' }}>
+                    {rec.franchiseChildren.map((child) => (
+                      <AnimeCard
+                        key={`${child.id}-franchise-child`}
+                        anime={{
+                          ...child,
+                          _isFranchiseChild: true,
+                          _parentFranchiseTitle: rec.title,
+                        }}
+                        titlePref={titlePref}
+                        subscriptions={subscriptions}
+                        priority={false}
+                        isFranchiseExpanded={false}
+                      />
+                    ))}
+                  </div>
+                )}
+              </Fragment>
+            )
+          })}
         </div>
       )}
       {hasMore && (
@@ -234,9 +267,9 @@ export default function RecommendationGrid({
             data-testid="load-more-btn"
           >
             {t('recommendationGrid.loadMoreWithCount', {
-              count: Math.min(BATCH_STEP, displayRecommendations.length - visibleRecommendations.length),
-              remaining: displayRecommendations.length - visibleRecommendations.length,
-              defaultValue: `${t('recommendationGrid.loadMore', 'Carregar mais animes')} (${Math.min(BATCH_STEP, displayRecommendations.length - visibleRecommendations.length)} de ${displayRecommendations.length - visibleRecommendations.length} restantes)`,
+              count: Math.min(BATCH_STEP, baseRecommendations.length - visibleCount),
+              remaining: Math.max(0, baseRecommendations.length - visibleCount),
+              defaultValue: `${t('recommendationGrid.loadMore', 'Carregar mais animes')} (${Math.min(BATCH_STEP, baseRecommendations.length - visibleCount)} de ${Math.max(0, baseRecommendations.length - visibleCount)} restantes)`,
             })}
           </button>
         </div>
@@ -246,7 +279,7 @@ export default function RecommendationGrid({
           <div className="skeleton" style={{ height: '1.5rem', width: '60%', margin: 'var(--space-4) auto' }} />
           <p style={{ textAlign: 'center', color: 'var(--color-text-muted)', fontSize: 'var(--font-size-sm)' }}>
             {t('recommendationGrid.loadingMore', {
-              count: Math.max(0, (totalCount > 0 ? totalCount : displayRecommendations.length) - visibleRecommendations.length),
+              count: Math.max(0, (totalCount > 0 ? totalCount : baseRecommendations.length) - visibleRoots.length),
             })}
           </p>
         </div>

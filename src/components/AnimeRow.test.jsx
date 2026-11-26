@@ -89,4 +89,28 @@ describe('AnimeRow', () => {
     expect(img).toHaveAttribute('fetchpriority', 'auto')
     expect(img).toHaveAttribute('decoding', 'async')
   })
+
+  it('renders franchise child badge with SVG icon and alternative adaptation tag', () => {
+    const regularChild = {
+      ...mockAnime,
+      _isFranchiseChild: true,
+    }
+
+    const { rerender } = render(<AnimeRow anime={regularChild} />)
+    const badge = screen.getByTitle('Franquia')
+    expect(badge).toBeInTheDocument()
+    expect(badge.querySelector('svg')).toBeInTheDocument()
+    expect(badge.textContent).not.toContain('🔗')
+
+    const altChild = {
+      ...mockAnime,
+      title: 'Hunter x Hunter',
+      _isFranchiseChild: true,
+      _isAlternativeAdaptation: true,
+      _childYear: 1999,
+    }
+
+    rerender(<AnimeRow anime={altChild} />)
+    expect(screen.getByText('Adaptação alternativa (1999)')).toBeInTheDocument()
+  })
 })
