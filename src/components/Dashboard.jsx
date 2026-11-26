@@ -454,6 +454,16 @@ export default function Dashboard({
               onStreamingOnlyChange={setIsStreamingOnly}
             />
             <div ref={gridRef}>
+              {tasteProfile?.isLowConfidence && recommendations.length > 0 && (
+                <div
+                  data-testid="low-confidence-banner"
+                  className={styles['dashboard__low-confidence-banner']}
+                  role="status"
+                >
+                  <span className={styles['dashboard__low-confidence-icon']} aria-hidden="true">ℹ️</span>
+                  <span>{t('labels.lowConfidenceBanner', 'Poucas notas: usando seu histórico de status. Avalie mais animes para recomendações mais precisas.')}</span>
+                </div>
+              )}
               <RecommendationGrid
                 recommendations={recommendations}
                 isLoading={isGridLoading}

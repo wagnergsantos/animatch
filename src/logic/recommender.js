@@ -12,23 +12,169 @@ export const DEFAULT_COMMUNITY_WEIGHT = 0.15
 export const DEFAULT_BAYESIAN_GLOBAL_MEAN = 7.0
 export const DEFAULT_BAYESIAN_MIN_VOTES = 10000
 
+export const GENRE_GLOBAL_PRIORS = Object.freeze({
+  Action: 0.20,
+  Adventure: 0.14,
+  Comedy: 0.22,
+  Drama: 0.16,
+  Fantasy: 0.18,
+  Horror: 0.04,
+  Mystery: 0.07,
+  Romance: 0.13,
+  'Sci-Fi': 0.10,
+  'Slice of Life': 0.11,
+  Sports: 0.05,
+  Supernatural: 0.12,
+  Suspense: 0.05,
+  Mecha: 0.04,
+  Psychological: 0.06,
+  Ecchi: 0.08,
+  DEFAULT: 0.08,
+})
+
 export const STATUS_SCORE_PROXY = Object.freeze({
-  COMPLETED: 8.0,
+  COMPLETED: 7.8,
   CURRENT: 7.0,
   WATCHING: 7.0,
-  ON_HOLD: 5.0,
-  PAUSED: 5.0,
-  DROPPED: 2.0,
+  ON_HOLD: 6.0,
+  PAUSED: 6.0,
+  DROPPED: 4.5,
 })
 
 export const STATUS_PROXY_WEIGHT = Object.freeze({
-  COMPLETED: 0.8,
-  CURRENT: 0.7,
-  WATCHING: 0.7,
-  ON_HOLD: 0.4,
-  PAUSED: 0.4,
-  DROPPED: 0.2,
+  COMPLETED: 0.50,
+  CURRENT: 0.25,
+  WATCHING: 0.25,
+  ON_HOLD: 0.25,
+  PAUSED: 0.25,
+  DROPPED: 0.50,
 })
+
+/**
+ * Avalia o sinal de proxy de uma obra não avaliada com base no status e progresso.
+ *
+ * @param {object} entry
+ * @returns {{ status: string, baseScore: number, baseWeight: number, isDropped: boolean } | null}
+ */
+export function evaluateStatusProxy(entry) {
+  if (!entry) return null
+  const rawStatus = (entry.status || 'COMPLETED').toUpperCase()
+  if (rawStatus === 'PLANNING' || rawStatus === 'PLAN_TO_WATCH' || rawStatus === 'PLANNED') {
+    return null
+  }
+
+  const progress = Number(entry.progress ?? entry.episodesWatched ?? 0) || 0
+  const totalEpisodes = Number(entry.media?.episodes ?? entry.totalEpisodes ?? 0) || 0
+  const progressRatio = totalEpisodes > 0 ? progress / totalEpisodes : null
+
+  if (rawStatus === 'COMPLETED') {
+    return {
+      status: 'COMPLETED',
+      baseScore: 7.8,
+      baseWeight: 0.50,
+      isDropped: false,
+    }
+  }
+
+  if (rawStatus === 'CURRENT' || rawStatus === 'WATCHING') {
+    // Ignora sinal fraco se progresso for menor que 30%
+    if (progressRatio != null && progressRatio < 0.30) {
+      return null
+    }
+    return {
+      status: 'WATCHING',
+      baseScore: 7.0,
+      baseWeight: 0.25,
+      isDropped: false,
+    }
+  }
+
+  if (rawStatus === 'ON_HOLD' || rawStatus === 'PAUSED') {
+    return {
+      status: 'ON_HOLD',
+      baseScore: 6.0,
+      baseWeight: 0.25,
+      isDropped: false,
+    }
+  }
+
+  if (rawStatus === 'DROPPED') {
+    let baseScore = 4.5
+    if (progressRatio != null) {
+      if (progressRatio < 0.25) {
+        baseScore = 4.0 // Abandono precoce = rejeição clara
+      } else if (progressRatio <= 0.75) {
+        baseScore = 4.5 // Sinal ambíguo
+      } else {
+        baseScore = 6.0 // Abandono no final = cansaço/falta de tempo
+      }
+    }
+    return {
+      status: 'DROPPED',
+      baseScore,
+      baseWeight: 0.50,
+      isDropped: true,
+    }
+  }
+
+  return null
+}
+
+/**
+ * Calcula os ajustes de Lift para cada gênero com base na proporção assistida vs catálogo.
+ *
+ * Lift(g) = P(gênero | usuário) / P(gênero | catálogo)
+ * ajuste_g = clamp(0.7 * ln(Lift(g)), -1.0, +1.0)
+ *
+ * @param {Array} entries
+ * @returns {Map<string, number>}
+ */
+export function calculateGenreLiftAdjustments(entries = []) {
+  const watchedGenreWeights = new Map()
+  const droppedGenreWeights = new Map()
+
+  for (const entry of entries) {
+    if (!entry?.media?.genres) continue
+    const proxy = evaluateStatusProxy(entry)
+    if (!proxy) continue
+
+    const genres = Array.isArray(entry.media.genres) ? entry.media.genres : []
+    for (const g of genres) {
+      if (!g) continue
+      if (proxy.isDropped) {
+        droppedGenreWeights.set(g, (droppedGenreWeights.get(g) || 0) + proxy.baseWeight)
+      } else {
+        watchedGenreWeights.set(g, (watchedGenreWeights.get(g) || 0) + proxy.baseWeight)
+      }
+    }
+  }
+
+  const allGenres = new Set([...watchedGenreWeights.keys(), ...droppedGenreWeights.keys()])
+  let totalUserWeight = 0
+  const netGenreWeights = new Map()
+
+  for (const g of allGenres) {
+    const wWatched = watchedGenreWeights.get(g) || 0
+    const wDropped = droppedGenreWeights.get(g) || 0
+    const netWeight = Math.max(0.01, wWatched - 0.5 * wDropped)
+    netGenreWeights.set(g, netWeight)
+    totalUserWeight += netWeight
+  }
+
+  const liftAdjustments = new Map()
+  if (totalUserWeight > 0) {
+    for (const [g, netWeight] of netGenreWeights.entries()) {
+      const pUser = netWeight / totalUserWeight
+      const pCatalog = GENRE_GLOBAL_PRIORS[g] || GENRE_GLOBAL_PRIORS.DEFAULT
+      const lift = pCatalog > 0 ? pUser / pCatalog : 1
+      const rawAdj = 0.7 * Math.log(lift || 1)
+      const clampedAdj = Math.max(-1.0, Math.min(1.0, rawAdj))
+      liftAdjustments.set(g, Math.round(clampedAdj * 100) / 100)
+    }
+  }
+
+  return liftAdjustments
+}
 
 export function resolveYear(item) {
   if (!item) return null
@@ -73,22 +219,27 @@ export function buildTasteProfile(entries = [], options = {}) {
     useStatusProxy = false,
   } = options
 
-  // Auto-detecta ativação do proxy de status quando lista do usuário não tem avaliações suficientes (< 3)
-  let shouldApplyProxy = Boolean(useStatusProxy && useStatusProxy !== 'auto')
-  if (useStatusProxy === 'auto') {
-    let ratedCount = 0
-    for (const e of entries) {
-      if (typeof e?.score === 'number' && e.score > 0) {
-        ratedCount++
-        if (ratedCount >= 3) break
-      }
+  const enableProxy = Boolean(useStatusProxy)
+
+  // 1. Contagem de notas explícitas para cálculo do decaimento gradual
+  let nExplicit = 0
+  for (const e of entries) {
+    if (typeof e?.score === 'number' && e.score > 0) {
+      nExplicit++
     }
-    shouldApplyProxy = ratedCount < 3
   }
+
+  // Decaimento contínuo: decay = 10 / (nExplicit + 10)
+  // 0 notas → 1.0 | 10 notas → 0.5 | 100 notas → 0.09
+  const proxyDecay = 10 / (nExplicit + 10)
+
+  // 2. Ajustes de Lift por frequência de gênero (diferencia gêneros em obras sem nota)
+  const genreLiftAdjustments = enableProxy ? calculateGenreLiftAdjustments(entries) : new Map()
 
   const genreStats = new Map()
   let globalWeightedTotal = 0
   let globalTotalWeight = 0
+  let proxyWeightSum = 0
 
   for (const entry of entries) {
     if (!entry?.media) continue
@@ -103,7 +254,7 @@ export function buildTasteProfile(entries = [], options = {}) {
       continue
     }
 
-    if (!shouldApplyProxy) {
+    if (!enableProxy) {
       if (
         rawStatus === 'DROPPED' ||
         rawStatus === 'PAUSED' ||
@@ -113,26 +264,27 @@ export function buildTasteProfile(entries = [], options = {}) {
       }
     }
 
-    const isWatching = rawStatus === 'CURRENT' || rawStatus === 'WATCHING'
     const rawScore = typeof entry.score === 'number' ? entry.score : 0
     const hasExplicitScore = rawScore > 0
 
-    if (isWatching && rawScore <= 0 && !shouldApplyProxy) {
-      continue
-    }
-
     let effectiveScore = 0
-    let weight = 1.0
+    let weight = 0
 
     if (hasExplicitScore) {
+      const isWatching = rawStatus === 'CURRENT' || rawStatus === 'WATCHING'
       effectiveScore = rawScore
       weight = isWatching ? WATCHING_SCORE_WEIGHT : 1.0
-    } else if (shouldApplyProxy && STATUS_SCORE_PROXY[rawStatus] != null) {
-      effectiveScore = STATUS_SCORE_PROXY[rawStatus]
-      weight = STATUS_PROXY_WEIGHT[rawStatus] ?? 0.5
+    } else if (enableProxy) {
+      const proxy = evaluateStatusProxy(entry)
+      if (proxy) {
+        effectiveScore = proxy.baseScore
+        weight = proxy.baseWeight * proxyDecay
+        proxyWeightSum += weight
+      }
     }
 
-    const isScored = effectiveScore > 0
+    const isScored = weight > 0 && effectiveScore > 0
+
     if (isScored) {
       globalWeightedTotal += effectiveScore * weight
       globalTotalWeight += weight
@@ -155,16 +307,33 @@ export function buildTasteProfile(entries = [], options = {}) {
 
     for (const genre of genres) {
       if (!genreStats.has(genre)) {
-        genreStats.set(genre, { total: 0, weightTotal: 0, count: 0, scoredCount: 0, sourceAnimes: [] })
+        genreStats.set(genre, {
+          total: 0,
+          weightTotal: 0,
+          count: 0,
+          scoredCount: 0,
+          explicitCount: 0,
+          sourceAnimes: [],
+        })
       }
       const stats = genreStats.get(genre)
       stats.count += 1
       stats.sourceAnimes.push(animeInfo)
 
       if (isScored) {
-        stats.total += effectiveScore * weight
-        stats.weightTotal += weight
+        // Se for score derivado de proxy, aplica o ajuste de lift deste gênero
+        let itemScore = effectiveScore
+        if (!hasExplicitScore && genreLiftAdjustments.has(genre)) {
+          const liftAdj = genreLiftAdjustments.get(genre)
+          itemScore = Math.max(1.0, Math.min(10.0, effectiveScore + liftAdj))
+        }
+
         stats.scoredCount += 1
+        if (hasExplicitScore) {
+          stats.explicitCount += 1
+        }
+        stats.total += itemScore * weight
+        stats.weightTotal += weight
       }
     }
   }
@@ -193,10 +362,24 @@ export function buildTasteProfile(entries = [], options = {}) {
         adjustedAverage: roundedLowerBound,
         count: stats.count,
         scoredCount: stats.scoredCount,
+        explicitCount: stats.explicitCount,
         sourceAnimes: stats.sourceAnimes,
       })
     }
   }
+
+  // Cálculo de tamanho efetivo (nEff) e confiança contínua (c)
+  const nEff = Math.round((nExplicit + proxyWeightSum) * 100) / 100
+  const confidence = nEff > 0 ? nEff / (nEff + 10) : 0
+  const dynamicTasteWeight = Math.round(0.85 * confidence * 100) / 100
+  const dynamicCommunityWeight = Math.round((1.0 - dynamicTasteWeight) * 100) / 100
+
+  profile.nExplicit = nExplicit
+  profile.nEff = nEff
+  profile.confidence = Math.round(confidence * 100) / 100
+  profile.dynamicTasteWeight = dynamicTasteWeight
+  profile.dynamicCommunityWeight = dynamicCommunityWeight
+  profile.isLowConfidence = confidence < 0.5
 
   return profile
 }
@@ -286,11 +469,11 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
   const tasteWeight =
     Number.isFinite(options?.tasteWeight) && options.tasteWeight >= 0
       ? options.tasteWeight
-      : DEFAULT_TASTE_WEIGHT
+      : (typeof tasteProfile?.dynamicTasteWeight === 'number' ? tasteProfile.dynamicTasteWeight : DEFAULT_TASTE_WEIGHT)
   const communityWeight =
     Number.isFinite(options?.communityWeight) && options.communityWeight >= 0
       ? options.communityWeight
-      : DEFAULT_COMMUNITY_WEIGHT
+      : (typeof tasteProfile?.dynamicCommunityWeight === 'number' ? tasteProfile.dynamicCommunityWeight : DEFAULT_COMMUNITY_WEIGHT)
 
   const filtered = planningEntries.filter((entry) => {
     if (!isEligiblePlanningMedia(entry, tasteProfile)) return false

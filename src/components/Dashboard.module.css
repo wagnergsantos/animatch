@@ -19,6 +19,26 @@
   animation: fadeIn 0.3s ease;
 }
 
+.dashboard__low-confidence-banner {
+  background: rgba(99, 102, 241, 0.08);
+  color: var(--color-ink);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-4);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  line-height: 1.4;
+}
+
+.dashboard__low-confidence-icon {
+  font-size: var(--text-sm);
+  flex-shrink: 0;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-5px); }
   to { opacity: 1; transform: translateY(0); }

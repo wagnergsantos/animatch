@@ -6,6 +6,8 @@ import {
   isSameFranchise,
   calculateWeightedGenreAverage,
   calculateDampedCommunityScore,
+  evaluateStatusProxy,
+  calculateGenreLiftAdjustments,
   isEligiblePlanningMedia,
   isEligiblePlanningEntry,
   DEFAULT_MIN_GENRE_COUNT,
@@ -144,52 +146,104 @@ describe('buildTasteProfile', () => {
     expect(profile.size).toBe(0)
   })
 
-  it('resgata lista sem notas quando useStatusProxy é ativado (COMPLETED=8.0, WATCHING=7.0)', () => {
+  describe('evaluateStatusProxy', () => {
+    it('returns null for planning entries', () => {
+      expect(evaluateStatusProxy({ status: 'PLANNING' })).toBeNull()
+      expect(evaluateStatusProxy({ status: 'PLAN_TO_WATCH' })).toBeNull()
+    })
+
+    it('returns baseScore 7.8 and baseWeight 0.50 for COMPLETED', () => {
+      const res = evaluateStatusProxy({ status: 'COMPLETED' })
+      expect(res).toEqual({
+        status: 'COMPLETED',
+        baseScore: 7.8,
+        baseWeight: 0.50,
+        isDropped: false,
+      })
+    })
+
+    it('ignores WATCHING entries with progress < 30%', () => {
+      const res = evaluateStatusProxy({
+        status: 'WATCHING',
+        progress: 2,
+        media: { episodes: 12 },
+      })
+      expect(res).toBeNull()
+    })
+
+    it('accepts WATCHING entries with progress >= 30%', () => {
+      const res = evaluateStatusProxy({
+        status: 'WATCHING',
+        progress: 4,
+        media: { episodes: 12 },
+      })
+      expect(res).toEqual({
+        status: 'WATCHING',
+        baseScore: 7.0,
+        baseWeight: 0.25,
+        isDropped: false,
+      })
+    })
+
+    it('returns progressive scores for DROPPED based on watch progress', () => {
+      // < 25% -> 4.0
+      expect(evaluateStatusProxy({ status: 'DROPPED', progress: 2, media: { episodes: 12 } })?.baseScore).toBe(4.0)
+      // 25% - 75% -> 4.5
+      expect(evaluateStatusProxy({ status: 'DROPPED', progress: 6, media: { episodes: 12 } })?.baseScore).toBe(4.5)
+      // > 75% -> 6.0
+      expect(evaluateStatusProxy({ status: 'DROPPED', progress: 10, media: { episodes: 12 } })?.baseScore).toBe(6.0)
+      // Sem progresso informado -> 4.5
+      expect(evaluateStatusProxy({ status: 'DROPPED' })?.baseScore).toBe(4.5)
+    })
+  })
+
+  describe('calculateGenreLiftAdjustments', () => {
+    it('calculates positive lift for frequently completed genres and penalties for dropped', () => {
+      const entries = [
+        { status: 'COMPLETED', media: { genres: ['Romance', 'Comedy'] } },
+        { status: 'COMPLETED', media: { genres: ['Romance'] } },
+        { status: 'COMPLETED', media: { genres: ['Romance'] } },
+        { status: 'DROPPED', progress: 1, media: { episodes: 12, genres: ['Mecha'] } },
+      ]
+      const lifts = calculateGenreLiftAdjustments(entries)
+      expect(lifts.get('Romance')).toBeGreaterThan(0)
+    })
+  })
+
+  it('resgata lista sem notas quando useStatusProxy é ativado com decaimento e lift', () => {
     const entries = [
       { score: 0, status: 'COMPLETED', media: { genres: ['Action', 'Fantasy'] } },
       { score: 0, status: 'COMPLETED', media: { genres: ['Action'] } },
-      { score: 0, status: 'WATCHING', media: { genres: ['Fantasy'] } },
+      { score: 0, status: 'WATCHING', progress: 6, media: { episodes: 12, genres: ['Fantasy'] } },
     ]
 
     const profile = buildTasteProfile(entries, { useStatusProxy: true })
 
     expect(profile.has('Action')).toBe(true)
     expect(profile.has('Fantasy')).toBe(true)
-    expect(profile.get('Action').average).toBe(8.0)
-    expect(profile.get('Action').scoredCount).toBe(2)
+    expect(profile.get('Action').count).toBe(2)
+    expect(profile.nExplicit).toBe(0)
+    expect(profile.confidence).toBeLessThan(0.5)
+    expect(profile.isLowConfidence).toBe(true)
   })
 
-  it('prioriza notas explícitas do usuário sobre o proxy de status', () => {
-    const entries = [
-      { score: 10, status: 'COMPLETED', media: { genres: ['Sci-Fi'] } },
-      { score: 6, status: 'COMPLETED', media: { genres: ['Sci-Fi'] } },
-      { score: 0, status: 'COMPLETED', media: { genres: ['Sci-Fi'] } }, // unrated -> 8.0 com peso 0.8
-    ]
+  it('aplica decaimento suave no proxy conforme aumentam as notas explícitas', () => {
+    const explicitEntries = Array.from({ length: 10 }, (_, i) => ({
+      score: 8,
+      status: 'COMPLETED',
+      media: { id: i + 1, genres: ['Sci-Fi'] },
+    }))
+    const unratedEntry = {
+      score: 0,
+      status: 'COMPLETED',
+      media: { id: 99, genres: ['Sci-Fi'] },
+    }
 
-    const profile = buildTasteProfile(entries, { useStatusProxy: true })
-
-    // (10 * 1.0 + 6 * 1.0 + 8.0 * 0.8) / (1 + 1 + 0.8) = (16 + 6.4) / 2.8 = 22.4 / 2.8 = 8.0
-    expect(profile.get('Sci-Fi').average).toBe(8.0)
-    expect(profile.get('Sci-Fi').scoredCount).toBe(3)
-  })
-
-  it('ativa proxy automaticamente no modo "auto" apenas quando usuário tem menos de 3 avaliações', () => {
-    const unratedList = [
-      { score: 0, status: 'COMPLETED', media: { genres: ['Drama'] } },
-      { score: 0, status: 'COMPLETED', media: { genres: ['Drama'] } },
-    ]
-    const profileAuto = buildTasteProfile(unratedList, { useStatusProxy: 'auto' })
-    expect(profileAuto.has('Drama')).toBe(true)
-
-    const ratedList = [
-      { score: 9, status: 'COMPLETED', media: { genres: ['Comedy'] } },
-      { score: 8, status: 'COMPLETED', media: { genres: ['Comedy'] } },
-      { score: 7, status: 'COMPLETED', media: { genres: ['Comedy'] } },
-      { score: 0, status: 'COMPLETED', media: { genres: ['Mecha'] } }, // 1 mecha sem nota não deve virar perfil
-    ]
-    const profileWithRated = buildTasteProfile(ratedList, { useStatusProxy: 'auto' })
-    expect(profileWithRated.has('Comedy')).toBe(true)
-    expect(profileWithRated.has('Mecha')).toBe(false)
+    const profile = buildTasteProfile([...explicitEntries, unratedEntry], { useStatusProxy: true })
+    expect(profile.nExplicit).toBe(10)
+    expect(profile.nEff).toBeCloseTo(10.25, 2)
+    expect(profile.confidence).toBeCloseTo(10.25 / 20.25, 2)
+    expect(profile.isLowConfidence).toBe(false)
   })
 
   it('uses default parameter when completedEntries is not provided', () => {

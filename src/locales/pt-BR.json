@@ -185,7 +185,8 @@
     "expandDetails": "Expandir detalhes",
     "collapseDetails": "Recolher detalhes",
     "viewGrid": "Grade",
-    "viewList": "Lista"
+    "viewList": "Lista",
+    "lowConfidenceBanner": "Poucas notas: usando seu histórico de status. Avalie mais animes para recomendações mais precisas."
   },
   "status": {
     "FINISHED": "Concluído",

@@ -909,5 +909,24 @@ describe('Dashboard', () => {
 
     expect(screen.queryByTestId('link-account-banner')).not.toBeInTheDocument()
   })
+
+  it('renders low-confidence banner when user has unrated status history (c < 0.5)', () => {
+    const unratedEntries = [
+      { status: 'COMPLETED', score: 0, media: { id: 1, title: { romaji: 'A' }, genres: ['Action'] } },
+      { status: 'COMPLETED', score: 0, media: { id: 2, title: { romaji: 'B' }, genres: ['Action'] } },
+      { status: 'PLANNING', media: { id: 10, title: { romaji: 'Plan 1' }, genres: ['Action'], averageScore: 80 } },
+    ]
+
+    render(
+      <Dashboard
+        allEntries={unratedEntries}
+        username="unrateduser"
+        provider="anilist"
+      />
+    )
+
+    expect(screen.getByTestId('low-confidence-banner')).toBeInTheDocument()
+    expect(screen.getByText(/Poucas notas: usando seu histórico de status/i)).toBeInTheDocument()
+  })
 })
 

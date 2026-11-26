@@ -87,7 +87,11 @@
     "anilistUsername": "AniList ユーザー名",
     "kitsuUsername": "Kitsu ユーザー名",
     "malUsername": "MyAnimeList ユーザー名",
-    "saveLinkedAccounts": "アカウントを保存"
+    "saveLinkedAccounts": "アカウントを保存",
+    "sync_just_now": "たった今",
+    "sync_minutes_ago": "{{count}}分前",
+    "sync_hours_ago": "{{count}}時間前",
+    "sync_days_ago": "{{count}}日前"
   },
   "auth": {
     "login": "ログイン",
@@ -180,7 +184,9 @@
     "expandDetails": "詳細を展開",
     "collapseDetails": "詳細を折りたたむ",
     "viewGrid": "グリッド",
-    "viewList": "リスト"
+    "viewList": "リスト",
+    "lowConfidenceBanner": "評価数が少ないため視聴ステータス履歴を使用しています。より正確な推薦のために評価を追加してください。",
+    "sharedGenresExplanation": "共通ジャンル: {{genres}}。"
   },
   "status": {
     "FINISHED": "完了",
@@ -269,7 +275,29 @@
     "Time Travel": "タイムトラベル",
     "Urban Fantasy": "現代ファンタジー",
     "Vampire": "吸血鬼",
-    "Workplace": "お仕事"
+    "Workplace": "お仕事",
+    "Childcare": "子育て",
+    "Combat Sports": "格闘技",
+    "CombatSports": "格闘技",
+    "Delinquents": "ヤンキー・不良",
+    "Detective": "探偵",
+    "Educational": "教育",
+    "Gore": "ゴア・流血",
+    "High Stakes Game": "デスゲーム",
+    "Idols (Female)": "アイドル (女性)",
+    "Idols (Male)": "アイドル (男性)",
+    "Love Polygon": "多角関係",
+    "Martial Arts": "武道・格闘",
+    "MartialArts": "武道・格闘",
+    "Medical": "医療",
+    "Organized Crime": "組織犯罪・極道",
+    "Racing": "レース",
+    "Reincarnation": "転生",
+    "Romantic Subtext": "百合・薔薇のニュアンス",
+    "Showbiz": "芸能界",
+    "Strategy Game": "頭脳戦・ストラテジー",
+    "Video Game": "ゲーム",
+    "Visual Arts": "美術・芸術"
   },
   "formats": {
     "ALL": "すべての形式",
@@ -424,11 +452,23 @@
     "meta_finished": "完結",
     "meta_eps": "話",
     "card1_reason": "「ミステリー」と巧みな物語構成を好むあなたに高い親和性。",
-    "card1_genres": ["ミステリー", "ドラマ", "サスペンス"],
+    "card1_genres": [
+      "ミステリー",
+      "ドラマ",
+      "サスペンス"
+    ],
     "card2_reason": "「SF」と迫力あるアクションの視聴履歴と強力にマッチ。",
-    "card2_genres": ["SF", "アクション", "音楽"],
+    "card2_genres": [
+      "SF",
+      "アクション",
+      "音楽"
+    ],
     "card3_reason": "作家性の高い「独創性」を大切にする方への隠れた名作。",
-    "card3_genres": ["コメディ", "日常", "冒険"],
+    "card3_genres": [
+      "コメディ",
+      "日常",
+      "冒険"
+    ],
     "experiment_title": "AniMatchを体験",
     "experiment_subtitle": "あなたのリストの中で、最も相性の良いアニメを見つけましょう。",
     "faq_title": "よくある質問（FAQ）",
