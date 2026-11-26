@@ -171,8 +171,8 @@
     "badge_PERSONAL_BET": "🧪 Personal Bet",
     "badge_STRONG_CONSENSUS": "🔥 Strong Consensus",
     "badge_DISCOVERY": "🧭 Out of Comfort Zone",
-    "tasteWeight": "Your Taste (85%): {{score}}",
-    "communityWeight": "Community (15%): {{score}}",
+    "tasteWeight": "Your Taste ({{percent}}%): {{score}}",
+    "communityWeight": "Community ({{percent}}%): {{score}}",
     "reasonTitle": "Why this anime?",
     "reasonSummaryTaste": "Matches your taste in {{genres}}.",
     "reasonSummaryAnchor": "Because you loved {{animes}}.",
@@ -470,7 +470,7 @@
     "faq_a3_item1_text": " — calculated with Bayesian smoothing. This avoids statistical distortions: if you only rated 1 Mecha anime with a 10, the algorithm doesn't assume you love Mecha above all else, but balances it against your overall average rating.",
     "faq_a3_item2_label": "Community rating",
     "faq_a3_item2_text": " — the average score of the anime on AniList/Kitsu/MyAnimeList.",
-    "faq_a3_conclusion": "The final score displayed on the card is an 85/15 weighted average: 85% comes from your personal Match and 15% from the community score. Highly rated recommendations get a slight boost, but what truly decides is what fits you.",
+    "faq_a3_conclusion": "The final score displayed on the card is a dynamic weighted average: with consistent rating history, up to 85% comes from your personal taste and 15% from the community score. If you have rated few anime, community weight automatically increases until your profile matures.",
     "faq_q4": "Where is my data stored?",
     "faq_a4": "By default, all processing and storage occur in the visitor's browser (IndexedDB and localStorage), including recent searches for quick autofill. You can clear this history anytime by clicking \"Clear history\" below the search form. No personal data is ever commercialized."
   }

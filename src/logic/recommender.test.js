@@ -520,6 +520,8 @@ describe('scoreRecommendations', () => {
       status: null,
       predictedScore: 7,
       communityScore: 7,
+      tasteWeight: 0.85,
+      communityWeight: 0.15,
       siteUrl: 'https://anilist.co/anime/10',
       streamingLinks: [],
       provider: 'anilist',
@@ -551,6 +553,8 @@ describe('scoreRecommendations', () => {
       status: null,
       predictedScore: 8,
       communityScore: 8,
+      tasteWeight: 0.85,
+      communityWeight: 0.15,
       siteUrl: 'https://anilist.co/anime/11',
       streamingLinks: [],
       provider: 'anilist',
@@ -579,11 +583,11 @@ describe('scoreRecommendations', () => {
     // Taste average ponderado por sqrt(count):
     // Action (score 5, count 10 -> w=3.162) + Adventure (score 9, count 4 -> w=2.0)
     // baseTasteScore = (5 * 3.162 + 9 * 2) / 5.162 = 6.55
-    // Community score amortecido por membros/popularity (1000 membros, média global 7.0):
-    // (1000 * 8.0 + 10000 * 7.0) / 11000 = 7.09
-    // Hybrid: 6.55 * 0.85 + 7.09 * 0.15 = 5.5675 + 1.0635 = 6.631 -> 6.63
-    expect(result[0].predictedScore).toBe(6.63)
-    expect(result[0].communityScore).toBe(7.09)
+    // Community score amortecido por membros/popularity (1000 membros, média global 7.0, minVotes 1000):
+    // (1000 * 8.0 + 1000 * 7.0) / 2000 = 7.5
+    // Hybrid: 6.55 * 0.85 + 7.5 * 0.15 = 5.5675 + 1.125 = 6.6925 -> 6.69
+    expect(result[0].predictedScore).toBe(6.69)
+    expect(result[0].communityScore).toBe(7.5)
     expect(result[0].baseTasteScore).toBe(6.55)
     expect(result[0].predictionSource).toBe('taste')
     expect(result[0].matchingGenres).toEqual([
@@ -608,9 +612,9 @@ describe('scoreRecommendations', () => {
 
     const result = scoreRecommendations(planning, tasteProfile)
 
-    // Score amortecido: (500 * 7.5 + 10000 * 7.0) / 10500 = 7.02
-    expect(result[0].predictedScore).toBe(7.02)
-    expect(result[0].communityScore).toBe(7.02)
+    // Score amortecido: (500 * 7.5 + 1000 * 7.0) / 1500 = 7.166... -> 7.17
+    expect(result[0].predictedScore).toBe(7.17)
+    expect(result[0].communityScore).toBe(7.17)
     expect(result[0].predictionSource).toBe('community')
     expect(result[0].matchingGenres).toEqual([])
   })
@@ -1158,22 +1162,22 @@ describe('calculateDampedCommunityScore', () => {
 
   it('amortece obras com notas altas e poucos membros em direção à média global 7.0', () => {
     // 100 membros, nota 9.5 (95 em escala AniList)
-    // (100 * 9.5 + 10000 * 7.0) / (100 + 10000) = (950 + 70000) / 10100 = 70950 / 10100 = 7.02
+    // (100 * 9.5 + 1000 * 7.0) / (100 + 1000) = (950 + 7000) / 1100 = 7950 / 1100 = 7.23
     const dampedLow = calculateDampedCommunityScore({
       averageScore: 95,
       members: 100,
     })
-    expect(dampedLow).toBe(7.02)
+    expect(dampedLow).toBe(7.23)
   })
 
   it('preserva nota alta para obras consagradas com grande volume de membros', () => {
     // 500.000 membros, nota 9.1
-    // (500000 * 9.1 + 10000 * 7.0) / 510000 = (4550000 + 70000) / 510000 = 4620000 / 510000 = 9.06
+    // (500000 * 9.1 + 1000 * 7.0) / 501000 = (4550000 + 7000) / 501000 = 4557000 / 501000 = 9.10
     const dampedHigh = calculateDampedCommunityScore({
       averageScore: 91,
       members: 500000,
     })
-    expect(dampedHigh).toBe(9.06)
+    expect(dampedHigh).toBe(9.1)
   })
 
   it('suporta propriedade popularity do AniList como contagem de votos', () => {
@@ -1181,8 +1185,8 @@ describe('calculateDampedCommunityScore', () => {
       averageScore: 9.0,
       popularity: 30000,
     })
-    // (30000 * 9.0 + 10000 * 7.0) / 40000 = (270000 + 70000) / 40000 = 8.5
-    expect(dampedPop).toBe(8.5)
+    // (30000 * 9.0 + 1000 * 7.0) / 31000 = (270000 + 7000) / 31000 = 8.94
+    expect(dampedPop).toBe(8.94)
   })
 
   it('permite sobrescrever globalMean e minVotes via options', () => {

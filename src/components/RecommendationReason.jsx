@@ -56,10 +56,16 @@ export default function RecommendationReason({ anime }) {
         <>
           <div className={styles['weights-bar']}>
             <span>
-              🎯 {t('labels.tasteWeight', { score: anime.baseTasteScore != null ? anime.baseTasteScore.toFixed(2) : '-' })}
+              🎯 {t('labels.tasteWeight', {
+                percent: Math.round((anime.tasteWeight ?? 0.85) * 100),
+                score: anime.baseTasteScore != null ? anime.baseTasteScore.toFixed(1) : '-',
+              })}
             </span>
             <span>
-              🌐 {t('labels.communityWeight', { score: anime.communityScore != null ? anime.communityScore.toFixed(2) : '-' })}
+              🌐 {t('labels.communityWeight', {
+                percent: Math.max(0, 100 - Math.round((anime.tasteWeight ?? 0.85) * 100)),
+                score: anime.communityScore != null ? anime.communityScore.toFixed(1) : '-',
+              })}
             </span>
           </div>
 
@@ -74,7 +80,7 @@ export default function RecommendationReason({ anime }) {
                     title={isTop ? t('labels.topGenreScore', 'Maior nota por gênero') : undefined}
                   >
                     <span>{translateGenre(item.genre, t)}:</span>
-                    <span className={styles['genre-chip__score']}>{item.score.toFixed(2)}</span>
+                    <span className={styles['genre-chip__score']}>{item.score.toFixed(1)}</span>
                   </span>
                 )
               })}

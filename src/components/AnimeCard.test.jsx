@@ -11,8 +11,8 @@ describe('AnimeCard', () => {
       description: 'Long description text',
     }
     render(<AnimeCard anime={anime} />)
-    expect(screen.getByText('Match: 8.50/10')).toBeInTheDocument()
-    expect(screen.getByText('Comunidade: 7.50/10')).toBeInTheDocument()
+    expect(screen.getByText('Match: 8.5/10')).toBeInTheDocument()
+    expect(screen.getByText('Comunidade: 7.5/10')).toBeInTheDocument()
   })
 
   it('renders scores correctly when predictedScore or communityScore is 0', () => {
@@ -22,8 +22,8 @@ describe('AnimeCard', () => {
       communityScore: 0,
     }
     render(<AnimeCard anime={anime} />)
-    expect(screen.getByText('Match: 0.00/10')).toBeInTheDocument()
-    expect(screen.getByText('Comunidade: 0.00/10')).toBeInTheDocument()
+    expect(screen.getByText('Match: 0.0/10')).toBeInTheDocument()
+    expect(screen.getByText('Comunidade: 0.0/10')).toBeInTheDocument()
   })
 
   it('does not render score paragraphs when predictedScore or communityScore is null/undefined', () => {

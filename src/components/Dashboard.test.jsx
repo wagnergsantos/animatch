@@ -668,7 +668,7 @@ describe('Dashboard', () => {
     expect(within(badgeContainer).getByText('MAL')).toBeInTheDocument()
 
     // Scores remain true without artificial score inflation
-    const scores = screen.getAllByText(/(Match|Afinidade): 8\.00\/10/i)
+    const scores = screen.getAllByText(/(Match|Afinidade): 8\.0\/10/i)
     expect(scores.length).toBeGreaterThanOrEqual(1)
   })
 

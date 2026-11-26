@@ -26,8 +26,8 @@ describe('AnimeRow', () => {
 
     expect(screen.getByText('Steins;Gate')).toBeInTheDocument()
     expect(screen.getByText(/2011 • 24 eps • Concluído/i)).toBeInTheDocument()
-    expect(screen.getByText('Match: 9.25/10')).toBeInTheDocument()
-    expect(screen.getByText('Comunidade: 8.90/10')).toBeInTheDocument()
+    expect(screen.getByText('Match: 9.3/10')).toBeInTheDocument()
+    expect(screen.getByText('Comunidade: 8.9/10')).toBeInTheDocument()
     expect(screen.getByText(/Porque você amou Steins;Gate/i)).toBeInTheDocument()
     // Accordion details should not be in document initially
     expect(screen.queryByText(/A scientist discovers time travel/i)).not.toBeInTheDocument()

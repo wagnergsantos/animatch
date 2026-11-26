@@ -156,12 +156,12 @@ export default function AnimeRow({ anime, titlePref = 'english', priority = fals
         <div className={styles['anime-row-scores']}>
           {typeof anime?.predictedScore === 'number' && !isNaN(anime.predictedScore) && (
             <span className={`${styles['anime-row-score-badge']} ${styles['anime-row-score-badge--match']}`}>
-              {t('labels.match')}: {anime.predictedScore.toFixed(2)}/10
+              {t('labels.match')}: {anime.predictedScore.toFixed(1)}/10
             </span>
           )}
           {typeof anime?.communityScore === 'number' && !isNaN(anime.communityScore) && (
             <span className={`${styles['anime-row-score-badge']} ${styles['anime-row-score-badge--community']}`}>
-              {t('labels.community')}: {anime.communityScore.toFixed(2)}/10
+              {t('labels.community')}: {anime.communityScore.toFixed(1)}/10
             </span>
           )}
         </div>

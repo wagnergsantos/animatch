@@ -171,8 +171,8 @@
     "badge_PERSONAL_BET": "🧪 Aposta Pessoal",
     "badge_STRONG_CONSENSUS": "🔥 Recomendação Forte",
     "badge_DISCOVERY": "🧭 Fora da Zona",
-    "tasteWeight": "Seu Gosto (85%): {{score}}",
-    "communityWeight": "Comunidade (15%): {{score}}",
+    "tasteWeight": "Seu Gosto ({{percent}}%): {{score}}",
+    "communityWeight": "Comunidade ({{percent}}%): {{score}}",
     "reasonTitle": "Por que esse anime?",
     "reasonSummaryTaste": "Compatível com suas preferências em {{genres}}.",
     "reasonSummaryAnchor": "Porque você amou {{animes}}.",
@@ -470,7 +470,7 @@
     "faq_a3_item1_text": " — calculado com suavização Bayesiana. Isso evita distorções: se você avaliou apenas 1 anime de Mecha com nota 10, o algoritmo não conclui que você ama Mecha acima de tudo, mas pondera essa preferência com a sua média geral de avaliações.",
     "faq_a3_item2_label": "Avaliação da comunidade",
     "faq_a3_item2_text": " — a nota média do anime no AniList/Kitsu/MyAnimeList.",
-    "faq_a3_conclusion": "A nota final exibida no card é uma média ponderada 85/15: 85% vêm do seu Match pessoal e 15% da nota da comunidade. Assim, recomendações muito bem avaliadas ganham um pequeno empurrão, mas o que decide mesmo é o que combina com você.",
+    "faq_a3_conclusion": "A nota final exibida no card é uma média ponderada dinâmica: com histórico consistente de avaliações, até 85% do peso vem do seu gosto pessoal e 15% da nota da comunidade. Se você avaliou poucas obras, o peso da comunidade aumenta temporariamente de forma automática até seu perfil amadurecer.",
     "faq_q4": "Onde meus dados são armazenados?",
     "faq_a4": "Por padrão, todo o processamento e armazenamento ocorrem no navegador do próprio visitante (IndexedDB e localStorage), incluindo o histórico de consultas recentes para preenchimento rápido. Você pode apagar esse histórico a qualquer momento clicando em \"Limpar histórico\" logo abaixo do formulário de busca. Nenhum dado pessoal é comercializado."
   }

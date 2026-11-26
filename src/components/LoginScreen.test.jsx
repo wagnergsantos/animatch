@@ -240,7 +240,7 @@ describe('LoginScreen', () => {
     expect(screen.getByText(/A nota de Match combina duas coisas:/i)).toBeInTheDocument()
     expect(screen.getByText(/Seu perfil de gostos/i)).toBeInTheDocument()
     expect(screen.getByText(/Avaliação da comunidade/i)).toBeInTheDocument()
-    expect(screen.getByText(/média ponderada 85\/15/i)).toBeInTheDocument()
+    expect(screen.getByText(/média ponderada dinâmica/i)).toBeInTheDocument()
   })
 
   it('renders language selector in top nav and handles language changes', () => {

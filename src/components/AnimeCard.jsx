@@ -290,12 +290,12 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
           })()}
           {typeof anime?.predictedScore === 'number' && anime.predictedScore != null && !isNaN(anime.predictedScore) && (
             <p className={styles['anime-card__predicted']}>
-              {t('labels.match')}: {(anime.predictedScore).toFixed(2)}/10
+              {t('labels.match')}: {(anime.predictedScore).toFixed(1)}/10
             </p>
           )}
           {typeof anime?.communityScore === 'number' && anime.communityScore != null && !isNaN(anime.communityScore) && (
             <p className={styles['anime-card__community']}>
-              {t('labels.community')}: {(anime.communityScore).toFixed(2)}/10
+              {t('labels.community')}: {(anime.communityScore).toFixed(1)}/10
             </p>
           )}
 

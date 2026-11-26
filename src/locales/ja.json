@@ -171,8 +171,8 @@
     "badge_PERSONAL_BET": "🧪 個人的な穴場",
     "badge_STRONG_CONSENSUS": "🔥 鉄板のおすすめ",
     "badge_DISCOVERY": "🧭 新境地",
-    "tasteWeight": "あなたの好み (85%): {{score}}",
-    "communityWeight": "コミュニティ (15%): {{score}}",
+    "tasteWeight": "あなたの好み ({{percent}}%): {{score}}",
+    "communityWeight": "コミュニティ ({{percent}}%): {{score}}",
     "reasonTitle": "おすすめの理由",
     "reasonSummaryTaste": "{{genres}} の好みに合致。",
     "reasonSummaryAnchor": "高評価した {{animes}} に近い作風。",
@@ -482,7 +482,7 @@
     "faq_a3_item1_text": " — ベイズ平滑化を用いて算出。これにより、例えばメカ系アニメを1本だけ観て10点を付けた場合でも、メカが一番好きだと即断せず、全体の平均評価とバランスをとって補正します。",
     "faq_a3_item2_label": "コミュニティ評価",
     "faq_a3_item2_text": " — AniList/Kitsu/MyAnimeListにおける作品の平均評価点。",
-    "faq_a3_conclusion": "カードに表示される最終スコアは85/15の加重平均です（85%が個人のMatchスコア、15%がコミュニティ評価）。高評価作は少し後押しされますが、決定打となるのはあなたとの相性です。",
+    "faq_a3_conclusion": "カードに表示される最終スコアは動的な加重平均です。十分な評価履歴があれば個人の好みが最大85%、コミュニティ評価が15%を占めます。評価数が少ない場合は、好みの傾向が定まるまで自動的にコミュニティ評価の比重が高まります。",
     "faq_q4": "データはどこに保存されますか？",
     "faq_a4": "初期状態では、すべての処理と保存が閲覧者のブラウザ内（IndexedDBおよびlocalStorage）で行われます。検索履歴はいつでも検索フォーム下の「履歴を消去」から削除できます。個人データが販売されることは一切ありません。"
   }

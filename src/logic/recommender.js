@@ -10,7 +10,7 @@ export const DISCOVERY_FALLBACK_COMMUNITY_SCORE = 8.0
 export const DEFAULT_TASTE_WEIGHT = 0.85
 export const DEFAULT_COMMUNITY_WEIGHT = 0.15
 export const DEFAULT_BAYESIAN_GLOBAL_MEAN = 7.0
-export const DEFAULT_BAYESIAN_MIN_VOTES = 10000
+export const DEFAULT_BAYESIAN_MIN_VOTES = 1000
 
 export const GENRE_GLOBAL_PRIORS = Object.freeze({
   Action: 0.20,
@@ -162,9 +162,13 @@ export function calculateGenreLiftAdjustments(entries = []) {
   }
 
   const liftAdjustments = new Map()
+  const alpha = 0.25 // Laplace smoothing para estabilizar contagens pequenas
+  const totalGenres = Math.max(1, allGenres.size)
+  const smoothedTotal = totalUserWeight + alpha * totalGenres
+
   if (totalUserWeight > 0) {
     for (const [g, netWeight] of netGenreWeights.entries()) {
-      const pUser = netWeight / totalUserWeight
+      const pUser = (netWeight + alpha) / smoothedTotal
       const pCatalog = GENRE_GLOBAL_PRIORS[g] || GENRE_GLOBAL_PRIORS.DEFAULT
       const lift = pCatalog > 0 ? pUser / pCatalog : 1
       const rawAdj = 0.7 * Math.log(lift || 1)
@@ -369,7 +373,9 @@ export function buildTasteProfile(entries = [], options = {}) {
   }
 
   // Cálculo de tamanho efetivo (nEff) e confiança contínua (c)
-  const nEff = Math.round((nExplicit + proxyWeightSum) * 100) / 100
+  // Limita a contribuição do proxy a no máximo 8.0 para que usuários com 0 notas explícitas sempre tenham c < 0.50
+  const cappedProxyWeight = Math.min(proxyWeightSum, 8.0)
+  const nEff = Math.round((nExplicit + cappedProxyWeight) * 100) / 100
   const confidence = nEff > 0 ? nEff / (nEff + 10) : 0
   const dynamicTasteWeight = Math.round(0.85 * confidence * 100) / 100
   const dynamicCommunityWeight = Math.round((1.0 - dynamicTasteWeight) * 100) / 100
@@ -640,6 +646,8 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
       status: media.status || null,
       predictedScore,
       communityScore,
+      tasteWeight,
+      communityWeight,
       siteUrl: media.siteUrl || (media.id ? `https://anilist.co/anime/${media.id}` : '#'),
       streamingLinks: media.streamingLinks || streamingLinks,
       provider: media.provider || 'anilist',
@@ -650,10 +658,14 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
   })
 
   scored.sort((a, b) => {
-    if (b.predictedScore !== a.predictedScore) {
+    if (Math.abs(b.predictedScore - a.predictedScore) > 0.0001) {
       return b.predictedScore - a.predictedScore
     }
-    return b.communityScore - a.communityScore
+    const diffComm = (b.communityScore ?? 0) - (a.communityScore ?? 0)
+    if (Math.abs(diffComm) > 0.0001) {
+      return diffComm
+    }
+    return (a.title || '').localeCompare(b.title || '')
   })
 
   return scored
