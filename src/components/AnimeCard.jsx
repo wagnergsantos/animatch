@@ -4,6 +4,7 @@ import AnimeDetailModal from './AnimeDetailModal.jsx'
 import BadgeIcon from './BadgeIcon.jsx'
 import { translateGenre } from '../lib/genreTranslations.js'
 import { isSafeExternalUrl } from '../logic/streaming.js'
+import { useImageFallback } from '../hooks/useImageFallback.js'
 import styles from './AnimeCard.module.css'
 
 const PROVIDER_SHORT_LABELS = {
@@ -20,8 +21,6 @@ const PROVIDER_FULL_LABELS = {
 
 export default function AnimeCard({ anime, titlePref = 'english', priority = false, subscriptions = [], onCardClick }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [imgLoaded, setImgLoaded] = useState(false)
-  const [imgError, setImgError] = useState(false)
   const [expandedBadge, setExpandedBadge] = useState(null)
   const cardRef = useRef(null)
   const { t } = useTranslation()
@@ -82,6 +81,14 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
 
   const title = mainTitle
 
+  const {
+    currentSrc,
+    isLoading: isImgLoading,
+    isError: isImgError,
+    handleImageLoad,
+    handleImageError,
+  } = useImageFallback(anime, { title })
+
   // Deduplicate streaming links by site
   const streamingLinks = []
   const seenSites = new Set()
@@ -134,7 +141,7 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
         title={title}
       >
         <div className={styles['anime-card__image-wrapper']}>
-          {imgError ? (
+          {isImgError || !currentSrc ? (
             <div className={styles['anime-card__image-fallback']} data-testid="cover-fallback">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18" />
@@ -150,18 +157,18 @@ export default function AnimeCard({ anime, titlePref = 'english', priority = fal
             </div>
           ) : (
             <>
-              {anime?.coverImage && !imgLoaded && <div className={styles['anime-card__image-skeleton']} aria-hidden="true" />}
+              {isImgLoading && <div className={styles['anime-card__image-skeleton']} aria-hidden="true" />}
               <img
-                className={`${styles['anime-card__image']} ${imgLoaded ? styles['anime-card__image--loaded'] : styles['anime-card__image--loading']}`}
-                src={anime?.coverImage || undefined}
+                className={`${styles['anime-card__image']} ${!isImgLoading ? styles['anime-card__image--loaded'] : styles['anime-card__image--loading']}`}
+                src={currentSrc}
                 alt={t('labels.coverAlt', { title })}
                 width={230}
                 height={325}
                 decoding="async"
                 loading={priority ? 'eager' : 'lazy'}
                 fetchPriority={priority ? 'high' : 'auto'}
-                onLoad={() => setImgLoaded(true)}
-                onError={() => setImgError(true)}
+                onLoad={handleImageLoad}
+                onError={handleImageError}
               />
             </>
           )}

@@ -299,15 +299,20 @@ describe('AnimeCard', () => {
     expect(img).toHaveAttribute('decoding', 'async')
   })
 
-  it('renders fallback cover with title when image encounters error', () => {
+  it('transitions through resilient fallback and renders fallback cover with title when all fail', () => {
     const anime = {
       title: 'Broken Cover Anime',
       coverImage: 'https://example.com/broken.jpg',
     }
     render(<AnimeCard anime={anime} />)
     const img = screen.getByRole('img', { name: /Broken Cover Anime/i })
-    fireEvent.error(img)
 
+    // Tier 1 -> Tier 3 (Avatar fallback)
+    fireEvent.error(img)
+    expect(img).toHaveAttribute('src', expect.stringContaining('ui-avatars.com'))
+
+    // Tier 3 -> Tier 4 (SVG fallback)
+    fireEvent.error(img)
     expect(screen.queryByRole('img', { name: /Broken Cover Anime/i })).not.toBeInTheDocument()
     const fallback = screen.getByTestId('cover-fallback')
     expect(fallback).toBeInTheDocument()

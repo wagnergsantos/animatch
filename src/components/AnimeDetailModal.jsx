@@ -6,6 +6,7 @@ import { isSafeExternalUrl, filterRegionalStreamingLinks, normalizeServiceName }
 import { translateGenre } from '../lib/genreTranslations.js'
 import { sanitizeSynopsis } from '../lib/synopsisSanitizer.js'
 import { STORAGE_KEYS } from '../lib/storageKeys.js'
+import { useImageFallback } from '../hooks/useImageFallback.js'
 import styles from './AnimeDetailModal.module.css'
 
 const PROVIDER_SHORT_LABELS = {
@@ -44,8 +45,6 @@ export default function AnimeDetailModal({
 
   useModalFocusTrap(Boolean(anime), modalRef, onClose, triggerRef)
 
-  if (!anime) return null
-
   const rawTitleObj = anime?.titleObj || (typeof anime?.title === 'object' ? anime?.title : null) || anime?.media?.title || {}
   const englishTitle = rawTitleObj.english && typeof rawTitleObj.english === 'string' ? rawTitleObj.english : ''
   const romajiTitle = rawTitleObj.romaji && typeof rawTitleObj.romaji === 'string' ? rawTitleObj.romaji : (typeof anime?.title === 'string' ? anime.title : '')
@@ -62,6 +61,16 @@ export default function AnimeDetailModal({
   }
 
   const title = mainTitle
+
+  const {
+    currentSrc,
+    isError: isImgError,
+    handleImageLoad,
+    handleImageError,
+  } = useImageFallback(anime, { title })
+
+  if (!anime) return null
+
   const genres = anime?.genres ?? []
   const planningProviders = Array.isArray(anime?.planningProviders) ? anime.planningProviders : []
   const sourceProviders = Array.isArray(anime?.sourceProviders) ? anime.sourceProviders : []
@@ -159,8 +168,24 @@ export default function AnimeDetailModal({
         </button>
 
         <div className={styles['anime-modal__header']}>
-          {anime?.coverImage && (
-            <img className={styles['anime-modal__cover']} src={anime.coverImage} alt={t('labels.coverAlt', { title })} />
+          {isImgError || !currentSrc ? (
+            <div className={styles['anime-modal__cover-fallback']} data-testid="modal-cover-fallback">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18" />
+                <line x1="7" y1="2" x2="7" y2="22" />
+                <line x1="17" y1="2" x2="17" y2="22" />
+                <line x1="2" y1="12" x2="22" y2="12" />
+              </svg>
+              <span className={styles['anime-modal__cover-fallback-title']} aria-hidden="true">{title}</span>
+            </div>
+          ) : (
+            <img
+              className={styles['anime-modal__cover']}
+              src={currentSrc}
+              alt={t('labels.coverAlt', { title })}
+              onLoad={handleImageLoad}
+              onError={handleImageError}
+            />
           )}
           <div className={styles['anime-modal__header-info']}>
             <h2 id="modal-title" className={styles['anime-modal__title']}>{title}</h2>

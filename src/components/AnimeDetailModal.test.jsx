@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import AnimeDetailModal from './AnimeDetailModal.jsx'
 
 describe('AnimeDetailModal synopsis sanitization & labeling', () => {
@@ -62,5 +62,23 @@ describe('AnimeDetailModal synopsis sanitization & labeling', () => {
 
     // Crunchyroll é a assinatura do usuário e deve ter o badge
     expect(screen.getByText(/Na sua assinatura/i)).toBeInTheDocument()
+  })
+
+  it('renders modal cover fallback when image fails completely', () => {
+    const anime = {
+      ...baseAnime,
+      coverImage: 'https://broken.cdn/modal.jpg',
+    }
+
+    render(<AnimeDetailModal anime={anime} onClose={vi.fn()} />)
+    const img = screen.getByRole('img', { name: /Gintama/i })
+
+    // Tier 1 -> Tier 3
+    fireEvent.error(img)
+    // Tier 3 -> Tier 4
+    fireEvent.error(img)
+
+    expect(screen.getByTestId('modal-cover-fallback')).toBeInTheDocument()
+    expect(screen.getByTestId('modal-cover-fallback')).toHaveTextContent('Gintama')
   })
 })
