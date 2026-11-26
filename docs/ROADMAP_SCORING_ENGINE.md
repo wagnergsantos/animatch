@@ -35,17 +35,37 @@ Este documento consolida todas as melhorias técnicas, matemáticas e de interfa
 - **Arquivos**: `src/logic/recommender.js`.
 - **Complexidade**: Baixa.
 
-### 1.3 Proxy de Notas por Status (Resgate de Listas Sem Avaliação)
-- **Origem**: [Fonte A] `scoring_engine.dart` (`_ratingWeight`).
-- **Racional**: Usuários que não preenchem notas numéricas e apenas marcam animes como "Completed" ou "Watching" ficavam sem perfil de gosto (o Animatch descartava notas $\le 0$).
-- **Mapeamento de Notas Implícitas**:
-  - `COMPLETED`: 0.80 (equivale a nota 8.0)
-  - `CURRENT` / `WATCHING`: 0.70 (nota 7.0)
-  - `PLANNING` / `ON_HOLD`: 0.50 (nota 5.0)
-  - `DROPPED`: 0.20 (penaliza levemente o gênero abandonado)
-- **Ação Técnica**: Usar o proxy de status quando `entry.score` for ausente ou zero, viabilizando recomendações imediatas no primeiro login.
-- **Arquivos**: `src/logic/recommender.js`.
-- **Complexidade**: Baixa.
+### 1.3 Proxy de Notas por Status & Modelo Contínuo de Confiança
+- **Origem**: [Fonte A] `scoring_engine.dart` (`_ratingWeight`) + Refinamento Bayesiano.
+- **Racional**: Usuários que não preenchem notas numéricas e apenas marcam animes por status ficavam sem perfil de gosto (o Animatch descartava notas $\le 0$). Em vez de notas arbitrárias e limiar binário, adotou-se um modelo contínuo sensível a progresso e frequência.
+- **Valores e Pesos por Status & Progresso**:
+  - `COMPLETED`: Nota 7.8 (peso base 0.50). Concluir é sinal positivo moderado.
+  - `WATCHING`: Nota 7.0 (peso base 0.25). Ignorado se progresso $< 30\%$ (ruído de amostragem).
+  - `ON_HOLD`: Nota 6.0 (peso base 0.25). Neutro para levemente negativo.
+  - `DROPPED`: Peso base 0.50. Nota modulada pelo ponto de abandono:
+    - $< 25\%$ dos episódios: Nota 4.0 (rejeição clara).
+    - $25\%$ a $75\%$: Nota 4.5 (sinal ambíguo).
+    - $> 75\%$: Nota 6.0 (falta de tempo/vontade, não desgosto severo).
+    - Sem dado de episódios: Nota 4.5.
+  - `PLANNING`: Não entra (peso 0, apenas intenção futura).
+- **Decaimento Gradual por Volume de Notas**:
+  - $\text{decay} = \frac{10}{n_{\text{explicit}} + 10}$ aplicado a obras sem nota.
+  - $w = w_{\text{base}} \cdot \text{decay}$. Usuários com centenas de notas têm peso do proxy praticamente nulo.
+  - $n_{\text{eff}} = n_{\text{explicit}} + \sum w_{\text{proxy}}$.
+- **Lift de Frequência de Gêneros**:
+  - $\text{Lift}(g) = \frac{P(g | \text{user})}{P(g | \text{catálogo})}$.
+  - $\text{ajuste}_g = \text{clamp}(0.7 \cdot \ln(\text{Lift}(g)), -1.0, +1.0)$.
+  - Discrimina os gêneros mesmo que todos os concluídos partam da mesma base; gêneros de obras dropadas reduzem o lift relativo.
+- **Confiança Contínua Alimentando o Match**:
+  - $c = \frac{n_{\text{eff}}}{n_{\text{eff}} + 10}$.
+  - $\text{pesoGosto} = 0.85 \cdot c$ (0.85 vira teto assintótico).
+  - $\text{pesoComunidade} = 1.0 - \text{pesoGosto}$.
+  - $\text{Match} = \text{pesoGosto} \cdot \text{gosto} + \text{pesoComunidade} \cdot \text{comunidadeAmortecida}$.
+  - Unifica proxy e cold start: com poucas avaliações, o Match prioriza a comunidade amortecida; com histórico sólido, prioriza o gosto.
+- **Transparência na Interface**:
+  - Quando $c < 0.5$, exibe banner informativo discreto no topo do feed: *"Poucas notas: usando seu histórico de status. Avalie mais animes para recomendações mais precisas."*
+- **Arquivos**: `src/logic/recommender.js`, `src/components/Dashboard.jsx`, `src/components/Dashboard.module.css`.
+- **Complexidade**: Média/Alta.
 
 ### 1.4 Fator de Novidade Anti-Repetição (Anti-Fadiga)
 - **Origem**: [Fonte A] `scoring_engine.dart` (`_noveltyScore`).
