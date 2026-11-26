@@ -21,6 +21,7 @@ supabase/.temp/
 
 # Data exports
 *.csv
+audit/
 
 # Reference & Drafts
 modelos/
