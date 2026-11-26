@@ -5,6 +5,9 @@ import {
   normalizeFranchiseTitle,
   isSameFranchise,
   calculateWeightedGenreAverage,
+  calculateDampedCommunityScore,
+  DEFAULT_BAYESIAN_GLOBAL_MEAN,
+  DEFAULT_BAYESIAN_MIN_VOTES,
   isEligiblePlanningMedia,
   isEligiblePlanningEntry,
   DEFAULT_MIN_GENRE_COUNT,
@@ -476,9 +479,11 @@ describe('scoreRecommendations', () => {
     // Taste average ponderado por sqrt(count):
     // Action (score 5, count 10 -> w=3.162) + Adventure (score 9, count 4 -> w=2.0)
     // baseTasteScore = (5 * 3.162 + 9 * 2) / 5.162 = 6.55
-    // Community score: 8.0
-    // Hybrid: 6.55 * 0.85 + 8.0 * 0.15 = 5.5675 + 1.2 = 6.7675 -> 6.77
-    expect(result[0].predictedScore).toBe(6.77)
+    // Community score amortecido por membros/popularity (1000 membros, média global 7.0):
+    // (1000 * 8.0 + 10000 * 7.0) / 11000 = 7.09
+    // Hybrid: 6.55 * 0.85 + 7.09 * 0.15 = 5.5675 + 1.0635 = 6.631 -> 6.63
+    expect(result[0].predictedScore).toBe(6.63)
+    expect(result[0].communityScore).toBe(7.09)
     expect(result[0].baseTasteScore).toBe(6.55)
     expect(result[0].predictionSource).toBe('taste')
     expect(result[0].matchingGenres).toEqual([
@@ -503,7 +508,9 @@ describe('scoreRecommendations', () => {
 
     const result = scoreRecommendations(planning, tasteProfile)
 
-    expect(result[0].predictedScore).toBe(7.5) // 75 / 10
+    // Score amortecido: (500 * 7.5 + 10000 * 7.0) / 10500 = 7.02
+    expect(result[0].predictedScore).toBe(7.02)
+    expect(result[0].communityScore).toBe(7.02)
     expect(result[0].predictionSource).toBe('community')
     expect(result[0].matchingGenres).toEqual([])
   })
@@ -1033,6 +1040,94 @@ describe('calculateWeightedGenreAverage', () => {
     ]
     const weightedAvg = calculateWeightedGenreAverage(matchingGenres, tasteProfile)
     expect(weightedAvg).toBe(7.0)
+  })
+})
+
+describe('calculateDampedCommunityScore', () => {
+  it('retorna null quando média ou averageScore são ausentes ou <= 0', () => {
+    expect(calculateDampedCommunityScore(null)).toBeNull()
+    expect(calculateDampedCommunityScore({})).toBeNull()
+    expect(calculateDampedCommunityScore({ averageScore: 0 })).toBeNull()
+    expect(calculateDampedCommunityScore({ averageScore: -1 })).toBeNull()
+  })
+
+  it('mantém a nota bruta sem amortecer quando não há contagem de membros (retrocompatibilidade)', () => {
+    expect(calculateDampedCommunityScore({ averageScore: 85 })).toBe(8.5)
+    expect(calculateDampedCommunityScore({ averageScore: 9.2 })).toBe(9.2)
+  })
+
+  it('amortece obras com notas altas e poucos membros em direção à média global 7.0', () => {
+    // 100 membros, nota 9.5 (95 em escala AniList)
+    // (100 * 9.5 + 10000 * 7.0) / (100 + 10000) = (950 + 70000) / 10100 = 70950 / 10100 = 7.02
+    const dampedLow = calculateDampedCommunityScore({
+      averageScore: 95,
+      members: 100,
+    })
+    expect(dampedLow).toBe(7.02)
+  })
+
+  it('preserva nota alta para obras consagradas com grande volume de membros', () => {
+    // 500.000 membros, nota 9.1
+    // (500000 * 9.1 + 10000 * 7.0) / 510000 = (4550000 + 70000) / 510000 = 4620000 / 510000 = 9.06
+    const dampedHigh = calculateDampedCommunityScore({
+      averageScore: 91,
+      members: 500000,
+    })
+    expect(dampedHigh).toBe(9.06)
+  })
+
+  it('suporta propriedade popularity do AniList como contagem de votos', () => {
+    const dampedPop = calculateDampedCommunityScore({
+      averageScore: 9.0,
+      popularity: 30000,
+    })
+    // (30000 * 9.0 + 10000 * 7.0) / 40000 = (270000 + 70000) / 40000 = 8.5
+    expect(dampedPop).toBe(8.5)
+  })
+
+  it('permite sobrescrever globalMean e minVotes via options', () => {
+    const custom = calculateDampedCommunityScore(
+      { averageScore: 9.0, members: 1000 },
+      { globalMean: 6.0, minVotes: 1000 }
+    )
+    // (1000 * 9.0 + 1000 * 6.0) / 2000 = 15000 / 2000 = 7.5
+    expect(custom).toBe(7.5)
+  })
+
+  it('faz obra consagrada superar obra de nicho com poucos votos no scoreRecommendations', () => {
+    const tasteProfile = new Map([
+      ['Action', { adjustedAverage: 8.0, average: 8.0, count: 5, scoredCount: 5, sourceAnimes: [] }],
+    ])
+
+    const planning = [
+      {
+        media: {
+          id: 1,
+          title: { english: 'Niche OVA with few votes' },
+          genres: ['Action'],
+          averageScore: 98, // 9.8
+          members: 50,     // Apenas 50 membros -> communityScore amortecido cai para ~7.01
+        },
+      },
+      {
+        media: {
+          id: 2,
+          title: { english: 'Blockbuster Classic' },
+          genres: ['Action'],
+          averageScore: 89, // 8.9
+          members: 300000, // 300k membros -> communityScore amortecido fica em ~8.84
+        },
+      },
+    ]
+
+    const result = scoreRecommendations(planning, tasteProfile, 'ALL', {
+      tasteWeight: 0.5,
+      communityWeight: 0.5,
+    })
+
+    expect(result[0].id).toBe(2)
+    expect(result[1].id).toBe(1)
+    expect(result[0].communityScore).toBeGreaterThan(result[1].communityScore)
   })
 })
 

@@ -9,6 +9,8 @@ export const DISCOVERY_MIN_COMMUNITY_SCORE = 7.5
 export const DISCOVERY_FALLBACK_COMMUNITY_SCORE = 8.0
 export const DEFAULT_TASTE_WEIGHT = 0.85
 export const DEFAULT_COMMUNITY_WEIGHT = 0.15
+export const DEFAULT_BAYESIAN_GLOBAL_MEAN = 7.0
+export const DEFAULT_BAYESIAN_MIN_VOTES = 10000
 
 export function resolveYear(item) {
   if (!item) return null
@@ -161,6 +163,50 @@ export function isEligiblePlanningMedia(entry, tasteProfile = null) {
   return false
 }
 
+/**
+ * Calcula o score da comunidade com amortecimento Bayesiano pelo volume de membros/votos.
+ *
+ * Fórmula: B = (v * R + m * C) / (v + m)
+ * onde:
+ * - R: nota média da obra (escala 0-10)
+ * - v: volume de membros/avaliações (members, popularity ou voteCount)
+ * - C: média global (default: 7.0)
+ * - m: votos mínimos de confiança estatística (default: 10000)
+ *
+ * @param {object} media - Objeto media do anime
+ * @param {object} [options]
+ * @param {number} [options.globalMean=DEFAULT_BAYESIAN_GLOBAL_MEAN]
+ * @param {number} [options.minVotes=DEFAULT_BAYESIAN_MIN_VOTES]
+ * @returns {number|null} Score amortecido na escala 0-10, ou null se não houver nota válida
+ */
+export function calculateDampedCommunityScore(media, options = {}) {
+  const averageScore = media?.averageScore
+  if (averageScore == null || averageScore <= 0) return null
+
+  // Normaliza averageScore para escala 0-10 (AniList usa 0-100, MAL usa 0-10)
+  const rawR = averageScore > 10 ? averageScore / 10 : averageScore
+  const R = Math.max(0, Math.min(10, rawR))
+
+  const globalMean =
+    Number.isFinite(options?.globalMean) && options.globalMean > 0
+      ? options.globalMean
+      : DEFAULT_BAYESIAN_GLOBAL_MEAN
+  const minVotes =
+    Number.isFinite(options?.minVotes) && options.minVotes >= 0
+      ? options.minVotes
+      : DEFAULT_BAYESIAN_MIN_VOTES
+
+  const votes =
+    Number(media?.members ?? media?.popularity ?? media?.voteCount) || 0
+
+  if (votes <= 0 || minVotes <= 0) {
+    return Math.round(R * 100) / 100
+  }
+
+  const damped = (votes * R + minVotes * globalMean) / (votes + minVotes)
+  return Math.round(damped * 100) / 100
+}
+
 export function calculateWeightedGenreAverage(scoredMatchingGenres, tasteProfile) {
   if (!scoredMatchingGenres || scoredMatchingGenres.length === 0) return null
   let weightedSum = 0
@@ -213,10 +259,7 @@ export function scoreRecommendations(planningEntries = [], tasteProfile = new Ma
       }
     })
 
-    const hasCommunityScore = media.averageScore != null && media.averageScore > 0
-    const communityScore = hasCommunityScore
-      ? Math.round((media.averageScore / 10) * 100) / 100
-      : null
+    const communityScore = calculateDampedCommunityScore(media, options)
 
     let baseTasteScore
     let predictedScore
