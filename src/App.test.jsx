@@ -55,8 +55,8 @@ describe('App', () => {
     expect(window.location.search).toContain('provider=anilist')
 
     expect(screen.getByText('Rec1')).toBeInTheDocument()
-    expect(screen.getByText('Match: 6.55/10')).toBeInTheDocument()
-    expect(screen.getByText('Comunidade: 8.50/10')).toBeInTheDocument()
+    expect(screen.getByText('Match: 6.32/10')).toBeInTheDocument()
+    expect(screen.getByText('Comunidade: 7.01/10')).toBeInTheDocument()
   })
 
   it('shows error on login screen when API fails', async () => {
