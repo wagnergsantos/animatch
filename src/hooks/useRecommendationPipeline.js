@@ -31,8 +31,8 @@ export function useRecommendationPipeline({
   const safeEntries = useMemo(() => (Array.isArray(entries) ? entries : []), [entries])
 
   const tasteProfile = useMemo(() => {
-    return buildTasteProfile(safeEntries)
-  }, [safeEntries])
+    return buildTasteProfile(safeEntries, { ...recommenderOptions, useStatusProxy: 'auto' })
+  }, [safeEntries, recommenderOptions])
 
   const planningEntries = useMemo(() => {
     return safeEntries.filter((entry) => isEligiblePlanningEntry(entry, tasteProfile))

@@ -8,6 +8,8 @@ import {
   calculateDampedCommunityScore,
   DEFAULT_BAYESIAN_GLOBAL_MEAN,
   DEFAULT_BAYESIAN_MIN_VOTES,
+  STATUS_SCORE_PROXY,
+  STATUS_PROXY_WEIGHT,
   isEligiblePlanningMedia,
   isEligiblePlanningEntry,
   DEFAULT_MIN_GENRE_COUNT,
@@ -144,6 +146,54 @@ describe('buildTasteProfile', () => {
     const profile = buildTasteProfile(entries)
 
     expect(profile.size).toBe(0)
+  })
+
+  it('resgata lista sem notas quando useStatusProxy é ativado (COMPLETED=8.0, WATCHING=7.0)', () => {
+    const entries = [
+      { score: 0, status: 'COMPLETED', media: { genres: ['Action', 'Fantasy'] } },
+      { score: 0, status: 'COMPLETED', media: { genres: ['Action'] } },
+      { score: 0, status: 'WATCHING', media: { genres: ['Fantasy'] } },
+    ]
+
+    const profile = buildTasteProfile(entries, { useStatusProxy: true })
+
+    expect(profile.has('Action')).toBe(true)
+    expect(profile.has('Fantasy')).toBe(true)
+    expect(profile.get('Action').average).toBe(8.0)
+    expect(profile.get('Action').scoredCount).toBe(2)
+  })
+
+  it('prioriza notas explícitas do usuário sobre o proxy de status', () => {
+    const entries = [
+      { score: 10, status: 'COMPLETED', media: { genres: ['Sci-Fi'] } },
+      { score: 6, status: 'COMPLETED', media: { genres: ['Sci-Fi'] } },
+      { score: 0, status: 'COMPLETED', media: { genres: ['Sci-Fi'] } }, // unrated -> 8.0 com peso 0.8
+    ]
+
+    const profile = buildTasteProfile(entries, { useStatusProxy: true })
+
+    // (10 * 1.0 + 6 * 1.0 + 8.0 * 0.8) / (1 + 1 + 0.8) = (16 + 6.4) / 2.8 = 22.4 / 2.8 = 8.0
+    expect(profile.get('Sci-Fi').average).toBe(8.0)
+    expect(profile.get('Sci-Fi').scoredCount).toBe(3)
+  })
+
+  it('ativa proxy automaticamente no modo "auto" apenas quando usuário tem menos de 3 avaliações', () => {
+    const unratedList = [
+      { score: 0, status: 'COMPLETED', media: { genres: ['Drama'] } },
+      { score: 0, status: 'COMPLETED', media: { genres: ['Drama'] } },
+    ]
+    const profileAuto = buildTasteProfile(unratedList, { useStatusProxy: 'auto' })
+    expect(profileAuto.has('Drama')).toBe(true)
+
+    const ratedList = [
+      { score: 9, status: 'COMPLETED', media: { genres: ['Comedy'] } },
+      { score: 8, status: 'COMPLETED', media: { genres: ['Comedy'] } },
+      { score: 7, status: 'COMPLETED', media: { genres: ['Comedy'] } },
+      { score: 0, status: 'COMPLETED', media: { genres: ['Mecha'] } }, // 1 mecha sem nota não deve virar perfil
+    ]
+    const profileWithRated = buildTasteProfile(ratedList, { useStatusProxy: 'auto' })
+    expect(profileWithRated.has('Comedy')).toBe(true)
+    expect(profileWithRated.has('Mecha')).toBe(false)
   })
 
   it('uses default parameter when completedEntries is not provided', () => {

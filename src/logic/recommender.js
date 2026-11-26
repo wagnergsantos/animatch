@@ -12,6 +12,24 @@ export const DEFAULT_COMMUNITY_WEIGHT = 0.15
 export const DEFAULT_BAYESIAN_GLOBAL_MEAN = 7.0
 export const DEFAULT_BAYESIAN_MIN_VOTES = 10000
 
+export const STATUS_SCORE_PROXY = Object.freeze({
+  COMPLETED: 8.0,
+  CURRENT: 7.0,
+  WATCHING: 7.0,
+  ON_HOLD: 5.0,
+  PAUSED: 5.0,
+  DROPPED: 2.0,
+})
+
+export const STATUS_PROXY_WEIGHT = Object.freeze({
+  COMPLETED: 0.8,
+  CURRENT: 0.7,
+  WATCHING: 0.7,
+  ON_HOLD: 0.4,
+  PAUSED: 0.4,
+  DROPPED: 0.2,
+})
+
 export function resolveYear(item) {
   if (!item) return null
   return (
@@ -52,7 +70,22 @@ export function buildTasteProfile(entries = [], options = {}) {
     confidenceConstant = DEFAULT_CONFIDENCE_CONSTANT,
     scoreStdDev = DEFAULT_SCORE_STD_DEV,
     confidenceZ = CONFIDENCE_Z,
+    useStatusProxy = false,
   } = options
+
+  // Auto-detecta ativação do proxy de status quando lista do usuário não tem avaliações suficientes (< 3)
+  let shouldApplyProxy = Boolean(useStatusProxy && useStatusProxy !== 'auto')
+  if (useStatusProxy === 'auto') {
+    let ratedCount = 0
+    for (const e of entries) {
+      if (typeof e?.score === 'number' && e.score > 0) {
+        ratedCount++
+        if (ratedCount >= 3) break
+      }
+    }
+    shouldApplyProxy = ratedCount < 3
+  }
+
   const genreStats = new Map()
   let globalWeightedTotal = 0
   let globalTotalWeight = 0
@@ -63,29 +96,49 @@ export function buildTasteProfile(entries = [], options = {}) {
     const rawStatus = (entry.status || 'COMPLETED').toUpperCase()
 
     if (
-      rawStatus === 'DROPPED' ||
-      rawStatus === 'PAUSED' ||
       rawStatus === 'PLANNING' ||
       rawStatus === 'PLAN_TO_WATCH' ||
-      rawStatus === 'ON_HOLD'
+      rawStatus === 'PLANNED'
     ) {
       continue
     }
 
-    const isWatching = rawStatus === 'CURRENT' || rawStatus === 'WATCHING'
-    const rawScore = entry.score ?? 0
+    if (!shouldApplyProxy) {
+      if (
+        rawStatus === 'DROPPED' ||
+        rawStatus === 'PAUSED' ||
+        rawStatus === 'ON_HOLD'
+      ) {
+        continue
+      }
+    }
 
-    if (isWatching && rawScore <= 0) {
+    const isWatching = rawStatus === 'CURRENT' || rawStatus === 'WATCHING'
+    const rawScore = typeof entry.score === 'number' ? entry.score : 0
+    const hasExplicitScore = rawScore > 0
+
+    if (isWatching && rawScore <= 0 && !shouldApplyProxy) {
       continue
     }
 
-    const weight = isWatching ? WATCHING_SCORE_WEIGHT : 1.0
-    const genres = entry.media.genres ?? []
+    let effectiveScore = 0
+    let weight = 1.0
 
-    if (rawScore > 0) {
-      globalWeightedTotal += rawScore * weight
+    if (hasExplicitScore) {
+      effectiveScore = rawScore
+      weight = isWatching ? WATCHING_SCORE_WEIGHT : 1.0
+    } else if (shouldApplyProxy && STATUS_SCORE_PROXY[rawStatus] != null) {
+      effectiveScore = STATUS_SCORE_PROXY[rawStatus]
+      weight = STATUS_PROXY_WEIGHT[rawStatus] ?? 0.5
+    }
+
+    const isScored = effectiveScore > 0
+    if (isScored) {
+      globalWeightedTotal += effectiveScore * weight
       globalTotalWeight += weight
     }
+
+    const genres = entry.media.genres ?? []
 
     const animeInfo = {
       id: entry.media.id,
@@ -94,7 +147,7 @@ export function buildTasteProfile(entries = [], options = {}) {
         english: entry.media.title?.english || '',
         romaji: entry.media.title?.romaji || '',
       },
-      score: rawScore,
+      score: effectiveScore,
       coverImage: entry.media.coverImage?.large ?? '',
       status: entry.status || 'COMPLETED',
       genres,
@@ -108,8 +161,8 @@ export function buildTasteProfile(entries = [], options = {}) {
       stats.count += 1
       stats.sourceAnimes.push(animeInfo)
 
-      if (rawScore > 0) {
-        stats.total += rawScore * weight
+      if (isScored) {
+        stats.total += effectiveScore * weight
         stats.weightTotal += weight
         stats.scoredCount += 1
       }

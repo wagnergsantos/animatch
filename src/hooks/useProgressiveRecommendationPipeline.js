@@ -73,8 +73,8 @@ export function useProgressiveRecommendationPipeline({
   }, [onLoadComplete])
 
   const tasteProfile = useMemo(() => {
-    return buildTasteProfile(safeEntries)
-  }, [safeEntries])
+    return buildTasteProfile(safeEntries, { ...recommenderOptions, useStatusProxy: 'auto' })
+  }, [safeEntries, recommenderOptions])
 
   const planningEntries = useMemo(() => {
     if (safeEntries.length === 0) return EMPTY_ARRAY
