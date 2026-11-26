@@ -22,6 +22,10 @@ supabase/.temp/
 # Data exports
 *.csv
 
+# Reference & Drafts
+modelos/
+docs/animatch-revisao-consolidada.md
+
 
 # Editor directories and files
 .vscode/*
