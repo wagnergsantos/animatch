@@ -36,10 +36,19 @@ describe('synopsisTranslator', () => {
 
     const res = await translateSynopsis('Original synopsis in English.', {
       animeId: 456,
+      title: 'One Piece',
       targetLang: 'pt-BR',
     })
 
     expect(fetch).toHaveBeenCalledTimes(1)
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/translate',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          'X-Requested-With': 'Animatch-Client',
+        }),
+      })
+    )
     expect(res.translatedText).toBe(mockTranslated)
     expect(res.source).toBe('workers-ai')
 

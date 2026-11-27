@@ -74,11 +74,19 @@ export function setCachedSynopsis(id, text, translatedText, targetLang = 'pt-BR'
  * @param {object} [options]
  * @param {string} [options.targetLang='pt-BR']
  * @param {string|number} [options.animeId]
+ * @param {string} [options.title]
+ * @param {string} [options.provider]
  * @param {AbortSignal} [options.signal]
  * @returns {Promise<{ translatedText: string, source: string }>}
  */
 export async function translateSynopsis(text, options = {}) {
-  const { targetLang = 'pt-BR', animeId = null, signal = null } = options
+  const {
+    targetLang = 'pt-BR',
+    animeId = null,
+    title = '',
+    provider = '',
+    signal = null,
+  } = options
 
   if (!text || typeof text !== 'string') {
     return { translatedText: '', source: 'empty' }
@@ -94,11 +102,14 @@ export async function translateSynopsis(text, options = {}) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'X-Requested-With': 'Animatch-Client',
     },
     body: JSON.stringify({
       text,
       targetLang,
       animeId,
+      title,
+      provider,
     }),
     signal,
   })

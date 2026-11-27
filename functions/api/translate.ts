@@ -1,9 +1,10 @@
 // Cloudflare Pages Function: /api/translate
 // Traduz sinopses de animes para pt-BR (ou outro idioma solicitado)
-// utilizando Cloudflare Workers AI com Edge Cache e Rate Limiting.
+// utilizando Cloudflare Workers AI com Edge Cache, Rate Limiting e proteções anti-abuso.
 
 interface Env {
   AI?: any
+  TRANSLATE_KV?: any
   CF_ACCOUNT_ID?: string
   CF_API_TOKEN?: string
 }
@@ -12,6 +13,8 @@ interface TranslationRequestBody {
   text?: string
   targetLang?: string
   animeId?: string | number
+  title?: string
+  provider?: string
 }
 
 const RATE_LIMIT_WINDOW_MS = 60_000
@@ -40,10 +43,29 @@ export function checkIpRateLimit(ip: string, now = Date.now()): { allowed: boole
   return { allowed: true, retryAfterSec: 0 }
 }
 
-const corsHeaders: Record<string, string> = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
+function isAllowedOrigin(originStr: string): boolean {
+  if (!originStr) return true
+  try {
+    const u = new URL(originStr)
+    return (
+      u.hostname === 'animatch-app.pages.dev' ||
+      u.hostname.endsWith('.pages.dev') ||
+      u.hostname === 'localhost' ||
+      u.hostname === '127.0.0.1'
+    )
+  } catch {
+    return false
+  }
+}
+
+function getCorsHeaders(request: Request): Record<string, string> {
+  const origin = request.headers.get('Origin') || ''
+  const allowOrigin = (origin && isAllowedOrigin(origin)) ? origin : 'https://animatch-app.pages.dev'
+  return {
+    'Access-Control-Allow-Origin': allowOrigin,
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Requested-With',
+  }
 }
 
 async function sha256(message: string): Promise<string> {
@@ -53,18 +75,46 @@ async function sha256(message: string): Promise<string> {
   return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
 }
 
-export const onRequestOptions: PagesFunction = async () => {
+export const onRequestOptions: PagesFunction = async (context) => {
   return new Response(null, {
     status: 204,
-    headers: corsHeaders,
+    headers: getCorsHeaders(context.request),
   })
 }
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   const { request, env } = context
+  const corsHeaders = getCorsHeaders(request)
   const clientIp = request.headers.get('CF-Connecting-IP') || 'unknown'
+  const origin = request.headers.get('Origin') || ''
+  const referer = request.headers.get('Referer') || ''
+  const secFetchSite = request.headers.get('Sec-Fetch-Site')
+  const requestedWith = request.headers.get('X-Requested-With')
 
-  // Rate Limiting
+  // 1. Proteção contra uso arbitrário / chamadas externas
+  if ((origin && !isAllowedOrigin(origin)) || (referer && !isAllowedOrigin(referer))) {
+    return new Response(
+      JSON.stringify({ error: 'Acesso negado: origem não autorizada.' }),
+      { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+
+  if (secFetchSite && secFetchSite !== 'same-origin' && secFetchSite !== 'same-site' && secFetchSite !== 'none') {
+    return new Response(
+      JSON.stringify({ error: 'Acesso negado: requisições cross-origin não são permitidas.' }),
+      { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+
+  // Permite chamada do cliente web oficial
+  if (requestedWith && requestedWith !== 'Animatch-Client') {
+    return new Response(
+      JSON.stringify({ error: 'Acesso negado: cliente inválido.' }),
+      { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+
+  // 2. Rate Limiting por IP
   const rateCheck = checkIpRateLimit(clientIp)
   if (!rateCheck.allowed) {
     return new Response(
@@ -90,7 +140,9 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     )
   }
 
-  const { text, targetLang = 'pt-BR' } = body
+  const { text, targetLang = 'pt-BR', animeId, title } = body
+
+  // 3. Validação estrita: exige dados da sinopse e do anime
   if (!text || typeof text !== 'string' || text.trim().length === 0) {
     return new Response(
       JSON.stringify({ error: 'Texto para tradução é obrigatório.' }),
@@ -98,7 +150,16 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     )
   }
 
+  if (!animeId || !title || typeof title !== 'string' || title.trim().length === 0) {
+    return new Response(
+      JSON.stringify({ error: 'O endpoint aceita apenas sinopses vinculadas a um anime válido (animeId e title obrigatórios).' }),
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+
   const cleanText = text.trim()
+  const cleanTitle = title.trim()
+
   if (cleanText.length > 4000) {
     return new Response(
       JSON.stringify({ error: 'Texto excede o limite máximo permitido de 4000 caracteres.' }),
@@ -106,9 +167,37 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     )
   }
 
-  // 1. Edge Caching com caches.default
-  const textHash = await sha256(`${targetLang}:${cleanText}`)
-  const syntheticCacheUrl = `https://animatch.internal/api/translate?h=${textHash}&lang=${encodeURIComponent(targetLang)}`
+  // 4. Cache Global via Cloudflare KV (se configurado)
+  const kvKey = `synopsis:${targetLang}:${animeId}`
+  if (env.TRANSLATE_KV) {
+    try {
+      const kvCached = await env.TRANSLATE_KV.get(kvKey)
+      if (kvCached) {
+        return new Response(
+          JSON.stringify({
+            translatedText: kvCached,
+            targetLang,
+            source: 'kv-cache',
+          }),
+          {
+            status: 200,
+            headers: {
+              ...corsHeaders,
+              'Content-Type': 'application/json; charset=utf-8',
+              'Cache-Control': 'public, max-age=2592000, s-maxage=2592000',
+            },
+          }
+        )
+      }
+    } catch {
+      // Ignora erro de KV e segue para caches.default / IA
+    }
+  }
+
+  // 5. Edge Caching com caches.default
+  const requestUrl = new URL(request.url)
+  const textHash = await sha256(`${targetLang}:${animeId}:${cleanText}`)
+  const syntheticCacheUrl = `https://${requestUrl.hostname}/api/translate-cache?h=${textHash}`
   const cacheKey = new Request(syntheticCacheUrl, { method: 'GET' })
 
   const cache = (caches as any)?.default
@@ -123,14 +212,26 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     }
   }
 
-  // 2. Execução da IA no Cloudflare
-  const systemPrompt = `You are a professional translator specializing in anime, manga, and Japanese pop culture.
-Translate the following anime synopsis into natural, fluent Brazilian Portuguese (pt-BR).
-Rules:
-- Preserve Japanese terms and honorifics (e.g. shinigami, stand, quirk, jutsu, sensei, kouhai) where appropriate.
-- Preserve character names, attack names, and place names accurately without translating them literally.
+  // 6. Prompt especializado: regras estritas para não traduzir nomes de franquias (ex: One Piece)
+  const systemPrompt = `You are a professional localization and translation expert specializing in anime, manga, and Japanese media for the Brazilian Portuguese (pt-BR) audience.
+Translate the provided anime synopsis into natural, fluent, engaging Brazilian Portuguese (pt-BR).
+
+CRITICAL RULES:
+- NEVER translate franchise titles, series names, or iconic proper nouns literally. For example:
+  * "One Piece" must ALWAYS remain "One Piece" (NEVER "pequeno príncipe" or "um pedaço").
+  * "Death Note" must remain "Death Note".
+  * "Bleach" must remain "Bleach".
+  * "Dragon Ball" must remain "Dragon Ball".
+  * "Grand Line" must remain "Grand Line".
+  * "Straw Hat" can be translated as "Chapéu de Palha".
+  * "Devil Fruit" can be translated as "Fruta do Diabo" or "Akuma no Mi".
+- Preserve character names (e.g. Luffy, Zoro, Naruto, Goku) and attack names accurately.
+- Preserve standard Japanese terms and cultural loanwords (e.g. shinigami, stand, quirk, jutsu, sensei, kouhai, nakama) where standard in the anime community.
 - Maintain formatting and paragraph breaks.
+- If the provided text is clearly NOT an anime, manga, or animated story synopsis, output exactly: [INVALID_SYNOPSIS].
 - Return ONLY the translated synopsis text without any introductory commentary, notes, or quotation wrappers.`
+
+  const userPrompt = `Anime: ${cleanTitle}\n\nSynopsis to translate:\n${cleanText}`
 
   let translatedText = ''
   try {
@@ -138,13 +239,13 @@ Rules:
       const aiRes = await env.AI.run('@cf/meta/llama-3.2-3b-instruct', {
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: cleanText },
+          { role: 'user', content: userPrompt },
         ],
+        temperature: 0,
         max_tokens: 1024,
       })
       translatedText = (aiRes?.response || '').trim()
     } else if (env.CF_ACCOUNT_ID && env.CF_API_TOKEN) {
-      // Fallback via API REST Cloudflare caso não haja binding AI direto
       const cfRes = await fetch(
         `https://api.cloudflare.com/client/v4/accounts/${env.CF_ACCOUNT_ID}/ai/run/@cf/meta/llama-3.2-3b-instruct`,
         {
@@ -156,8 +257,9 @@ Rules:
           body: JSON.stringify({
             messages: [
               { role: 'system', content: systemPrompt },
-              { role: 'user', content: cleanText },
+              { role: 'user', content: userPrompt },
             ],
+            temperature: 0,
             max_tokens: 1024,
           }),
         }
@@ -185,6 +287,13 @@ Rules:
         status: 502,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
+    )
+  }
+
+  if (translatedText.includes('[INVALID_SYNOPSIS]')) {
+    return new Response(
+      JSON.stringify({ error: 'O texto fornecido não foi reconhecido como uma sinopse de anime.' }),
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
 
@@ -216,6 +325,14 @@ Rules:
       context.waitUntil(cache.put(cacheKey, successResponse.clone()))
     } catch {
       // Ignora falhas de escrita no cache
+    }
+  }
+
+  if (env.TRANSLATE_KV && context.waitUntil) {
+    try {
+      context.waitUntil(env.TRANSLATE_KV.put(kvKey, translatedText, { expirationTtl: 2592000 }))
+    } catch {
+      // Ignora falhas de escrita no KV
     }
   }
 

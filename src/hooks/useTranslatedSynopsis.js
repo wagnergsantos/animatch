@@ -12,6 +12,9 @@ import { translateSynopsis, getCachedSynopsis } from '../api/synopsisTranslator.
 export function useTranslatedSynopsis(anime, currentLang = 'pt-BR', enabled = true) {
   const rawDescription = anime?.description || ''
   const animeId = anime?.id || anime?.idMal || anime?.kitsuId || null
+  const rawTitleObj = anime?.titleObj || (typeof anime?.title === 'object' ? anime?.title : null) || anime?.media?.title || {}
+  const animeTitle = (typeof anime?.title === 'string' ? anime.title : '') || rawTitleObj.english || rawTitleObj.romaji || ''
+  const provider = anime?.provider || 'anilist'
 
   const sanitized = sanitizeSynopsis(rawDescription)
   const isEligibleForTranslation = Boolean(
@@ -63,6 +66,8 @@ export function useTranslatedSynopsis(anime, currentLang = 'pt-BR', enabled = tr
     translateSynopsis(sanitized.text, {
       targetLang: 'pt-BR',
       animeId,
+      title: animeTitle,
+      provider,
       signal: controller.signal,
     })
       .then((res) => {
@@ -81,7 +86,7 @@ export function useTranslatedSynopsis(anime, currentLang = 'pt-BR', enabled = tr
     return () => {
       controller.abort()
     }
-  }, [animeId, sanitized.text, isEligibleForTranslation])
+  }, [animeId, sanitized.text, isEligibleForTranslation, animeTitle, provider])
 
   const hasTranslation = Boolean(translatedText && translatedText !== sanitized.text)
   const activeSynopsis = (hasTranslation && !showOriginal)
