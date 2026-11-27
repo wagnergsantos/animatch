@@ -4,7 +4,7 @@ import RecommendationReason from './RecommendationReason.jsx'
 import { useModalFocusTrap } from '../hooks/useModalFocusTrap.js'
 import { isSafeExternalUrl, filterRegionalStreamingLinks, normalizeServiceName } from '../logic/streaming.js'
 import { translateGenre } from '../lib/genreTranslations.js'
-import { sanitizeSynopsis } from '../lib/synopsisSanitizer.js'
+import { useTranslatedSynopsis } from '../hooks/useTranslatedSynopsis.js'
 import { STORAGE_KEYS } from '../lib/storageKeys.js'
 import { useImageFallback } from '../hooks/useImageFallback.js'
 import styles from './AnimeDetailModal.module.css'
@@ -68,6 +68,18 @@ export default function AnimeDetailModal({
     handleImageLoad,
     handleImageError,
   } = useImageFallback(anime, { title })
+
+  const currentLang = i18n.language || 'pt-BR'
+  const {
+    synopsis: activeSynopsis,
+    source: synopsisSource,
+    isEnglish: isEnglishSynopsis,
+    isTranslated,
+    isTranslating,
+    hasTranslation,
+    showOriginal,
+    toggleShowOriginal,
+  } = useTranslatedSynopsis(anime, currentLang)
 
   if (!anime) return null
 
@@ -143,12 +155,8 @@ export default function AnimeDetailModal({
   }
   const statusLabel = anime?.status ? (statusMap[anime.status] || anime.status) : null
 
-  const sanitizedSynopsis = sanitizeSynopsis(anime?.description)
-  const cleanDescription = sanitizedSynopsis.text || t('labels.noDescription')
-  const synopsisSource = sanitizedSynopsis.source
-  const isEnglishSynopsis = sanitizedSynopsis.isEnglish
-  const currentLang = i18n.language || 'pt-BR'
-  const synopsisTitle = isEnglishSynopsis && currentLang.startsWith('pt')
+  const cleanDescription = activeSynopsis || t('labels.noDescription')
+  const synopsisTitle = (!isTranslated && isEnglishSynopsis && currentLang.startsWith('pt'))
     ? t('labels.synopsisEn', { defaultValue: 'Sinopse (em inglês)' })
     : t('labels.synopsis')
 
@@ -256,8 +264,43 @@ export default function AnimeDetailModal({
         <div className={styles['anime-modal__body']}>
           <RecommendationReason anime={anime} />
 
-          <h3 className={styles['anime-modal__section-title']}>{synopsisTitle}</h3>
+          <div className={styles['anime-modal__synopsis-header']}>
+            <h3 className={styles['anime-modal__section-title']}>{synopsisTitle}</h3>
+            <div className={styles['anime-modal__synopsis-actions']}>
+              {isTranslating && (
+                <span className={`${styles['anime-modal__synopsis-badge']} ${styles['anime-modal__synopsis-badge--loading']}`}>
+                  {t('labels.synopsisTranslating', { defaultValue: 'Traduzindo...' })}
+                </span>
+              )}
+              {hasTranslation && (
+                <span className={styles['anime-modal__synopsis-badge']}>
+                  {t('labels.synopsisTranslatedBadge', { defaultValue: 'Traduzido por IA' })}
+                </span>
+              )}
+            </div>
+          </div>
           <p className={styles['anime-modal__description']}>{cleanDescription}</p>
+
+          {hasTranslation && (
+            <div className={styles['anime-modal__synopsis-translation-notice']} data-testid="synopsis-translation-notice">
+              <span className={styles['anime-modal__synopsis-notice-text']}>
+                {showOriginal
+                  ? t('labels.synopsisOriginalNotice', { defaultValue: 'Exibindo sinopse original em inglês.' })
+                  : t('labels.synopsisTranslatedNotice', { defaultValue: 'Sinopse traduzida automaticamente do inglês via IA.' })}
+              </span>
+              <button
+                type="button"
+                onClick={toggleShowOriginal}
+                className={styles['anime-modal__synopsis-toggle']}
+                aria-label={showOriginal ? t('labels.viewTranslated') : t('labels.viewOriginal')}
+              >
+                {showOriginal
+                  ? t('labels.viewTranslated', { defaultValue: 'Ver tradução' })
+                  : t('labels.viewOriginal', { defaultValue: 'Ver original' })}
+              </button>
+            </div>
+          )}
+
           {synopsisSource && (
             <span className={styles['anime-modal__synopsis-source']}>
               {t('labels.source', { defaultValue: 'Fonte' })}: {synopsisSource}

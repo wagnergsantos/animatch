@@ -26,6 +26,35 @@ describe('AnimeDetailModal synopsis sanitization & labeling', () => {
     expect(screen.getByText(/Fonte: Sentai Filmworks/i)).toBeInTheDocument()
   })
 
+  it('renders translated synopsis with AI badge and allows toggling to original', async () => {
+    // Preenche o cache para simular tradução pronta
+    const { setCachedSynopsis } = await import('../api/synopsisTranslator.js')
+    const { sanitizeSynopsis } = await import('../lib/synopsisSanitizer.js')
+    const cleanEn = sanitizeSynopsis(baseAnime.description).text
+    setCachedSynopsis(baseAnime.id, cleanEn, 'Os Amanto invadiram a Terra.', 'pt-BR')
+
+    render(<AnimeDetailModal anime={baseAnime} onClose={vi.fn()} />)
+
+    // Com tradução disponível, o título volta a ser "Sinopse"
+    expect(screen.getByRole('heading', { name: /^sinopse$/i })).toBeInTheDocument()
+    expect(screen.getByText('Os Amanto invadiram a Terra.')).toBeInTheDocument()
+    expect(screen.getByText(/traduzido por ia/i)).toBeInTheDocument()
+    expect(screen.getByTestId('synopsis-translation-notice')).toHaveTextContent(/sinopse traduzida automaticamente do inglês via ia/i)
+
+    // Clicar em "Ver original"
+    const toggleBtn = screen.getByRole('button', { name: /ver original/i })
+    fireEvent.click(toggleBtn)
+
+    expect(screen.getByText(/the amanto, aliens from outer space/i)).toBeInTheDocument()
+    expect(screen.getByTestId('synopsis-translation-notice')).toHaveTextContent(/exibindo sinopse original em inglês/i)
+
+    // Alternar de volta
+    const toggleBackBtn = screen.getByRole('button', { name: /ver tradução/i })
+    fireEvent.click(toggleBackBtn)
+    expect(screen.getByText('Os Amanto invadiram a Terra.')).toBeInTheDocument()
+    expect(screen.getByTestId('synopsis-translation-notice')).toHaveTextContent(/sinopse traduzida automaticamente do inglês via ia/i)
+  })
+
   it('renders fallback when no description is present', () => {
     const animeWithoutDesc = { ...baseAnime, description: '' }
     render(<AnimeDetailModal anime={animeWithoutDesc} onClose={vi.fn()} />)
