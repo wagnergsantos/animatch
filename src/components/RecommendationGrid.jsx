@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import AnimeCard from './AnimeCard.jsx'
 import AnimeRow from './AnimeRow.jsx'
 import { resolveYear, groupRecommendationsByFranchise } from '../logic/recommender.js'
+import { applyMMRDiversity } from '../logic/diversity.js'
 import styles from './RecommendationGrid.module.css'
 import cardStyles from './AnimeCard.module.css'
 
@@ -45,7 +46,10 @@ export default function RecommendationGrid({
   totalCount = 0,
   initialBatchSize = INITIAL_BATCH_SIZE,
   isFiltered = false,
-  isGroupFranchisesEnabled = true
+  isGroupFranchisesEnabled = true,
+  onFilterSimilar = null,
+  isSimilarActive = false,
+  enableDiversity = false
 }) {
   const { t } = useTranslation()
 
@@ -86,10 +90,15 @@ export default function RecommendationGrid({
     setVisibleCount((prev) => (Number.isFinite(prev) ? prev + BATCH_STEP : prev))
   }
 
-  const shouldGroupFranchises = isGroupFranchisesEnabled && sortBy === 'predicted' && !isFiltered
+  const shouldGroupFranchises = isGroupFranchisesEnabled && sortBy === 'predicted' && !isFiltered && !isSimilarActive
 
   const baseRecommendations = useMemo(() => {
     if (!safeRecommendations || safeRecommendations.length === 0) return []
+
+    // If similarity active, keep similarity ranking directly
+    if (isSimilarActive) {
+      return safeRecommendations
+    }
 
     const sorted = [...safeRecommendations].sort((a, b) => {
       if (sortBy === 'year_desc') {
@@ -130,8 +139,11 @@ export default function RecommendationGrid({
       return (b.communityScore || 0) - (a.communityScore || 0)
     })
 
-    return shouldGroupFranchises ? groupRecommendationsByFranchise(sorted, true) : sorted
-  }, [safeRecommendations, sortBy, shouldGroupFranchises])
+    const grouped = shouldGroupFranchises ? groupRecommendationsByFranchise(sorted, true) : sorted
+    return (enableDiversity && sortBy === 'predicted' && !isFiltered)
+      ? applyMMRDiversity(grouped, { lambda: 0.85, windowSize: 3 })
+      : grouped
+  }, [safeRecommendations, sortBy, shouldGroupFranchises, isSimilarActive, isFiltered, enableDiversity])
 
   const visibleRoots = useMemo(
     () => baseRecommendations.slice(0, visibleCount),
@@ -197,6 +209,7 @@ export default function RecommendationGrid({
                   priority={index < 8}
                   isFranchiseExpanded={isExpanded}
                   onToggleFranchise={(e) => toggleFranchise(rec.id, e)}
+                  onFilterSimilar={onFilterSimilar}
                 />
                 {isExpanded && hasChildren && (
                   <div id={`franchise-children-${rec.id}`} style={{ display: 'contents' }}>
@@ -212,6 +225,7 @@ export default function RecommendationGrid({
                         subscriptions={subscriptions}
                         priority={false}
                         isFranchiseExpanded={false}
+                        onFilterSimilar={onFilterSimilar}
                       />
                     ))}
                   </div>
@@ -234,6 +248,7 @@ export default function RecommendationGrid({
                   priority={index < 8}
                   isFranchiseExpanded={isExpanded}
                   onToggleFranchise={(e) => toggleFranchise(rec.id, e)}
+                  onFilterSimilar={onFilterSimilar}
                 />
                 {isExpanded && hasChildren && (
                   <div id={`franchise-children-${rec.id}`} style={{ display: 'contents' }}>
@@ -249,6 +264,7 @@ export default function RecommendationGrid({
                         subscriptions={subscriptions}
                         priority={false}
                         isFranchiseExpanded={false}
+                        onFilterSimilar={onFilterSimilar}
                       />
                     ))}
                   </div>

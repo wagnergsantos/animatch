@@ -378,6 +378,36 @@ describe('AnimeCard', () => {
     rerender(<AnimeCard anime={altChild} />)
     expect(screen.getByText('Adaptação alternativa (1999)')).toBeInTheDocument()
   })
+
+  it('renders similar button when onFilterSimilar is provided and handles click', () => {
+    const anime = {
+      id: 301,
+      title: 'Steins;Gate',
+      predictedScore: 9.1,
+    }
+    const onFilterSimilar = vi.fn()
+    render(<AnimeCard anime={anime} onFilterSimilar={onFilterSimilar} />)
+
+    const btn = screen.getByTestId('anime-card-similar-btn')
+    expect(btn).toBeInTheDocument()
+    fireEvent.click(btn)
+    expect(onFilterSimilar).toHaveBeenCalledTimes(1)
+    expect(onFilterSimilar).toHaveBeenCalledWith(anime)
+  })
+
+  it('renders similarity percentage badge when similarityScore is present', () => {
+    const anime = {
+      id: 302,
+      title: 'Erased',
+      predictedScore: 8.7,
+      similarityScore: 0.85,
+    }
+    render(<AnimeCard anime={anime} />)
+
+    const badge = screen.getByTestId('similarity-badge')
+    expect(badge).toBeInTheDocument()
+    expect(badge.textContent).toContain('85% similar')
+  })
 })
 
 

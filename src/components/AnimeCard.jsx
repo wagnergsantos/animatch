@@ -27,6 +27,7 @@ export default function AnimeCard({
   onCardClick,
   isFranchiseExpanded = false,
   onToggleFranchise,
+  onFilterSimilar = null,
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [expandedBadge, setExpandedBadge] = useState(null)
@@ -334,14 +335,36 @@ export default function AnimeCard({
               {t('labels.match')}: {(anime.predictedScore).toFixed(1)}/10
             </p>
           )}
+          {typeof anime?.similarityScore === 'number' && !isNaN(anime.similarityScore) && (
+            <span className={styles['anime-card__similarity-badge']} data-testid="similarity-badge">
+              ✨ {t('recommendationGrid.percentSimilar', { percent: Math.round(anime.similarityScore * 100) })}
+            </span>
+          )}
           {typeof anime?.communityScore === 'number' && anime.communityScore != null && !isNaN(anime.communityScore) && (
             <p className={styles['anime-card__community']}>
               {t('labels.community')}: {(anime.communityScore).toFixed(1)}/10
             </p>
           )}
 
-          {Array.isArray(anime?.franchiseChildren) && anime.franchiseChildren.length > 0 && (
-            <div className={styles['anime-card__franchise-actions']}>
+          <div className={styles['anime-card__action-row']}>
+            {onFilterSimilar && (
+              <button
+                type="button"
+                className={styles['anime-card__similar-btn']}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onFilterSimilar(anime)
+                }}
+                title={t('recommendationGrid.viewSimilar')}
+                aria-label={t('recommendationGrid.viewSimilar')}
+                data-testid="anime-card-similar-btn"
+              >
+                <span aria-hidden="true">✨</span>
+                <span>{t('recommendationGrid.similarBtn')}</span>
+              </button>
+            )}
+
+            {Array.isArray(anime?.franchiseChildren) && anime.franchiseChildren.length > 0 && (
               <button
                 type="button"
                 className={styles['franchise-pill-btn']}
@@ -365,8 +388,8 @@ export default function AnimeCard({
                     : t('labels.franchiseCount', { count: anime.franchiseChildren.length, defaultValue: `+${anime.franchiseChildren.length} na franquia` })}
                 </span>
               </button>
-            </div>
-          )}
+            )}
+          </div>
 
           {(() => {
             if (anime?.predictionSource === 'community') {
@@ -422,6 +445,7 @@ export default function AnimeCard({
           anime={anime}
           titlePref={titlePref}
           subscriptions={subscriptions}
+          onFilterSimilar={onFilterSimilar}
           onClose={() => {
             setIsModalOpen(false)
             cardRef.current?.focus()

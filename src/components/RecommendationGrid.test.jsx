@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import RecommendationGrid from './RecommendationGrid.jsx'
 
@@ -227,6 +227,26 @@ describe('RecommendationGrid', () => {
       const headings = screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)
       expect(headings).toHaveLength(3)
       expect(screen.queryByTestId('franchise-toggle-btn')).not.toBeInTheDocument()
+    })
+
+    it('passes onFilterSimilar down to anime cards and triggers callback', () => {
+      const onFilterSimilar = vi.fn()
+      const recs = [
+        { id: 10, title: 'Anime 10', predictedScore: 8.5, genres: ['Action'] }
+      ]
+      render(
+        <RecommendationGrid
+          isLoading={false}
+          recommendations={recs}
+          onFilterSimilar={onFilterSimilar}
+        />
+      )
+
+      const btn = screen.getByTestId('anime-card-similar-btn')
+      expect(btn).toBeInTheDocument()
+      fireEvent.click(btn)
+      expect(onFilterSimilar).toHaveBeenCalledTimes(1)
+      expect(onFilterSimilar).toHaveBeenCalledWith(expect.objectContaining({ id: 10 }))
     })
   })
 })

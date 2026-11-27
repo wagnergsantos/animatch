@@ -51,10 +51,10 @@
 
 ### Fase CF4 — Atualização de Integrações Externas (Obrigatório para `*.pages.dev`)
 *(Necessário imediatamente para o login e requisições funcionarem na Cloudflare)*
-- [ ] **Supabase Auth**:
+- [x] **Supabase Auth**:
   - No painel Supabase > **Authentication > URL Configuration > Redirect URLs**:
   - Adicionar a URL da Cloudflare: `https://*.pages.dev/**` (e `https://animatch-77k.pages.dev/**`).
-- [ ] **CORS do Supabase (`supabase/functions/_shared/cors.ts`)**:
+- [x] **CORS do Supabase (`supabase/functions/_shared/cors.ts`)**:
   - Adicionar `https://*.pages.dev` e `https://animatch-77k.pages.dev` na lista de origens permitidas (necessário enquanto o `mal-proxy` ou outras functions ainda rodarem no Supabase).
 
 ---

@@ -5,6 +5,7 @@ import { useEnsembleData } from '../hooks/useEnsembleData.js'
 import { useProgressiveRecommendationPipeline } from '../hooks/useProgressiveRecommendationPipeline.js'
 import { STORAGE_KEYS } from '../lib/storageKeys.js'
 import { scheduleCloudAnimeListSync } from '../cache/cloudListSync.js'
+import { rankAnimesBySimilarity } from '../logic/similarity.js'
 import ProviderTabs from './ProviderTabs.jsx'
 import RecommendationGrid from './RecommendationGrid.jsx'
 import FilterBar from './FilterBar.jsx'
@@ -90,6 +91,8 @@ export default function Dashboard({
   const setStreamingBoost = propsOnStreamingBoostChange || setLocalStreamingBoost
 
   const [isStreamingOnly, setIsStreamingOnly] = useState(false)
+  const [isDiversityEnabled, setIsDiversityEnabled] = useState(false)
+  const [similarTargetAnime, setSimilarTargetAnime] = useState(null)
   const [isDecisionModalOpen, setIsDecisionModalOpen] = useState(false)
   const [selectedAnimeDetail, setSelectedAnimeDetail] = useState(null)
   const [modalGenre, setModalGenre] = useState(null)
@@ -236,8 +239,14 @@ export default function Dashboard({
       selectedFormat !== 'ALL' ||
       selectedBadge !== 'ALL' ||
       isSeasonOnly ||
-      isStreamingOnly
+      isStreamingOnly ||
+      Boolean(similarTargetAnime)
   )
+
+  const effectiveRecommendations = useMemo(() => {
+    if (!similarTargetAnime) return recommendations
+    return rankAnimesBySimilarity(similarTargetAnime, recommendations)
+  }, [similarTargetAnime, recommendations])
 
   const activeProviderLabels = useMemo(() => {
     return Object.entries(linkedUsernames || {})
@@ -462,8 +471,37 @@ export default function Dashboard({
               onSeasonOnlyChange={setIsSeasonOnly}
               isStreamingOnly={isStreamingOnly}
               onStreamingOnlyChange={setIsStreamingOnly}
+              isDiversityEnabled={isDiversityEnabled}
+              onDiversityChange={setIsDiversityEnabled}
             />
             <div ref={gridRef}>
+              {similarTargetAnime && (
+                <div
+                  data-testid="similar-active-banner"
+                  className={styles['dashboard__similar-banner']}
+                  role="status"
+                >
+                  <div className={styles['dashboard__similar-banner-info']}>
+                    <span className={styles['dashboard__similar-banner-icon']} aria-hidden="true">✨</span>
+                    <span>
+                      {t('recommendationGrid.similarBannerTitle')} <strong>{similarTargetAnime.title}</strong>
+                      {Array.isArray(similarTargetAnime.genres) && similarTargetAnime.genres.length > 0 && (
+                        <span className={styles['dashboard__similar-banner-genres']}>
+                          {' '}({similarTargetAnime.genres.slice(0, 3).join(', ')})
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    className={styles['dashboard__similar-banner-clear']}
+                    onClick={() => setSimilarTargetAnime(null)}
+                    data-testid="clear-similar-btn"
+                  >
+                    ✕ {t('recommendationGrid.clearSimilar')}
+                  </button>
+                </div>
+              )}
               {tasteProfile?.isLowConfidence && recommendations.length > 0 && (
                 <div
                   data-testid="low-confidence-banner"
@@ -475,12 +513,18 @@ export default function Dashboard({
                 </div>
               )}
               <RecommendationGrid
-                recommendations={recommendations}
+                recommendations={effectiveRecommendations}
                 isLoading={isGridLoading}
                 isLoadingMore={isLoadingMore}
                 totalCount={totalCount}
                 sortBy={sortBy}
                 isFiltered={isFiltered}
+                isSimilarActive={Boolean(similarTargetAnime)}
+                enableDiversity={isDiversityEnabled}
+                onFilterSimilar={(anime) => {
+                  setSimilarTargetAnime(anime)
+                  gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }}
                 provider={currentScopedProvider}
                 titlePref={titlePref}
                 subscriptions={subscriptions}
@@ -489,7 +533,7 @@ export default function Dashboard({
                   <ResultsActions
                     viewMode={viewMode}
                     onViewModeChange={setViewMode}
-                    onExportCSV={() => exportRecommendationsToCSV(recommendations, t, t('dashboard.exportFilenamePrefix'))}
+                    onExportCSV={() => exportRecommendationsToCSV(effectiveRecommendations, t, t('dashboard.exportFilenamePrefix'))}
                   />
                 }
               />
@@ -556,6 +600,11 @@ export default function Dashboard({
           anime={selectedAnimeDetail}
           titlePref={titlePref}
           subscriptions={subscriptions}
+          onFilterSimilar={(anime) => {
+            setSimilarTargetAnime(anime)
+            setSelectedAnimeDetail(null)
+            gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }}
           onClose={() => setSelectedAnimeDetail(null)}
         />
       )}

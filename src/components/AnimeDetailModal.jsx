@@ -27,6 +27,7 @@ export default function AnimeDetailModal({
   subscriptions: propSubscriptions = null,
   onClose,
   triggerRef,
+  onFilterSimilar = null,
 }) {
   const { t, i18n } = useTranslation()
   const modalRef = useRef(null)
@@ -347,25 +348,36 @@ export default function AnimeDetailModal({
           )}
         </div>
 
-        {activeProviders.length > 0 && (
-          <div className={styles['anime-modal__footer']}>
-            {activeProviders.map((p) => {
-              const label = t(`providers.${p}`, { defaultValue: PROVIDER_FULL_LABELS[p] || p })
-              const url = getProviderUrl(p)
-              return (
-                <a
-                  key={p}
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`${styles['anime-modal__provider-btn']} ${styles[`anime-modal__provider-btn--${p}`] || ''}`}
-                >
-                  🔗 {label} ↗
-                </a>
-              )
-            })}
-          </div>
-        )}
+        <div className={styles['anime-modal__footer']}>
+          {onFilterSimilar && (
+            <button
+              type="button"
+              className={styles['anime-modal__similar-action-btn']}
+              onClick={() => {
+                onFilterSimilar(anime)
+                onClose?.()
+              }}
+              data-testid="modal-filter-similar-btn"
+            >
+              <span>✨ {t('recommendationGrid.viewSimilarInFeed')}</span>
+            </button>
+          )}
+          {activeProviders.map((p) => {
+            const label = t(`providers.${p}`, { defaultValue: PROVIDER_FULL_LABELS[p] || p })
+            const url = getProviderUrl(p)
+            return (
+              <a
+                key={p}
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`${styles['anime-modal__provider-btn']} ${styles[`anime-modal__provider-btn--${p}`] || ''}`}
+              >
+                🔗 {label} ↗
+              </a>
+            )
+          })}
+        </div>
       </div>
     </div>
   )

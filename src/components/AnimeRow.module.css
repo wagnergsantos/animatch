@@ -229,25 +229,57 @@
   width: fit-content;
 }
 
-.anime-row-franchise-btn {
+.anime-row-franchise-btn,
+.anime-row-similar-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
-  background: rgba(99, 102, 241, 0.12);
-  border: 1px solid rgba(99, 102, 241, 0.35);
-  color: #a5b4fc;
+  box-sizing: border-box;
+  height: 24px;
+  line-height: 1;
   border-radius: var(--radius-full, 9999px);
   font-size: var(--text-xs, 0.75rem);
   font-weight: 600;
-  padding: 3px 10px;
+  padding: 0 10px;
   cursor: pointer;
+  vertical-align: middle;
   transition: all 0.2s ease;
+}
+
+.anime-row-franchise-btn {
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  color: #a5b4fc;
 }
 
 .anime-row-franchise-btn:hover {
   background: rgba(99, 102, 241, 0.25);
   border-color: rgba(99, 102, 241, 0.6);
   color: #ffffff;
+}
+
+.anime-row-similar-btn {
+  background: rgba(14, 165, 233, 0.12);
+  border: 1px solid rgba(14, 165, 233, 0.35);
+  color: #7dd3fc;
+}
+
+.anime-row-similar-btn:hover {
+  background: rgba(14, 165, 233, 0.25);
+  border-color: rgba(14, 165, 233, 0.6);
+  color: #ffffff;
+}
+
+.anime-row-similarity-badge {
+  display: inline-block;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #34d399;
+  font-size: var(--text-xs, 0.75rem);
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--radius-full, 9999px);
 }
 
 @media (max-width: 768px) {

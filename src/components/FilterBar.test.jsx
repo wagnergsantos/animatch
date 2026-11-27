@@ -336,6 +336,25 @@ describe('FilterBar', () => {
     expect(screen.getByRole('searchbox', { name: /Buscar anime por nome/i })).toBeInTheDocument()
     expect(screen.getByRole('combobox', { name: /Filtrar por gênero/i })).toBeInTheDocument()
   })
+
+  it('renders diversify feed toggle in popover and triggers onDiversityChange', () => {
+    const handleDiversityChange = vi.fn()
+    render(
+      <FilterBar
+        onSelectFormat={vi.fn()}
+        isDiversityEnabled={false}
+        onDiversityChange={handleDiversityChange}
+      />
+    )
+
+    openFilters()
+    const checkbox = screen.getByLabelText(/Diversificar feed/i)
+    expect(checkbox).toBeInTheDocument()
+    expect(checkbox.checked).toBe(false)
+
+    fireEvent.click(checkbox)
+    expect(handleDiversityChange).toHaveBeenCalledWith(true)
+  })
 })
 
 

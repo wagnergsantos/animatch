@@ -398,24 +398,37 @@
   width: fit-content;
 }
 
-.anime-card__franchise-actions {
+.anime-card__action-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
   margin-top: var(--space-2, 8px);
   margin-bottom: var(--space-1, 4px);
 }
 
-.franchise-pill-btn {
+.franchise-pill-btn,
+.anime-card__similar-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
-  background: rgba(99, 102, 241, 0.12);
-  border: 1px solid rgba(99, 102, 241, 0.35);
-  color: #a5b4fc;
+  box-sizing: border-box;
+  height: 24px;
+  line-height: 1;
   border-radius: var(--radius-full, 9999px);
   font-size: var(--text-xs, 0.75rem);
   font-weight: 600;
-  padding: 3px 10px;
+  padding: 0 10px;
   cursor: pointer;
+  vertical-align: middle;
   transition: all 0.2s ease;
+}
+
+.franchise-pill-btn {
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  color: #a5b4fc;
 }
 
 .franchise-pill-btn:hover {
@@ -425,6 +438,31 @@
   transform: translateY(-1px);
 }
 
+.anime-card__similar-btn {
+  background: rgba(14, 165, 233, 0.12);
+  border: 1px solid rgba(14, 165, 233, 0.35);
+  color: #7dd3fc;
+}
+
+.anime-card__similar-btn:hover {
+  background: rgba(14, 165, 233, 0.25);
+  border-color: rgba(14, 165, 233, 0.6);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.anime-card__similarity-badge {
+  display: inline-block;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #34d399;
+  font-size: var(--text-xs, 0.75rem);
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--radius-full, 9999px);
+  margin-top: 4px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .anime-card:hover,
   .anime-card:focus-visible {
@@ -432,7 +470,8 @@
   }
 
   .anime-card__anilist-quickbtn:hover,
-  .franchise-pill-btn:hover {
+  .franchise-pill-btn:hover,
+  .anime-card__similar-btn:hover {
     transform: none;
   }
 }

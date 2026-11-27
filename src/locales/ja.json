@@ -219,6 +219,9 @@
     "allBadges": "すべてのハイライト",
     "seasonOnly": "今期のみ",
     "streamingOnly": "登録サービスのみ",
+    "diversify": "フィードを多様化（ジャンル分散）",
+    "diversifyShort": "多様化",
+    "diversifyTooltip": "スコアが近い作品のジャンルを交互に並べ替えて偏りを防ぎます。",
     "clearAll": "すべてのフィルタをクリア",
     "clear": "フィルタをクリア",
     "exportCSV": "現在のリストをCSVでエクスポート",
@@ -356,7 +359,13 @@
     "loadMoreWithCount": "さらにアニメを読み込む (残り {{remaining}} 件中 {{count}} 件)",
     "loadingMore": "{{count}}個のアニメを読み込み中...",
     "srCount": "{{count}} 件のおすすめが見つかりました",
-    "srLoading": "おすすめを更新中..."
+    "srLoading": "おすすめを更新中...",
+    "similarBtn": "類似作品",
+    "viewSimilar": "プラン内の類似作品を表示",
+    "similarBannerTitle": "次の作品に類似:",
+    "clearSimilar": "フィルター解除",
+    "percentSimilar": "類似度{{percent}}%",
+    "viewSimilarInFeed": "フィードで類似作品を見る"
   },
   "modals": {
     "genreOrigin": {

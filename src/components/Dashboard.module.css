@@ -158,3 +158,48 @@
 .dashboard__main {
   padding-bottom: var(--space-16);
 }
+
+.dashboard__similar-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3, 12px);
+  padding: 10px 16px;
+  margin-bottom: var(--space-4, 16px);
+  background: rgba(14, 165, 233, 0.1);
+  border: 1px solid rgba(14, 165, 233, 0.35);
+  border-radius: var(--radius-md, 8px);
+  color: var(--color-ink, #f8fafc);
+  font-size: var(--text-sm, 0.875rem);
+}
+
+.dashboard__similar-banner-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.dashboard__similar-banner-genres {
+  color: var(--color-muted, #94a3b8);
+  font-size: var(--text-xs, 0.75rem);
+}
+
+.dashboard__similar-banner-clear {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm, 4px);
+  font-size: var(--text-xs, 0.75rem);
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.dashboard__similar-banner-clear:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #fca5a5;
+}

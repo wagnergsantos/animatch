@@ -12,6 +12,7 @@ export default function AnimeRow({
   subscriptions = [],
   isFranchiseExpanded = false,
   onToggleFranchise,
+  onFilterSimilar = null,
 }) {
   const [isExpanded, setIsExpanded] = useState(false)
   const { t, i18n } = useTranslation()
@@ -199,6 +200,11 @@ export default function AnimeRow({
               {t('labels.match')}: {anime.predictedScore.toFixed(1)}/10
             </span>
           )}
+          {typeof anime?.similarityScore === 'number' && !isNaN(anime.similarityScore) && (
+            <span className={styles['anime-row-similarity-badge']} data-testid="row-similarity-badge">
+              ✨ {t('recommendationGrid.percentSimilar', { percent: Math.round(anime.similarityScore * 100) })}
+            </span>
+          )}
           {typeof anime?.communityScore === 'number' && !isNaN(anime.communityScore) && (
             <span className={`${styles['anime-row-score-badge']} ${styles['anime-row-score-badge--community']}`}>
               {t('labels.community')}: {anime.communityScore.toFixed(1)}/10
@@ -207,6 +213,22 @@ export default function AnimeRow({
         </div>
 
         <div className={styles['anime-row-actions']}>
+          {onFilterSimilar && (
+            <button
+              type="button"
+              className={styles['anime-row-similar-btn']}
+              onClick={(e) => {
+                e.stopPropagation()
+                onFilterSimilar(anime)
+              }}
+              title={t('recommendationGrid.viewSimilar')}
+              aria-label={t('recommendationGrid.viewSimilar')}
+              data-testid="anime-row-similar-btn"
+            >
+              <span>✨ {t('recommendationGrid.similarBtn')}</span>
+            </button>
+          )}
+
           {Array.isArray(anime?.franchiseChildren) && anime.franchiseChildren.length > 0 && (
             <button
               type="button"

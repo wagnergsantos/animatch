@@ -81,6 +81,8 @@ export default function FilterBar({
   onStreamingOnlyChange,
   genreSortMode = 'score',
   onGenreSortModeChange,
+  isDiversityEnabled = false,
+  onDiversityChange,
 }) {
   const { t } = useTranslation()
   const [uncontrolledSortMode, setUncontrolledSortMode] = useState(genreSortMode || 'score')
@@ -193,6 +195,9 @@ export default function FilterBar({
   if (isStreamingOnly) {
     activeChips.push({ id: 'streaming', label: t('filter.streamingOnly'), clear: () => onStreamingOnlyChange?.(false), secondary: true })
   }
+  if (isDiversityEnabled) {
+    activeChips.push({ id: 'diversity', label: t('filter.diversifyShort'), clear: () => onDiversityChange?.(false), secondary: true })
+  }
   const secondaryActiveCount = activeChips.filter((c) => c.secondary).length
   const isFiltered = activeChips.length > 0 || searchQuery.trim() !== ''
 
@@ -204,6 +209,7 @@ export default function FilterBar({
     onSearchChange?.('')
     onSeasonOnlyChange?.(false)
     onStreamingOnlyChange?.(false)
+    onDiversityChange?.(false)
   }
 
   const handleResetSecondary = () => {
@@ -212,6 +218,7 @@ export default function FilterBar({
     onSelectBadge?.('ALL')
     onSeasonOnlyChange?.(false)
     onStreamingOnlyChange?.(false)
+    onDiversityChange?.(false)
   }
 
   return (
@@ -377,7 +384,7 @@ export default function FilterBar({
                     )}
                   </div>
 
-                  {(onSeasonOnlyChange || onStreamingOnlyChange) && (
+                  {(onSeasonOnlyChange || onStreamingOnlyChange || onDiversityChange) && (
                     <div className={styles['filter-popover__toggles']}>
                       {onSeasonOnlyChange && (
                         <label className={styles['filter-toggle']}>
@@ -401,6 +408,18 @@ export default function FilterBar({
                           />
                           <span className={styles['filter-toggle__track']} aria-hidden="true" />
                           {t('filter.streamingOnly')}
+                        </label>
+                      )}
+                      {onDiversityChange && (
+                        <label className={styles['filter-toggle']} title={t('filter.diversifyTooltip')}>
+                          <input
+                            id="filter-diversify"
+                            type="checkbox"
+                            checked={isDiversityEnabled}
+                            onChange={(e) => onDiversityChange(e.target.checked)}
+                          />
+                          <span className={styles['filter-toggle__track']} aria-hidden="true" />
+                          {t('filter.diversify')}
                         </label>
                       )}
                     </div>

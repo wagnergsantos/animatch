@@ -1,5 +1,7 @@
 export const ALLOWED_ORIGINS = [
   'https://wagnergsantos.github.io',
+  'https://animatch-app.pages.dev',
+  'https://animatch-77k.pages.dev',
   'http://localhost:5173',
   'http://127.0.0.1:5173',
 ]

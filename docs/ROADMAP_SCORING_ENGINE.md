@@ -1,6 +1,6 @@
 # Roadmap de Melhorias Técnicas: Animatch Web
 
-Este documento consolida todas as melhorias técnicas, matemáticas e de interface mapeadas a partir de três bases de código de referência analisadas. Cada item possui sua **Origem**, **Racional de Decisão**, **Ação Técnica** e **Arquivos Afetados** para garantir rastreabilidade futura.
+Este documento consolida todas as melhorias técnicas, matemáticas e de interface mapeadas a partir de três bases de código de referência analisadas e das revisões técnicas de produto. Cada item possui sua **Origem**, **Racional de Decisão**, **Ação Técnica**, **Status de Implementação** e **Arquivos Afetados** para garantir rastreabilidade contínua.
 
 ---
 
@@ -17,317 +17,227 @@ Este documento consolida todas as melhorias técnicas, matemáticas e de interfa
 
 ## 1. Motor de Recomendação & Matemática (`src/logic/recommender.js`)
 
-> Evolui a inferência de gosto estática para um modelo sensível ao tempo, resistente a outliers de poucos votos, tolerante a listas sem notas e imune a monopólio de gêneros repetidos.
+> Evolui a inferência de gosto estática para um modelo sensível à confiança estatística, imune a outliers de poucos votos, tolerante a listas sem notas e organizado por franquias.
 
-### 1.1 Decaimento Temporal de Preferências
-- **Origem**: [Fonte A] `scoring_engine.dart` (`_temporalPreferenceVector`).
-- **Racional**: O Animatch tratava um anime assistido há 5 anos com o mesmo peso de um assistido ontem. Se o gosto do usuário mudou para *Seinen/Romance*, o histórico antigo de *Shounen* continuava dominando.
-- **Conceito Matemático**: $w_i = e^{-\lambda \cdot \text{daysAgo}}$ com $\lambda = 0.04$ (meia-vida ~17 dias).
-- **Ação Técnica**: Ponderar cada nota pela data de conclusão/atualização (`completedAt` ou `updatedAt` de AniList/MAL/Kitsu) na construção do `buildTasteProfile`.
-- **Arquivos**: `src/logic/recommender.js`, `src/logic/recommender.test.js`.
-- **Complexidade**: Média.
-
-### 1.2 Amortecimento Bayesiano de Popularidade por Membros
+### 1.1 Amortecimento Bayesiano de Popularidade por Membros
 - **Origem**: [Fonte A] `scoring_engine.dart` (`_popularityScore`).
-- **Racional**: O score da comunidade bruto (`media.averageScore / 10`) infla obras obscuras com 30 votos nota 9.5 em detrimento de clássicos aclamados com 500k membros nota 8.9.
-- **Conceito Matemático**: $B = \frac{v \cdot R + m \cdot C}{v + m}$, onde $C = 7.0$ (média global), $m = 10.000$ (limiar de confiança), $v = \text{members}$ e $R = \text{score} / 10$.
-- **Ação Técnica**: Aplicar amortecimento Bayesiano na nota de comunidade antes de compor o blend de recomendação.
-- **Arquivos**: `src/logic/recommender.js`.
-- **Complexidade**: Baixa.
+- **Status**: ✅ **Implementado & Calibrado** (`src/logic/recommender.js`, commit `cb9704d`).
+- **Racional**: O score bruto da comunidade (`media.averageScore / 10`) infla obras obscuras com pouquíssimos votos em detrimento de clássicos consolidados.
+- **Conceito Matemático**: $B = \frac{v \cdot R + m \cdot C}{v + m}$, onde $C = 7.0$ (média global do catálogo), $m = 1.000$ (`DEFAULT_BAYESIAN_MIN_VOTES`), $v = \text{members}$ e $R = \text{averageScore} / 10$.
+- **Resultado Prático**: Uma nota 8.5 com 5.000 membros amortiza para 8.25 (preserva nichos qualificados sem distorcer o topo).
 
-### 1.3 Proxy de Notas por Status & Modelo Contínuo de Confiança
-- **Origem**: [Fonte A] `scoring_engine.dart` (`_ratingWeight`) + Refinamento Bayesiano.
-- **Racional**: Usuários que não preenchem notas numéricas e apenas marcam animes por status ficavam sem perfil de gosto (o Animatch descartava notas $\le 0$). Em vez de notas arbitrárias e limiar binário, adotou-se um modelo contínuo sensível a progresso e frequência.
+### 1.2 Proxy de Notas por Status & Modelo Contínuo de Confiança
+- **Origem**: [Fonte A] `scoring_engine.dart` (`_ratingWeight`) + Refinamento Estatístico.
+- **Status**: ✅ **Implementado** (`src/logic/recommender.js`, commits `cb9704d`, `7905234`).
 - **Valores e Pesos por Status & Progresso**:
   - `COMPLETED`: Nota 7.8 (peso base 0.50). Concluir é sinal positivo moderado.
   - `WATCHING`: Nota 7.0 (peso base 0.25). Ignorado se progresso $< 30\%$ (ruído de amostragem).
   - `ON_HOLD`: Nota 6.0 (peso base 0.25). Neutro para levemente negativo.
-  - `DROPPED`: Peso base 0.50. Nota modulada pelo ponto de abandono:
-    - $< 25\%$ dos episódios: Nota 4.0 (rejeição clara).
-    - $25\%$ a $75\%$: Nota 4.5 (sinal ambíguo).
-    - $> 75\%$: Nota 6.0 (falta de tempo/vontade, não desgosto severo).
-    - Sem dado de episódios: Nota 4.5.
+  - `DROPPED`: Peso base 0.50. Nota modulada pelo ponto de abandono ($<25\% \rightarrow 4.0$; $25\%\text{--}75\% \rightarrow 4.5$; $>75\% \rightarrow 6.0$).
   - `PLANNING`: Não entra (peso 0, apenas intenção futura).
-- **Decaimento Gradual por Volume de Notas**:
-  - $\text{decay} = \frac{10}{n_{\text{explicit}} + 10}$ aplicado a obras sem nota.
-  - $w = w_{\text{base}} \cdot \text{decay}$. Usuários com centenas de notas têm peso do proxy praticamente nulo.
-  - $n_{\text{eff}} = n_{\text{explicit}} + \sum w_{\text{proxy}}$.
-- **Lift de Frequência de Gêneros**:
-  - $\text{Lift}(g) = \frac{P(g | \text{user})}{P(g | \text{catálogo})}$.
-  - $\text{ajuste}_g = \text{clamp}(0.7 \cdot \ln(\text{Lift}(g)), -1.0, +1.0)$.
-  - Discrimina os gêneros mesmo que todos os concluídos partam da mesma base; gêneros de obras dropadas reduzem o lift relativo.
-- **Confiança Contínua Alimentando o Match**:
+- **Decaimento Contínuo & Teto de Contribuição**:
+  - $\text{decay} = \frac{10}{n_{\text{explicit}} + 10}$.
+  - $w_{\text{proxy}} = w_{\text{base}} \cdot \text{decay}$.
+  - Teto de proxy: $\sum w_{\text{proxy}} \le 8.0$ notas equivalentes (impede que perfis sem notas atinjam confiança artificial alta).
+  - $n_{\text{eff}} = n_{\text{explicit}} + \min(\sum w_{\text{proxy}}, 8.0)$.
+- **Laplace Smoothing no Lift de Gênero**:
+  - Aplicação de $\alpha = 0.25$ no cálculo do `Lift(g)` para estabilizar contagens de gêneros escassos.
+- **Confiança Contínua & Banner Desacoplado**:
   - $c = \frac{n_{\text{eff}}}{n_{\text{eff}} + 10}$.
-  - $\text{pesoGosto} = 0.85 \cdot c$ (0.85 vira teto assintótico).
-  - $\text{pesoComunidade} = 1.0 - \text{pesoGosto}$.
-  - $\text{Match} = \text{pesoGosto} \cdot \text{gosto} + \text{pesoComunidade} \cdot \text{comunidadeAmortecida}$.
-  - Unifica proxy e cold start: com poucas avaliações, o Match prioriza a comunidade amortecida; com histórico sólido, prioriza o gosto.
-- **Transparência na Interface**:
-  - Quando $c < 0.5$, exibe banner informativo discreto no topo do feed: *"Poucas notas: usando seu histórico de status. Avalie mais animes para recomendações mais precisas."*
-- **Arquivos**: `src/logic/recommender.js`, `src/components/Dashboard.jsx`, `src/components/Dashboard.module.css`.
-- **Complexidade**: Média/Alta.
+  - $\text{pesoGosto} = 0.85 \cdot c$; $\text{pesoComunidade} = 1.0 - \text{pesoGosto}$.
+  - Banner de baixa confiança disparado por `nExplicit < 10 && entries.length > 0` (ponto de meia-vida do proxy, desacoplado do volume de itens não avaliados).
 
-### 1.4 Fator de Novidade Anti-Repetição (Anti-Fadiga)
-- **Origem**: [Fonte A] `scoring_engine.dart` (`_noveltyScore`).
-- **Racional**: Evita que obras exatamente idênticas às últimas 10 assistidas cansem o usuário.
-- **Conceito Matemático**: $S_{\text{novelty}} = 1 - \max_{i \in \text{recent}(10)} \text{Jaccard}(genres_a, genres_i)$.
-- **Ação Técnica**: Injetar leve bonificação proporcional para obras que variam a fórmula dos últimos animes concluídos.
-- **Arquivos**: `src/logic/recommender.js`.
-- **Complexidade**: Média.
+### 1.3 Agrupamento de Franquias & Hierarquia de Raiz (`pickFranchiseRoot`)
+- **Origem**: Requisito de Usabilidade & UX de Franquias.
+- **Status**: ✅ **Implementado** (`src/logic/recommender.js`, `RecommendationGrid.jsx`, commit `7905234`).
+- **Racional**: Continuações e filmes da mesma obra não devem inundar o feed de recomendações.
+- **Heurística de Raiz**:
+  - **Remakes / Adaptações Alternativas** (`isAlternativeAdaptation`): mesmo título normalizado + sem termos sequenciais (`Season`, `Part`) + $\Delta\text{ano} \ge 5 \rightarrow$ raiz é a de **maior Match** (ex: *Hunter x Hunter 2011* > *1999*). O filho recebe tag `Adaptação alternativa (ano)`.
+  - **Continuações Diretas**: raiz é a primeira entrada não vista priorizando formato `TV > MOVIE > OVA > ONA > SPECIAL > OTHER` + menor ano de lançamento + maior Match como desempate.
+  - **Nota do Card Raiz**: exibe estritamente o **seu próprio Match** (sem herdar nota mais alta de continuações). O grupo é posicionado no feed pelo Match da própria raiz.
+  - **Paginação e A11y**: paginação por grupos (raízes), contador `N recomendações (M animes no total)`, toggle com `aria-controls` e `aria-expanded`, e badges com SVG inline de corrente.
 
-### 1.5 Fator de Diversidade (`diversity_factor`) Anti-Monotonia
-- **Origem**: [Fonte C] `modelos/Animatch/backend/recommendation_system/recommender.py` (`diversity_factor`).
-- **Racional**: Se a maior média histórica do usuário for *Isekai/Fantasia*, o Top 10 atual é monopolizado por 10 obras do mesmo subgênero.
-- **Ação Técnica**: No momento da ordenação/seleção das recomendações em `scoreRecommendations`:
-  - Contabilizar as ocorrências de cada gênero no ranking em formação.
-  - Se um gênero ultrapassar $\ge 3$ aparições no Top 5, aplicar atenuação progressiva ($10\%$ a $20\%$) na pontuação dos próximos concorrentes exclusivos daquele mesmo gênero.
-  - Obras de gêneros secundários bem avaliados ganham espaço no Top 10.
-- **Arquivos**: `src/logic/recommender.js`.
-- **Complexidade**: Baixa/Média.
+### 1.4 Power Sharpening ($S^\tau$) & Margin Boost
+- **Origem**: [Fonte A] `scoring_engine.dart` (`_pow`, `_kMarginBoost`).
+- **Status**: ❌ **Descartado / Não Implementar** (Deliberação Técnica formal).
+- **Racional**:
+  - **Power Sharpening**: É uma transformação monótona; não altera a ordem do ranking e distorce a escala absoluta das notas exibidas, invalidando limiares absolutos (como gaps de desempate e badges).
+  - **Margin Boost**: Somar $+0.10$ ao vencedor apenas infla a nota exibida do 1º colocado (mesmo vício do boost de multipresença já eliminado). Critérios secundários de desempate (nota da comunidade, ano, 1ª temporada) são mais honestos e limpos.
 
-### 1.6 Recomendações Item-a-Item ("Obras Semelhantes")
-- **Origem**: [Fonte B] `SimilarAnime.jsx`.
-- **Racional**: O Animatch só recomenda no sentido *Usuário $\rightarrow$ Watchlist*. Falta descoberta contextual ("Gostei desse anime aqui, o que mais existe parecido com ele?").
-- **Ação Técnica**: Criar módulo de busca de animes similares via endpoint Jikan `/anime/{id}/recommendations` ou similaridade Jaccard/gêneros calculada no cache local.
-- **Arquivos**: `src/api/`, `src/components/AnimeDetailModal.jsx`.
-- **Complexidade**: Média.
+### 1.5 Decaimento Temporal de Preferências ($e^{-\lambda t}$)
+- **Origem**: [Fonte A] `scoring_engine.dart` (`_temporalPreferenceVector`).
+- **Status**: ⏸️ **Suspenso / Reavaliar** (Viabilidade de Dados).
+- **Racional**: As APIs de AniList, MAL e Kitsu raramente fornecem data confiável de conclusão do anime (`completedAt`). O uso de `updatedAt` penaliza clássicos favoritos que o usuário apenas reclassificou ou alterou metadados recentemente.
+
+### 1.6 Fator de Diversidade (`diversity_factor`) Anti-Monotonia
+- **Origem**: [Fonte C] `recommender.py` (`diversity_factor`).
+- **Status**: ✅ **Implementado sob Flag Explícita** (`src/logic/diversity.js`, `FilterBar.jsx`, `RecommendationGrid.jsx`).
+- **Racional**: Evitar que uma lista de planejamento seja monopolizada por 10 animes do mesmo subgênero consecutivo.
+- **Diretriz Técnica**:
+  - Controlado por flag/checkbox explícito na barra de filtros (`[ ] Diversificar feed`), **desativado por padrão**.
+  - Padrão (desligado): ordenação estritamente decrescente em notas visíveis (8.1, 8.0, 8.0, 7.9...).
+  - Ativado: aplica Maximal Marginal Relevance (MMR com $\lambda = 0.85$, janela local de 3) mantendo o #1 intocado e notas numéricas preservadas.
+
+### 1.7 Recomendações Item-a-Item ("Obras Semelhantes" no Grid)
+- **Origem**: [Fonte B] `SimilarAnime.jsx` + Reavaliação de UX.
+- **Status**: ✅ **Implementado** (`src/logic/similarity.js`, `Dashboard.jsx`, `RecommendationGrid.jsx`, `AnimeCard.jsx`, `AnimeRow.jsx`).
+- **Racional**: Não poluir o modal com rolagem pesada nem criar navegação aninhada (modal sobre modal). Padrão de streaming ("Mais como este").
+- **Ação Técnica**:
+  - Botão de ação rápida nos cards: *"✨ Similares"*.
+  - Ranqueia o feed principal pela similaridade de Jaccard ($J \ge 0.05$) contra o anime selecionado.
+  - Exibe chip dismissible no topo do grid: `✨ Mostrando similares a: [Título] ✕`.
+  - Badge visual de percentual: `[X% similar]`.
+  - **Zero chamadas de rede:** Calculado 100% in-memory sobre os dados em cache no cliente.
 
 ---
 
 ## 2. Decisão, Confiança & Explicabilidade (`src/logic/decision.js` + UI)
 
-> Torna a escolha de "O que assistir agora" assertiva, clara e semanticamente explicada na interface.
+> Torna o recurso "Decidir por mim" assertivo, alternativo e transparente.
 
 ### 2.1 Tratamento Estruturado de Cold Start
 - **Origem**: [Fonte A] `anime_repository.dart` (`getHeroRecommendation`).
-- **Racional**: Usuários com $< 3$ animes avaliados recebiam notas extrapoladas sem base amostral estável.
-- **Ação Técnica**: Detectar watchlist escassa, ativar modo `explore`, priorizar animes universalmente aclamados e emitir mensagem: *"Avalie mais obras para afinar seu perfil"*.
-- **Arquivos**: `src/logic/decision.js`, `src/components/DecisionModal.jsx`.
-- **Complexidade**: Baixa.
+- **Status**: ✅ **Implementado** (unificado pelo modelo de confiança contínua $c < 0.50$ e blend bayesiano da comunidade).
 
-### 2.2 Power Sharpening & Margin Enforcement (Desempate Categórico)
-- **Origem**: [Fonte A] `scoring_engine.dart` (`_pow`, `_kMarginBoost`).
-- **Racional**: Scores em combinações lineares tendem a se agrupar em faixas estreitas (ex: 8.15 vs 8.14 vs 8.13), gerando empates visuais imperceptíveis.
-- **Conceito Matemático**:
-  - $S' = S^\tau$ ($\tau = 2.5$) para abrir o leque de distribuição das notas.
-  - Se $\text{gap}(1º, 2º) < 0.05$, adicionar boost $+0.10$ ao vencedor.
-- **Ação Técnica**: Aplicar afiação de notas antes da ordenação final em `pickBestRecommendation`.
-- **Arquivos**: `src/logic/decision.js`.
-- **Complexidade**: Baixa.
+### 2.2 Runner-ups / Top 3 Alternativas no Modal de Decisão
+- **Origem**: [Fonte A] `anime_repository.dart` (`alts = ranked.skip(1).take(3)`).
+- **Status**: ❌ **Descartado / Código Morto** (Deliberação Técnica).
+- **Racional**: O botão de acionamento ("Escolha pra mim" / `FloatingRandomizerButton`) foi desativado no `Dashboard.jsx`. O modal e a lógica de decisão tornaram-se código inerte a ser removido.
+- **Arquivos**: `src/components/DecisionModal.jsx`, `src/logic/decision.js`.
 
 ### 2.3 Explicabilidade Dinâmica por Fator Dominante
-- **Origem**: [Fonte A] `scoring_engine.dart` (`dominantFactor`, `buildHeroExplanation`).
-- **Racional**: Substitui textos genéricos de "Recomendado para você" por explicações semânticas baseadas na matemática do score.
-- **Categorias de Copy**:
-  - `content`: *"Combina perfeitamente com seu gosto por [Gênero 1] & [Gênero 2]"*
-  - `temporal`: *"Alinhado com a sua vibe recente"*
-  - `popularity`: *"Aclamado mundialmente por mais de 1M de fãs"*
-  - `novelty`: *"Uma aposta fresca fora da sua zona de conforto"*
-- **Ação Técnica**: Expor a chave do fator dominante no card e no modal de decisão.
-- **Arquivos**: `src/components/RecommendationReason.jsx`, `src/components/DecisionModal.jsx`.
-- **Complexidade**: Média.
-
-### 2.4 Runner-ups / Top 3 Alternativas no Modal de Decisão
-- **Origem**: [Fonte A] `anime_repository.dart` (`alts = ranked.skip(1).take(3)`).
-- **Racional**: Se o usuário não gostar do anime sorteado no `DecisionModal`, hoje ele precisa fechar ou re-sortear tudo do zero.
-- **Ação Técnica**: Retornar o campeão e os 3 concorrentes imediatos que quase venceram (`alternatives`), renderizando-os como mini-cards opcionais no rodapé do modal.
-- **Arquivos**: `src/components/DecisionModal.jsx`, `src/logic/decision.js`.
-- **Complexidade**: Baixa.
-
-### 2.5 Confiança com Penalidade de Entropia Normalizada
-- **Origem**: [Fonte A] `scoring_engine.dart` (`normalizedEntropy`).
-- **Racional**: Se o modelo ranqueou 20 animes e todos ficaram com exatamente a mesma nota (distribuição plana/ruído alto), o índice de confiança deve cair automaticamente.
-- **Conceito Matemático**: $H = -\sum p_i \ln p_i$. Entropia normalizada $H / \ln(N)$ subtrai da confiança sigmoide.
-- **Ação Técnica**: Reduzir a % de confiança exibida se a incerteza do ranqueamento for estatisticamente alta.
-- **Arquivos**: `src/logic/decision.js`.
-- **Complexidade**: Média.
+- **Origem**: [Fonte A] `scoring_engine.dart` (`dominantFactor`).
+- **Status**: ✅ **Parcialmente Implementado** (já exibe animes âncora e gêneros de maior contribuição).
+- **Melhoria Futura**: Expor categoria semântica explícita (`taste`, `community`, `anchor`, `discovery`).
 
 ---
 
 ## 3. Interface, Resiliência Visual & UX dos Cards (`src/components/`)
 
-> Elimina imagens quebradas, adiciona hierarquia visual instantânea e introduz elenco de voz sem poluir a interface.
+> Elimina quebras de layout, padroniza escalas visuais e introduz metadados sob demanda.
 
 ### 3.1 Fallback Resiliente de Imagens em 3 Camadas
-- **Origem**: [Fonte B] `RecommendationCard.jsx` e `SimilarAnime.jsx`.
-- **Racional**: Quando o CDN de AniList ou Kitsu cai, retorna 404 ou links de thumbnail expiram, o card fica preto/cinza ou quebrado.
-- **Mecanismo de Resiliência**:
-  1. **Tier 1**: URL original de capa da API (`media.coverImage.large`).
-  2. **Tier 2 (On Error)**: Chamada leve sob demanda à Jikan API (`https://api.jikan.moe/v4/anime/{malId}`) resgatando `images.jpg.large_image_url`.
-  3. **Tier 3 (Fallback Final)**: Geração instantânea de banner SVG via `ui-avatars.com` com as iniciais do título e fundo na cor do tema Animatch (`#6366f1` / `#ff3366`).
-- **Ação Técnica**: Criar hook compartilhado `useImageFallback(anime)` e plugar no `onError` de `AnimeCard.jsx` e `AnimeDetailModal.jsx`.
-- **Arquivos**: `src/hooks/useImageFallback.js`, `src/components/AnimeCard.jsx`, `src/components/AnimeDetailModal.jsx`.
-- **Complexidade**: Baixa.
+- **Origem**: [Fonte B] `RecommendationCard.jsx`.
+- **Status**: ✅ **Implementado** (`src/hooks/useImageFallback.js`, `AnimeCard.jsx`, `AnimeRow.jsx`).
+- **Mecanismo**: CDN original $\rightarrow$ Jikan API (on error) $\rightarrow$ SVG vetorial neutro com iniciais do título.
 
 ### 3.2 Escala Semântica de Cores para o Match Badge
 - **Origem**: [Fonte B] `RecommendationCard.jsx` (`getScoreColor`).
-- **Racional**: A nota prevista tinha estilização cinza/monocromática; o usuário precisava ler o número para saber se o match era bom.
-- **Escala Visual Semântica**:
-  - $\ge 80\%$: Gradiente Esmeralda/Verde (`#10b981` $\rightarrow$ `#059669`) — Afinidade máxima.
-  - $\ge 60\%$: Gradiente Azul/Ciano (`#3b82f6` $\rightarrow$ `#0891b2`) — Afinidade sólida.
-  - $\ge 40\%$: Gradiente Laranja/Âmbar (`#f59e0b` $\rightarrow$ `#d97706`) — Afinidade neutra.
-  - $< 40\%$: Gradiente Carmesim/Vermelho (`#ef4444` $\rightarrow$ `#dc2626`) — Fora da zona.
-- **Ação Técnica**: Adicionar classes dinâmicas em `AnimeCard.module.css`.
-- **Arquivos**: `src/components/AnimeCard.jsx`, `src/components/AnimeCard.module.css`.
-- **Complexidade**: Baixa.
+- **Status**: ❌ **Descartado / Não Implementar** (Deliberação Técnica).
+- **Racional**: A escala de Match é estatisticamente comprimida no topo (ex: 7.95 a 8.08). Faixas fixas geram pseudoprecisão (8.00 verde vs 7.99 azul), tons baixos (âmbar/carmesim) nunca apareceriam no feed ranqueado e cor isolada prejudica acessibilidade (daltonismo).
+- **Arquivos**: `src/components/AnimeCard.module.css`, `src/components/AnimeRow.module.css`.
 
 ### 3.3 Badge Visual de Posição (#Rank) no Grid
 - **Origem**: [Fonte B] `RecommendationCard.jsx` (`#rank badge`).
-- **Racional**: O usuário não identificava visualmente e com rapidez qual era a recomendação #1, #2 ou #3 no meio da grade de cards.
-- **Ação Técnica**: Adicionar selo discreto `#1`, `#2`, `#3` no canto superior esquerdo de cada card no grid de recomendações.
-- **Arquivos**: `src/components/RecommendationGrid.jsx`, `src/components/AnimeCard.jsx`.
-- **Complexidade**: Baixa.
+- **Status**: ❌ **Descartado / Não Implementar** (Deliberação Técnica).
+- **Racional**: Redundante com a ordem natural de leitura da tela. Gera ambiguidade no agrupamento por franquias e perde sentido em ordenações secundárias e filtros.
+- **Arquivos**: `src/components/AnimeCard.jsx`.
 
-### 3.4 Personagens e Dubladores (*Seiyuus*) no Modal de Detalhes
-- **Origem**: [Fonte C] `modelos/Animatch/src/pages/AnimeDetails.jsx`.
-- **Decisão de Design (Não Poluir o Card)**:
-  - ⚠️ **Regra**: O card do Dashboard e a visão principal do modal **NÃO** receberão essa lista para manter o visual limpo, leve e focado na decisão.
-  - **Localização**: Ficará exclusivamente dentro de uma aba secundária recolhível (*accordion/drawer* "Elenco & Dubladores") dentro do `AnimeDetailModal.jsx`.
-  - **Carregamento sob demanda**: A lista só é buscada via API (`/v4/anime/{id}/characters`) quando o usuário clicar para expandir a aba de elenco.
-- **Arquivos**: `src/components/AnimeDetailModal.jsx`, `src/components/AnimeCastSection.jsx`.
-- **Complexidade**: Média.
-
-### 3.5 Filtro de Nota Mínima de Afinidade (Minimum Match Score)
-- **Origem**: [Fonte C] `modelos/Animatch/src/pages/AIRecommendations.jsx`.
-- **Racional**: O `FilterBar.jsx` permite filtrar por gênero, ano e formato, mas não permite filtrar por nível de afinidade. Se a lista de planejamento do usuário tiver 100 animes, ele não consegue isolar rapidamente apenas o que tem match $\ge 8.0$.
-- **Ação Técnica**: Adicionar seletor dropdown ou chips de nota mínima no `FilterBar.jsx` (Todos, $\ge 7.0$, $\ge 8.0$, $\ge 9.0$) filtrando `predictedScore`.
+### 3.4 Filtro de Nota Mínima de Afinidade (Minimum Match Score)
+- **Origem**: [Fonte C] `AIRecommendations.jsx`.
+- **Status**: ❌ **Descartado / Não Implementar** (Deliberação Técnica).
+- **Racional**: Faixas absolutas ($\ge 7.0, \ge 8.0, \ge 9.0$) colapsam na distribuição real (selecionam tudo ou nada). A ordenação decrescente e a paginação já cobrem a necessidade de forma relativa e sem atrito.
 - **Arquivos**: `src/components/FilterBar.jsx`.
-- **Complexidade**: Baixa.
 
-### 3.6 Empty State com Ação Educativa (Explore / Reset)
-- **Origem**: [Fonte C] `modelos/Animatch/src/pages/AIRecommendations.jsx`.
-- **Racional**: Quando o usuário aplica filtros excessivos ou a lista de recomendações fica vazia, a tela não deve ficar em branco sem saída.
-- **Ação Técnica**: Renderizar componente visual amigável com botão de CTA direto (*"Limpar Filtros"* ou *"Adicionar animes ao Planejamento"*).
-- *(Nota de Decisão: O banner redundante 'Como Funciona' foi descartado por já estar coberto integralmente no FAQ da Landing Page em `landing.faq_q3`).*
-- **Arquivos**: `src/components/RecommendationGrid.jsx`.
-- **Complexidade**: Baixa.
+### 3.5 Personagens e Dubladores (*Seiyuus*) no Modal de Detalhes
+- **Origem**: [Fonte C] `AnimeDetails.jsx`.
+- **Status**: ❌ **Descartado / Não Implementar** (Deliberação Técnica).
+- **Racional**: Espaço nobre do modal já contém metadados, `RecommendationReason`, sinopse, streaming e links. Adicionar elenco causaria rolagem vertical excessiva em telas mobile para um dado secundário na decisão de "o que assistir".
+- **Arquivos**: `src/components/AnimeDetailModal.jsx`.
+
+### 3.6 Sincronização de Decimais & Badges da Landing Page
+- **Status**: ⏳ **Pendente (Sprint B)**.
+- **Ação Técnica**:
+  - Alinhar FAQ da Landing com 1 casa decimal (`toFixed(1)`: `8.5/10`, `7.2/10`, `0.7/10`).
+  - Badge *Aclamado*: calcular com nota **amortecida** (evita selo em nichos de 15 votos).
+  - Badge *Joia*: manter com nota **crua** (preserva mérito de comunidades de nicho).
 
 ---
 
 ## 4. Rede, Cache & Performance (`src/cache/`)
 
-> Garante velocidade percebida de 0ms e proteção total contra rate limits (429) de AniList, MAL e Kitsu.
-
 ### 4.1 Single-Flight Request Deduplication (Promise Coalescing)
-- **Origem**: [Fonte A] `anime_repository.dart` (`Map<String, Future<...>>`).
-- **Racional**: Se dois componentes renderizam ao mesmo tempo e pedem a mesma busca ou lista, ocorrem 2 requisições HTTP paralelas idênticas antes de salvar em cache, gerando desperdício e risco de Rate Limit (429).
-- **Ação Técnica**: Manter um `Map<string, Promise>` em `apiCache.js`. Se uma requisição com a mesma chave já estiver em andamento, retorna a mesma Promise existente e limpa a chave no `.finally()`.
-- **Arquivos**: `src/cache/apiCache.js`, `src/cache/apiCache.test.js`.
-- **Complexidade**: Baixa.
+- **Origem**: [Fonte A] `anime_repository.dart`.
+- **Status**: ✅ **Implementado** (`src/cache/apiCache.js`).
 
-### 4.2 Stale-While-Revalidate (SWR) no Pipeline Local
-- **Origem**: [Fonte A] `anime_repository.dart` (`_refreshRecommendationsInBackground`).
-- **Racional**: O usuário não deve esperar loading se já existem dados em cache IndexedDB.
-- **Ação Técnica**: Retornar o cache local instantaneamente (0ms) e disparar revalidação assíncrona em background via worker/promessa paralela, atualizando a tela sem bloqueio.
-- **Arquivos**: `src/hooks/useRecommendationPipeline.js`, `src/cache/cloudListSync.js`.
-- **Complexidade**: Média.
+### 4.2 Pipeline Progressivo & SWR
+- **Status**: ✅ **Parcialmente Implementado** (`useProgressiveRecommendationPipeline.js` com Fase 1 rápida em lote inicial de 30 e Fase 2 assíncrona).
+- **Melhoria Futura**: Persistência do ranking calculado em IndexedDB para render instantâneo de re-visita.
 
 ### 4.3 Histórico de Busca Recente Persistido
-- **Origem**: [Fonte A] `watchlist_repository.dart` (`getRecentSearches`, `addSearchTerm`).
-- **Racional**: Agilidade para o usuário repetir buscas anteriores na barra de pesquisa sem reescrever texto.
-- **Ação Técnica**: Persistir os últimos 10 termos únicos em IndexedDB/`localStorage`.
-- **Arquivos**: `src/cache/idbCache.js`, `src/components/FilterBar.jsx`.
-- **Complexidade**: Baixa.
+- **Origem**: [Fonte A] `watchlist_repository.dart`.
+- **Status**: ⏳ **Pendente (Sprint E)**.
+- **Ação Técnica**: Persistir os últimos 10 termos únicos de busca no `idbCache.js`.
 
 ---
 
-## 5. Módulos de Descoberta & Gamificação (Genre Mixer)
-
-> Transforma a navegação estática por gêneros em um laboratório interativo de alquimia de combos.
+## 5. Descoberta & Gamificação (Genre Mixer)
 
 ### 5.1 Genre Mixer: Alquimia de Gêneros ($G_1 \times G_2$)
 - **Origem**: [Fonte D] `genres.js`.
-- **Racional**: O `GenreRecommendationModal.jsx` atual filtra apenas 1 gênero isolado da lista do usuário. O Genre Mixer permite combinar dois eixos independentes para descobrir nichos específicos ou quebrar bloqueios de escolha.
-- **Estrutura Funcional**:
-  - **Dois Painéis Independentes**: Painel 1 (Gênero Primário, destaque Carmesim) $\times$ Painel 2 (Gênero Secundário, destaque Ciano).
-  - **Modo Dual de Busca**:
-    - *Aba 1 (No meu Planejamento)*: Filtra a lista de animes já salvos pelo usuário com interseção dos 2 gêneros e re-ranqueia por `predictedScore`.
-    - *Aba 2 (Explorar Mundo / Descoberta)*: Busca animes mais bem avaliados globalmente via Jikan (`genres=g1,g2&order_by=score`) ou AniList GraphQL para trazer obras fora da bolha do usuário.
-  - **10 Presets Lendários (Chips de 1 Toque)**:
-    1. *Battle Scholar*: Action $\times$ School
-    2. *Dark Fantasy*: Fantasy $\times$ Psychological
-    3. *Love & Laughs*: Romance $\times$ Comedy
-    4. *Space Horror*: Sci-Fi $\times$ Horror
-    5. *Martial Mystic*: Martial Arts $\times$ Supernatural
-    6. *Tragic Slice*: Slice of Life $\times$ Drama
-    7. *Mecha War*: Mecha $\times$ Military
-    8. *Isekai Quest*: Isekai $\times$ Adventure
-    9. *Mind Games*: Suspense $\times$ Mystery
-    10. *Sports Spirit*: Sports $\times$ Drama
-  - **Destaque Visual nos Cards**: As tags dos 2 gêneros combinados ganham realce visual imediato ($G_1$ com badge carmesim, $G_2$ com badge ciano).
-  - **Integração**: Ao clicar em qualquer anime resultante, abre o `AnimeDetailModal.jsx` existente.
-- **Arquivos**: `src/components/GenreMixerModal.jsx`, `src/components/GenreMixerModal.module.css`.
-- **Complexidade**: Média.
+- **Status**: ⏸️ **Suspenso / Reavaliação de UX** (Deliberação Técnica).
+- **Racional**: Cruzamentos de gêneros incompatíveis ou nichados (ex: *Gore* + *Família*) geram listas vazias frequentes ("Nenhum anime encontrado"), passando a sensação de site quebrado ou bugado no escopo de planejamento do usuário.
+- **Arquivos**: `src/components/GenreMixerModal.jsx`.
 
 ---
 
-## 6. Expansão de Catálogo & Produto (Futuro)
+## 6. Validação, Regressão & Qualidade (`scripts/`)
 
-### 6.1 Suporte Unificado a Mangás & Light Novels
-- **Origem**: [Fonte A] `watchlist_repository.dart` (`isManga`, `chapters`, `volumes`).
-- **Racional**: O Animatch atual foca exclusivamente em animes. Toda a lógica de listas e status pode ser espelhada para mangás futuramente.
-- **Complexidade**: Alta.
+### 6.1 Snapshot de Regressão & Benchmark Automatizado
+- **Status**: ✅ **Implementado** (`scripts/regression-benchmark.mjs`, `scripts/run-regression-comparison.mjs`).
+- **Capacidade**: Fixture congelada com 546 animes históricos + 201 planejados.
+- **Métricas Validadas**: Spearman (0.9629), MAE (0.0436), RMSE (0.0459).
 
 ---
 
-## Matriz de Priorização (Esforço x Impacto)
+## Plano de Execução Atualizado
 
 ```mermaid
-quadrantChart
-    title Matriz de Decisão: Melhorias Técnicas Animatch
-    x-axis Baixo Esforço --> Alto Esforço
-    y-axis Baixo Impacto --> Alto Impacto
-    quadrant-1 Prioridade 2 (Planejar)
-    quadrant-2 Prioridade 1 (Ganhos Rápidos)
-    quadrant-3 Prioridade 4 (Secundário)
-    quadrant-4 Prioridade 3 (Repensar)
-    "Single-Flight Cache": [0.15, 0.88]
-    "Proxy Notas por Status": [0.20, 0.85]
-    "Bayesiano com Membros": [0.25, 0.90]
-    "Sharpening & Margem": [0.22, 0.75]
-    "Top 3 Alternativas": [0.18, 0.70]
-    "Cores Semânticas Badge": [0.12, 0.65]
-    "#Rank Badge Grid": [0.10, 0.60]
-    "Fallback Imagens 3 Camadas": [0.24, 0.88]
-    "Filtro Nota Mínima": [0.14, 0.72]
-    "Empty State com CTA": [0.12, 0.60]
-    "Fator Diversidade": [0.30, 0.82]
-    "Genre Mixer (Alquimia)": [0.42, 0.86]
-    "Obras Semelhantes Modal": [0.38, 0.78]
-    "Decaimento Temporal": [0.45, 0.92]
-    "Explicabilidade Dinâmica": [0.40, 0.78]
-    "SWR Assíncrono": [0.50, 0.80]
-    "Elenco/Seiyuus em Drawer": [0.48, 0.62]
-    "Histórico de Busca": [0.18, 0.40]
-    "Suporte a Mangás": [0.90, 0.65]
+flowchart TD
+    subgraph CONCLUIDO["Concluído & Mergeado"]
+        C1["Single-Flight Cache (apiCache.js)"]
+        C2["Amortecimento Bayesiano (m=1.000, C=7.0)"]
+        C3["Proxy de Status & Laplace Lift (recommender.js)"]
+        C4["Fallback Imagens 3 Camadas (useImageFallback.js)"]
+        C5["Franquias: Remakes vs Sequências (pickFranchiseRoot)"]
+        C6["A11y & Paginação por Grupos (RecommendationGrid)"]
+        C7["Snapshot & Comparação de Regressão (scripts/)"]
+        D2["Obras Similares no Grid (Jaccard Local)"]
+        D4["Diversidade via Reordenação (MMR)"]
+    end
+
+    subgraph SPRINT_B["Sprint B: Consistência & Landing"]
+        B1["1 Casa Decimal no FAQ da Landing"]
+        B2["Badge Aclamado com Nota Amortecida"]
+        B3["Badge Joia com Nota Crua"]
+    end
+
+    subgraph DESCARTADO_C["Sprint C: Descartada (Deliberação Técnica)"]
+        C_UI1["Top 3 Alternativas (Código Morto)"]
+        C_UI2["Cores Semânticas (Pseudoprecisão / Escala Comprimida)"]
+        C_UI3["Selo #Rank (Redundante com Grid e Franquias)"]
+        C_UI4["Filtro Nota Mínima (Absoluto Inútil em Feed Relativo)"]
+    end
+
+    CONCLUIDO --> SPRINT_B
 ```
 
----
+### Detalhamento dos Próximos Sprints
 
-## Ordem de Implementação Sugerida
+#### **Sprint B: Consistência & Badges (Imediato)**
+1. **Landing Page**: Sincronizar FAQ para 1 casa decimal (`toFixed(1)`: `8.5/10`, `7.2/10`, `0.7/10`).
+2. **Badges de Discrepância**:
+   - `ACCLAIMED`: disparar comparando `communityScore` amortecido com o gosto (`communityScore >= 8.5 && communityScore - baseTasteScore >= 1.0`).
+   - `HIDDEN_GEM`: calcular sobre a nota crua para manter justiça a nichos.
 
-### Sprint 1: Robustez Imediata, Imagens & Resgate de Listas (Ganhos Rápidos)
-- [x] **Single-Flight Promise Coalescing** em [apiCache.js](file:///C:/Sistemas/Projetos/animes/src/cache/apiCache.js) *(evita chamadas duplicadas)*
-- [x] **Amortecimento Bayesiano por Membros** em [recommender.js](file:///C:/Sistemas/Projetos/animes/src/logic/recommender.js) *(proteção contra nichos irrelevantes)*
-- [x] **Proxy de Notas por Status** em [recommender.js](file:///C:/Sistemas/Projetos/animes/src/logic/recommender.js) *(recomendações ativas para listas sem notas)*
-- [x] **Fallback de Imagens em 3 Camadas** via `useImageFallback.js` *(fim dos cards com imagens quebradas)*
+#### **Sprint C: Descartada Formalmente**
+- Itens de UI dependentes de faixas fixas, selos redundantes e código morto foram invalidados pela compressão do Match e ordenação natural.
 
-### Sprint 2: Assertividade, Diversidade & UI de Ranking
-- [ ] **Fator de Diversidade (`diversity_factor`)** em [recommender.js](file:///C:/Sistemas/Projetos/animes/src/logic/recommender.js) *(evita saturação de um único gênero)*
-- [ ] **Power Sharpening & Margin Boost** em [decision.js](file:///C:/Sistemas/Projetos/animes/src/logic/decision.js) *(desempate categórico do #1)*
-- [ ] **Tratamento de Cold Start & Modos de Confiança** em [decision.js](file:///C:/Sistemas/Projetos/animes/src/logic/decision.js)
-- [ ] **Top 3 Alternativas** no [DecisionModal.jsx](file:///C:/Sistemas/Projetos/animes/src/components/DecisionModal.jsx)
-- [ ] **Escala Semântica de Cores no Match Badge** e **Selo #Rank no Grid**
-- [ ] **Filtro de Nota Mínima de Afinidade** no [FilterBar.jsx](file:///C:/Sistemas/Projetos/animes/src/components/FilterBar.jsx)
-- [ ] **Empty State com CTA de Ação** no [RecommendationGrid.jsx](file:///C:/Sistemas/Projetos/animes/src/components/RecommendationGrid.jsx)
+#### **Sprint D: Similaridade & Diversidade (Em Execução)**
+1. **Obras Similares no Grid**: botão de ação rápida nos cards reordenando o feed local por Jaccard com chip dismissible no topo (zero requisições de rede, sem Jikan).
+2. **Fator de Diversidade (MMR)**: reordenação pura anti-monotonia sem alterar o Match exibido.
+*(Genre Mixer suspenso por risco de retorno vazio; Elenco/Seiyuus descartado por poluição de UI).*
 
-### Sprint 3: Gamificação, Similaridade & Explicação
-- [ ] **Genre Mixer (Alquimia de Gêneros $G_1 \times G_2$)** com 10 Presets Lendários e Modo Dual (Watchlist + Global)
-- [ ] **Seção "Obras Semelhantes"** no [AnimeDetailModal.jsx](file:///C:/Sistemas/Projetos/animes/src/components/AnimeDetailModal.jsx)
-- [ ] **Explicabilidade Dinâmica por Fator Dominante** nos cards
-- [ ] **Aba Recolhível de Dubladores (*Seiyuus*)** sob demanda no modal (sem poluir o card principal)
-
-### Sprint 4: Inteligência Temporal, Performance de Cache & Histórico
-- [ ] **Decaimento Temporal ($e^{-\lambda t}$)** no `buildTasteProfile` *(afinidade com o momento presente)*
-- [ ] **Stale-While-Revalidate (SWR)** no pipeline de dados
-- [ ] **Histórico de buscas recentes** persistido no IndexedDB
+#### **Sprint E: Performance & Persistência**
+1. **Histórico de Busca Recente**: persistido no IndexedDB via `idbCache.js`.
+2. **Cache SWR de Recomendações**: hidratação instantânea do ranking em revisitas.

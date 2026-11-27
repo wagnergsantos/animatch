@@ -219,6 +219,9 @@
     "allBadges": "Todos os Destaques",
     "seasonOnly": "Apenas da Temporada",
     "streamingOnly": "Somente assinados",
+    "diversify": "Diversificar feed (alternar gêneros)",
+    "diversifyShort": "Diversificar",
+    "diversifyTooltip": "Reordena recomendações com notas próximas para evitar repetições consecutivas do mesmo gênero.",
     "clearAll": "Limpar todos os filtros",
     "clear": "Limpar Filtros",
     "exportCSV": "Exportar lista atual (CSV)",
@@ -359,7 +362,13 @@
     "loadMoreWithCount": "Carregar mais animes ({{count}} de {{remaining}} restantes)",
     "loadingMore": "Carregando {{count}} animes...",
     "srCount": "{{count}} recomendações encontradas",
-    "srLoading": "Atualizando recomendações..."
+    "srLoading": "Atualizando recomendações...",
+    "similarBtn": "Similares",
+    "viewSimilar": "Ver animes similares no planejamento",
+    "similarBannerTitle": "Mostrando similares a",
+    "clearSimilar": "Limpar filtro",
+    "percentSimilar": "{{percent}}% similar",
+    "viewSimilarInFeed": "Ver similares no feed"
   },
   "modals": {
     "genreOrigin": {
